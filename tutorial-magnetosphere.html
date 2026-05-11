@@ -252,7 +252,7 @@ canvas#stars {
   z-index: 100;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 #section-nav a {
   display: block;
@@ -284,6 +284,14 @@ canvas#stars {
   pointer-events: none;
 }
 #section-nav a:hover::after { opacity: 1; }
+#section-nav a.text-dot {
+  border-radius: 3px;
+}
+#section-nav a.text-dot.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
 </style>
 </head>
 <body>
@@ -291,8 +299,11 @@ canvas#stars {
 <button class="fullscreen-btn" onclick="document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()" title="Toggle fullscreen" aria-label="Toggle fullscreen">&#x26F6;</button>
 <nav id="section-nav">
   <a href="#opening-wrap" data-label="Opening"><span></span></a>
+  <a href="#text-opening" data-label="The Field" class="text-dot"><span></span></a>
   <a href="#circuit-container" data-label="Circuit"><span></span></a>
+  <a href="#text-circuit" data-label="The Storm" class="text-dot"><span></span></a>
   <a href="#gate-container" data-label="Gate"><span></span></a>
+  <a href="#text-gate" data-label="The Impact" class="text-dot"><span></span></a>
 </nav>
 
 <!-- ============ THE OPENING ============ -->
@@ -427,7 +438,7 @@ canvas#stars {
   <p class="subtitle">Earth's invisible ocean</p>
 </div>
 
-<div class="text-col">
+<div class="text-col" id="text-opening">
 <p>Deep inside Earth, a core of liquid iron has been convecting for four and a half billion years. That churning metal generates the magnetic field that inflates this entire structure&mdash;and drives a circuit that reaches from the core to the edge of space.</p>
 </div>
 
@@ -573,7 +584,7 @@ canvas#stars {
   <button class="ctrl-btn" id="circuit-resetbtn" onclick="resetCircuit()">Reset</button>
 </div>
 
-<div class="text-col">
+<div class="text-col" id="text-circuit">
 <p>Kristian Birkeland proposed this circuit in 1908. It took sixty years for satellites to prove him right. The current descends along field lines, crosses the polar ionosphere, rises on the other side, and returns to space. Where it enters the atmosphere, atoms glow: the aurora.</p>
 <p>The magnetopause normally holds. Solar wind deflects around it&mdash;nothing gets through. But the Sun is not constant. It sends thick plumes of magnetized plasma&mdash;coronal mass ejections&mdash;that can overwhelm the magnetosphere. When the Sun's magnetic field turns against Earth's, the shield's weak point breaks open. What follows is a geomagnetic storm.</p>
 </div>
@@ -657,7 +668,7 @@ canvas#stars {
   <button class="ctrl-btn" id="gate-resetbtn" onclick="resetGate()">Reset</button>
 </div>
 
-<div class="text-col">
+<div class="text-col" id="text-gate">
 <p>When the gate opens, a billion watts of power pour into the magnetosphere&mdash;driving currents along field lines, heating plasma, stripping satellites of their electronics, and lighting the aurora across the sky. In the largest storms, the magnetopause is pushed inside geosynchronous orbit&mdash;the protective envelope compresses until the satellites that depend on it are left exposed in the raw solar wind.</p>
 </div>
 
@@ -2313,7 +2324,7 @@ if(window.matchMedia('(max-width: 768px)').matches){
   const nav = document.getElementById('section-nav');
   if(!nav) return;
   const links = nav.querySelectorAll('a');
-  const ids = ['opening-wrap','circuit-container','gate-container'];
+  const ids = ['opening-wrap','text-opening','circuit-container','text-circuit','gate-container','text-gate'];
 
   links.forEach(a => {
     a.addEventListener('click', e => {
