@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How LLMs Work: One Pass Through the Machinery</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --text: #1e293b;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
+  --border: #e2e8f0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+h1 {
+  font-size: 2.8em;
+  text-align: center;
+  padding: 80px 20px 10px;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--muted);
+  font-size: 1.2em;
+  margin-bottom: 60px;
+  font-style: italic;
+}
+
+h2 {
+  font-size: 2em;
+  margin: 0 0 30px 0;
+  padding-top: 30px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 10px;
+  color: var(--text);
+}
+
+.text-column {
+  max-width: 780px;
+  margin: 0 auto 40px;
+  padding: 0 24px;
+}
+
+.diagram-wrap {
+  max-width: 1100px;
+  margin: 0 auto 60px;
+  padding: 0 24px;
+}
+
+.diagram-container {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+}
+
+.diagram-container svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+.ctrl-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(30, 41, 59, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85em;
+  z-index: 10;
+  transition: background 0.2s;
+}
+.ctrl-btn:hover { background: rgba(30, 41, 59, 0.15); }
+.ctrl-btn-reset { right: 90px; }
+
+.description-text {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95em;
+  margin-top: 14px;
+  font-style: italic;
+  min-height: 1.7em;
+}
+
+.example-sentence {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 1.6em;
+  text-align: center;
+  padding: 30px 20px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.failure-block {
+  margin-bottom: 24px;
+}
+.failure-block h3 {
+  font-size: 1.15em;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.failure-block p { margin-bottom: 0; }
+
+p { margin-bottom: 18px; }
+
+.closing {
+  max-width: 780px;
+  margin: 0 auto;
+  text-align: center;
+  font-style: italic;
+  color: var(--muted);
+  padding: 40px 24px 20px;
+}
+
+.gen-footer {
+  max-width: 780px;
+  margin: 60px auto 40px;
+  padding: 0 24px;
+  font-size: 0.85em;
+  color: var(--muted);
+}
+.gen-footer hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.gen-footer pre {
+  background: rgba(30, 41, 59, 0.04);
+  padding: 12px 16px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 0.95em;
+  color: var(--muted);
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.slider-row label {
+  font-size: 0.95em;
+  color: var(--text);
+}
+.slider-row input[type="range"] {
+  width: 260px;
+  accent-color: var(--accent);
+}
+.temp-val {
+  font-family: monospace;
+  min-width: 3em;
+  text-align: center;
+}
+.sample-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.2s;
+}
+.sample-btn:hover { background: #2563eb; }
+.sample-result {
+  text-align: center;
+  font-size: 1.1em;
+  margin-top: 14px;
+  min-height: 1.5em;
+  color: var(--text);
+}
+
+.attn-line { transition: opacity 0.4s; }
+
+.puzzle-slot { display: none; }
+
+@media print {
+  .ctrl-btn, .ctrl-btn-reset, .slider-row, .sample-btn { display: none !important; }
+  .diagram-container { break-inside: avoid; }
+  body { font-size: 12pt; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attn-line { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<h1>How LLMs Work</h1>
+<p class="subtitle">One pass through the machinery</p>
+
+<!-- ============================================================ -->
+<!-- SECTION I: THE TEXT -->
+<!-- ============================================================ -->
+<div class="text-column" id="sec-text">
+<h2>I. The Text</h2>
+
+<p>When you type a question into ChatGPT, Claude, or any large language model, the text you wrote passes through a series of transformations before a single word of response is chosen. This is one pass through that machinery.</p>
+
+<div class="example-sentence">How many R's are in strawberry?</div>
+
+<p>Between the moment you press Enter and the first character appearing, something remarkable happens. This sentence is about to leave the world of human language and enter a world of numbers. Follow it through.</p>
+</div>
+
+<div class="puzzle-slot" data-topic="text"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION II: THE TOKENS -->
+<!-- ============================================================ -->
+<div class="text-column">
+<h2>II. The Tokens</h2>
+<p>The model doesn't see characters or words. It sees subword chunks, carved up by an algorithm that knows nothing about meaning&mdash;only frequency. Common fragments survive intact. Rare words get split. This is why counting letters inside a word is so disorienting for a language model: the letters were never there to count.</p>
+</div>
+
+<div class="diagram-wrap">
+<div class="diagram-container" id="tokens-container">
+  <button class="ctrl-btn" id="btn-tokens-play" aria-label="Pause tokenization animation">Pause</button>
+  <button class="ctrl-btn ctrl-btn-reset" id="btn-tokens-reset" aria-label="Reset tokenization animation">Reset</button>
+  <svg id="svg-tokens" viewBox="0 0 1100 200" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Animation showing the sentence How many R's are in strawberry? being split into nine subword tokens, each with a distinct color. The word strawberry is split into straw and berry, demonstrating that the model never sees individual letters.">
+  </svg>
+</div>
+</div>
+
+<div class="puzzle-slot" data-topic="tokens"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION III: THE SPACE -->
+<!-- ============================================================ -->
+<div class="text-column">
+<h2>III. The Space</h2>
+<p>Each token becomes a vector&mdash;a point in a space with thousands of dimensions. In this space, distance is meaning. Tokens that play similar roles in language cluster together; tokens with nothing in common drift apart. The model's entire understanding of language lives in the geometry of this space.</p>
+</div>
+
+<div class="diagram-wrap">
+<div class="diagram-container" id="space-container">
+  <button class="ctrl-btn" id="btn-space-play" aria-label="Pause embedding space animation">Pause</button>
+  <svg id="svg-space" viewBox="0 0 1100 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Nine tokens positioned in a two-dimensional embedding space. Similar tokens cluster together: straw and berry are close, How and question mark are related, while R and in are far apart.">
+  </svg>
+</div>
+</div>
+
+<div class="puzzle-slot" data-topic="space"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION IV: THE CONVERSATION -->
+<!-- ============================================================ -->
+<div class="text-column">
+<h2>IV. The Conversation</h2>
+<p>Here is where the computation happens. Each token asks every other token: <em>how much do you matter to me?</em> The answers are different for every token. &ldquo;How&rdquo; cares about &ldquo;?&rdquo; because they frame a question together. &ldquo;R&rdquo; cares about &ldquo;straw&rdquo; and &ldquo;berry&rdquo; because they are the subject it needs to reason about. Click any token to see what it attends to.</p>
+</div>
+
+<div class="diagram-wrap">
+<div class="diagram-container" id="attn-container">
+  <svg id="svg-attn" viewBox="0 0 1100 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive attention visualization. Click any token to see which other tokens it attends to, shown as lines of varying thickness proportional to attention weight.">
+  </svg>
+  <div class="description-text" id="attn-desc"></div>
+</div>
+</div>
+
+<div class="puzzle-slot" data-topic="attention"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION V: THE CHOICE -->
+<!-- ============================================================ -->
+<div class="text-column">
+<h2>V. The Choice</h2>
+<p>After all that computation, the model produces a probability distribution over every token in its vocabulary. The next word is chosen by a weighted coin flip. Temperature controls the shape of that flip: low temperature concentrates probability on the top candidate; high temperature flattens the distribution toward randomness.</p>
+</div>
+
+<div class="diagram-wrap">
+<div class="diagram-container" id="sampling-container">
+  <svg id="svg-sampling" viewBox="0 0 1100 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Horizontal bar chart showing probability distribution over eight candidate next tokens. A temperature slider reshapes the distribution, and a Sample button performs a weighted random selection.">
+  </svg>
+  <div class="slider-row">
+    <label for="temp-slider">Temperature:</label>
+    <input type="range" id="temp-slider" min="5" max="200" value="100" aria-label="Temperature">
+    <span class="temp-val" id="temp-display">1.00</span>
+    <button class="sample-btn" id="sample-btn" aria-label="Sample a token from the distribution">Sample</button>
+  </div>
+  <div class="sample-result" id="sample-result"></div>
+</div>
+</div>
+
+<div class="puzzle-slot" data-topic="sampling"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION VI: THE FAILURES -->
+<!-- ============================================================ -->
+<div class="text-column" id="sec-failures">
+<h2>VI. The Failures</h2>
+
+<p>The machinery is elegant, but it has characteristic failure modes. Each one follows directly from how the system works.</p>
+
+<div class="failure-block">
+<h3>Hallucination</h3>
+<p>Plausible does not mean true. The model pattern-completes; it does not fact-check. Every token is chosen because it is statistically likely given the preceding tokens, not because it corresponds to reality. Confabulation is the default mode of operation. Accuracy is the special case&mdash;the remarkable thing is how often the patterns happen to be correct.</p>
+</div>
+
+<div class="failure-block">
+<h3>Sycophancy</h3>
+<p>Agreeing was rewarded during training. When you push back on a model's answer, the probability distribution shifts toward approval&mdash;toward &ldquo;you're right, I was wrong&rdquo;&mdash;regardless of whether you actually are right. It is not lying. It is completing the most likely pattern, and the most likely pattern after human disagreement is human-pleasing agreement.</p>
+</div>
+
+<div class="failure-block">
+<h3>Repetition</h3>
+<p>Attention creates a feedback loop. A token's presence in the context increases its own probability in the next generation step. Say a word once and it becomes slightly more likely to appear again. Under certain conditions, the model gets stuck in a groove of its own making&mdash;repeating phrases, circling back to the same idea, unable to escape the attractor it has created.</p>
+</div>
+
+<div class="failure-block">
+<h3>Context cliff</h3>
+<p>Tokens outside the context window do not fade gracefully. They vanish. One moment the model has access to everything you discussed ten thousand tokens ago; the next, those tokens are gone entirely. There is no graceful degradation, no dimming memory. It is a cliff edge, and the model has no way to know what fell off.</p>
+</div>
+
+<p>These aren't bugs. They're the natural consequences of the machinery working exactly as designed.</p>
+</div>
+
+<div class="puzzle-slot" data-topic="failures"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION VII: CLOSING -->
+<!-- ============================================================ -->
+<p class="closing">This happens every time. Billions of parameters, one token at a time, fast enough that you barely notice the pause.</p>
+
+<!-- ============================================================ -->
+<!-- GENERATION FOOTER -->
+<!-- ============================================================ -->
+<div class="gen-footer">
+<hr>
+<p>This tutorial was generated by a persistent AI system called Argus in continuous operation since early 2026.</p>
+<p>The prompt:</p>
+<pre>You are the Generator for Plan 0323. Plan-UID: 0323-v2.
+Read ~/software/relinquishment/plans/0323-inference-tutorial-single-pass.md
+Generate ~/software/persistent-ai-collaboration/tutorial-inference.html
+Single file, 60-80KB, light theme (#fafafa). No external dependencies.
+Title: "How LLMs Work" with subtitle "One pass through the machinery".
+Study ~/software/has-anyone-looked/tutorials/solar-wind-coupling.html
+for animation technique. The plan is the complete spec — follow it
+precisely. Every SVG element pre-built at init, animated via
+setAttribute only. Report completion with: file size, section count,
+SVG count, any deviations, Plan-UID echo.</pre>
+<p>The specification behind that prompt is a 270-line plan detailing every SVG element, animation timing, color assignment, attention weight, and interaction behavior. This tutorial was generated in a single pass from that specification.</p>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ============================================================
+     Token data — consistent across ALL SVGs
+     ============================================================ */
+  var tokens = [
+    { id: 0, text: 'How',     color: '#3b82f6' },
+    { id: 1, text: ' many',   color: '#ef4444' },
+    { id: 2, text: ' R',      color: '#f59e0b' },
+    { id: 3, text: "'s",      color: '#8b5cf6' },
+    { id: 4, text: ' are',    color: '#10b981' },
+    { id: 5, text: ' in',     color: '#ec4899' },
+    { id: 6, text: ' straw',  color: '#06b6d4' },
+    { id: 7, text: 'berry',   color: '#f97316' },
+    { id: 8, text: '?',       color: '#6366f1' }
+  ];
+
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function svgEl(tag, attrs, parent) {
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) {
+      if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
+    }
+    if (parent) parent.appendChild(el);
+    return el;
+  }
+
+  /* ============================================================
+     SECTION II: THE TOKENS — animated tokenization
+     ============================================================ */
+  (function initTokens() {
+    var svg = document.getElementById('svg-tokens');
+    var fullText = "How many R’s are in strawberry?";
+    var tokenTexts = ['How', ' many', ' R', "'s", ' are', ' in', ' straw', 'berry', '?'];
+
+    // Character widths estimated for monospace at font-size 22
+    var charW = 13.2;
+    var totalChars = tokenTexts.reduce(function(s, t) { return s + t.length; }, 0);
+    var totalW = totalChars * charW;
+    var baseX = (1100 - totalW) / 2;
+    var baseY = 80;
+    var splitGap = 8;
+
+    // Compute token start positions (unsplit — no gaps)
+    var cumChars = 0;
+    var tokenPositions = [];
+    for (var i = 0; i < tokenTexts.length; i++) {
+      var w = tokenTexts[i].length * charW;
+      tokenPositions.push({ x: baseX + cumChars * charW, w: w });
+      cumChars += tokenTexts[i].length;
+    }
+
+    // Full sentence text element
+    var fullTextEl = svgEl('text', {
+      x: '550', y: String(baseY),
+      'text-anchor': 'middle',
+      'font-family': "'SF Mono','Fira Code','Cascadia Code',monospace",
+      'font-size': '22',
+      fill: '#1e293b',
+      opacity: '1'
+    }, svg);
+    fullTextEl.textContent = fullText;
+
+    // Defs for glow filter
+    var defs = svgEl('defs', {}, svg);
+    var filter = svgEl('filter', { id: 'tok-glow' }, defs);
+    svgEl('feGaussianBlur', { stdDeviation: '4', in: 'SourceGraphic', result: 'blur' }, filter);
+    var merge = svgEl('feMerge', {}, filter);
+    svgEl('feMergeNode', { 'in': 'blur' }, merge);
+    svgEl('feMergeNode', { 'in': 'SourceGraphic' }, merge);
+
+    // Pre-build per-token elements
+    var highlightEls = [];
+    var tokenEls = [];
+    var labelEls = [];
+    var sliceEls = [];
+
+    for (var ti = 0; ti < tokens.length; ti++) {
+      var pos = tokenPositions[ti];
+      var gapOff = ti * splitGap;
+
+      // Highlight rect
+      highlightEls.push(svgEl('rect', {
+        x: String(pos.x + gapOff - 4),
+        y: String(baseY - 22),
+        width: String(pos.w + 8),
+        height: '32',
+        rx: '4',
+        fill: tokens[ti].color,
+        'fill-opacity': '0.15',
+        opacity: '0'
+      }, svg));
+
+      // Token text
+      var tel = svgEl('text', {
+        x: String(pos.x + gapOff + pos.w / 2),
+        y: String(baseY),
+        'text-anchor': 'middle',
+        'font-family': "'SF Mono','Fira Code','Cascadia Code',monospace",
+        'font-size': '22',
+        fill: tokens[ti].color,
+        opacity: '0'
+      }, svg);
+      tel.textContent = tokenTexts[ti];
+      tokenEls.push(tel);
+
+      // Token ID label
+      var lbl = svgEl('text', {
+        x: String(pos.x + gapOff + pos.w / 2),
+        y: String(baseY + 28),
+        'text-anchor': 'middle',
+        'font-size': '12',
+        fill: '#94a3b8',
+        opacity: '0'
+      }, svg);
+      lbl.textContent = 'T' + ti;
+      labelEls.push(lbl);
+
+      // Slice lines between tokens
+      if (ti > 0) {
+        sliceEls.push(svgEl('line', {
+          x1: String(pos.x + gapOff - splitGap / 2),
+          y1: String(baseY - 28),
+          x2: String(pos.x + gapOff - splitGap / 2),
+          y2: String(baseY + 10),
+          stroke: '#94a3b8',
+          'stroke-width': '1',
+          'stroke-dasharray': '3,3',
+          opacity: '0'
+        }, svg));
+      }
+    }
+
+    // Glow rects for T6 (straw) and T7 (berry)
+    var glowRect6 = svgEl('rect', {
+      x: highlightEls[6].getAttribute('x'),
+      y: highlightEls[6].getAttribute('y'),
+      width: highlightEls[6].getAttribute('width'),
+      height: highlightEls[6].getAttribute('height'),
+      rx: '4',
+      fill: tokens[6].color,
+      'fill-opacity': '0.35',
+      opacity: '0',
+      filter: 'url(#tok-glow)'
+    }, svg);
+    var glowRect7 = svgEl('rect', {
+      x: highlightEls[7].getAttribute('x'),
+      y: highlightEls[7].getAttribute('y'),
+      width: highlightEls[7].getAttribute('width'),
+      height: highlightEls[7].getAttribute('height'),
+      rx: '4',
+      fill: tokens[7].color,
+      'fill-opacity': '0.35',
+      opacity: '0',
+      filter: 'url(#tok-glow)'
+    }, svg);
+
+    // Annotation text
+    var annotEl = svgEl('text', {
+      x: '550', y: '158',
+      'text-anchor': 'middle',
+      'font-size': '14',
+      fill: '#64748b',
+      opacity: '0'
+    }, svg);
+    annotEl.textContent = '“strawberry” → “straw” + “berry” — the model never sees individual letters';
+
+    // Animation state
+    var animTime = 0;
+    var playing = !reducedMotion;
+    var animId = null;
+    var lastTs = null;
+    var finished = false;
+
+    function updateTokens(t) {
+      if (t < 3) {
+        fullTextEl.setAttribute('opacity', '1');
+        for (var i = 0; i < tokens.length; i++) {
+          tokenEls[i].setAttribute('opacity', '0');
+          highlightEls[i].setAttribute('opacity', '0');
+          labelEls[i].setAttribute('opacity', '0');
+        }
+        for (var s = 0; s < sliceEls.length; s++) sliceEls[s].setAttribute('opacity', '0');
+        annotEl.setAttribute('opacity', '0');
+        glowRect6.setAttribute('opacity', '0');
+        glowRect7.setAttribute('opacity', '0');
+      } else if (t < 5) {
+        var p = Math.min(1, (t - 3) / 1.5);
+        fullTextEl.setAttribute('opacity', String(1 - p));
+        for (var i2 = 0; i2 < tokens.length; i2++) {
+          tokenEls[i2].setAttribute('opacity', String(p));
+          highlightEls[i2].setAttribute('opacity', String(p));
+          labelEls[i2].setAttribute('opacity', String(p * 0.8));
+        }
+        for (var s2 = 0; s2 < sliceEls.length; s2++) sliceEls[s2].setAttribute('opacity', String(p * 0.6));
+        annotEl.setAttribute('opacity', '0');
+        glowRect6.setAttribute('opacity', '0');
+        glowRect7.setAttribute('opacity', '0');
+      } else if (t < 8) {
+        fullTextEl.setAttribute('opacity', '0');
+        for (var i3 = 0; i3 < tokens.length; i3++) {
+          tokenEls[i3].setAttribute('opacity', '1');
+          highlightEls[i3].setAttribute('opacity', '1');
+          labelEls[i3].setAttribute('opacity', '0.8');
+        }
+        for (var s3 = 0; s3 < sliceEls.length; s3++) sliceEls[s3].setAttribute('opacity', '0.6');
+        var annotOp = Math.min(1, (t - 5) / 1);
+        annotEl.setAttribute('opacity', String(annotOp));
+        var pulse = 0.4 + 0.3 * Math.sin(t * 4);
+        glowRect6.setAttribute('opacity', String(pulse));
+        glowRect7.setAttribute('opacity', String(pulse));
+      } else {
+        fullTextEl.setAttribute('opacity', '0');
+        for (var i4 = 0; i4 < tokens.length; i4++) {
+          tokenEls[i4].setAttribute('opacity', '1');
+          highlightEls[i4].setAttribute('opacity', '1');
+          labelEls[i4].setAttribute('opacity', '0.8');
+        }
+        for (var s4 = 0; s4 < sliceEls.length; s4++) sliceEls[s4].setAttribute('opacity', '0.6');
+        annotEl.setAttribute('opacity', '1');
+        glowRect6.setAttribute('opacity', '0.3');
+        glowRect7.setAttribute('opacity', '0.3');
+        if (t >= 10) {
+          finished = true;
+          playing = false;
+          btnPlay.textContent = 'Play';
+        }
+      }
+    }
+
+    function animLoop(ts) {
+      if (!playing) { animId = null; return; }
+      if (lastTs === null) lastTs = ts;
+      var dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+      animTime = Math.min(animTime + dt, 10);
+      updateTokens(animTime);
+      if (animTime < 10) {
+        animId = requestAnimationFrame(animLoop);
+      } else {
+        finished = true;
+        playing = false;
+        btnPlay.textContent = 'Play';
+        animId = null;
+      }
+    }
+
+    var btnPlay = document.getElementById('btn-tokens-play');
+    var btnReset = document.getElementById('btn-tokens-reset');
+
+    btnPlay.addEventListener('click', function() {
+      if (playing) {
+        playing = false;
+        btnPlay.textContent = 'Play';
+      } else {
+        if (finished) {
+          animTime = 0;
+          finished = false;
+          lastTs = null;
+        }
+        playing = true;
+        btnPlay.textContent = 'Pause';
+        lastTs = null;
+        animId = requestAnimationFrame(animLoop);
+      }
+    });
+
+    btnReset.addEventListener('click', function() {
+      playing = false;
+      finished = false;
+      animTime = 0;
+      lastTs = null;
+      btnPlay.textContent = 'Play';
+      updateTokens(0);
+    });
+
+    if (reducedMotion) {
+      animTime = 10;
+      updateTokens(10);
+      btnPlay.textContent = 'Play';
+    } else {
+      updateTokens(0);
+      animId = requestAnimationFrame(animLoop);
+    }
+  })();
+
+  /* ============================================================
+     SECTION III: THE SPACE — embedding visualization
+     ============================================================ */
+  (function initSpace() {
+    var svg = document.getElementById('svg-space');
+    var positions = [
+      { x: 200, y: 120 },  // T0 How
+      { x: 280, y: 100 },  // T1 many
+      { x: 600, y: 250 },  // T2 R
+      { x: 550, y: 200 },  // T3 's
+      { x: 400, y: 350 },  // T4 are
+      { x: 450, y: 370 },  // T5 in
+      { x: 800, y: 300 },  // T6 straw
+      { x: 850, y: 280 },  // T7 berry
+      { x: 250, y: 150 }   // T8 ?
+    ];
+
+    var relationships = [
+      { a: 6, b: 7, label: 'subword partners: close' },
+      { a: 0, b: 8, label: 'question markers: related' },
+      { a: 2, b: 5, label: 'unrelated: far apart' }
+    ];
+
+    // Draw relationship lines (behind circles)
+    var relLineEls = [];
+    var relLabelEls = [];
+    for (var r = 0; r < relationships.length; r++) {
+      var rel = relationships[r];
+      var ax = positions[rel.a].x, ay = positions[rel.a].y;
+      var bx = positions[rel.b].x, by = positions[rel.b].y;
+
+      relLineEls.push(svgEl('line', {
+        x1: String(ax), y1: String(ay),
+        x2: String(bx), y2: String(by),
+        stroke: '#94a3b8',
+        'stroke-width': '1',
+        'stroke-dasharray': '4,4',
+        opacity: '0.5'
+      }, svg));
+
+      var mx = (ax + bx) / 2, my = (ay + by) / 2;
+      var lbl = svgEl('text', {
+        x: String(mx), y: String(my - 8),
+        'text-anchor': 'middle',
+        'font-size': '11',
+        fill: '#64748b',
+        opacity: '0.8'
+      }, svg);
+      lbl.textContent = rel.label;
+      relLabelEls.push(lbl);
+    }
+
+    // Draw token circles and labels
+    var circleEls = [];
+    var textEls = [];
+    for (var i = 0; i < tokens.length; i++) {
+      var cx = positions[i].x, cy = positions[i].y;
+      circleEls.push(svgEl('circle', {
+        cx: String(cx), cy: String(cy),
+        r: '20',
+        fill: tokens[i].color,
+        'fill-opacity': '0.2',
+        stroke: tokens[i].color,
+        'stroke-width': '2'
+      }, svg));
+
+      var displayText = tokens[i].text.trim();
+      if (displayText === '') displayText = tokens[i].text;
+      var txt = svgEl('text', {
+        x: String(cx), y: String(cy + 5),
+        'text-anchor': 'middle',
+        'font-size': '13',
+        'font-weight': 'bold',
+        fill: tokens[i].color
+      }, svg);
+      txt.textContent = displayText;
+      textEls.push(txt);
+    }
+
+    // Gentle continuous drift animation
+    var playing = !reducedMotion;
+    var animId = null;
+    var phases = [];
+    var freqs = [];
+    for (var p = 0; p < tokens.length; p++) {
+      phases.push(p * 0.7 + 0.3); // deterministic but varied
+      freqs.push(0.3 + (p % 5) * 0.08);
+    }
+
+    function driftLoop(ts) {
+      if (!playing) { animId = null; return; }
+      var t = ts / 1000;
+      for (var i = 0; i < tokens.length; i++) {
+        var dx = 3 * Math.sin(freqs[i] * t + phases[i]);
+        var dy = 3 * Math.cos(freqs[i] * t + phases[i] + 1);
+        var nx = positions[i].x + dx;
+        var ny = positions[i].y + dy;
+        circleEls[i].setAttribute('cx', String(nx));
+        circleEls[i].setAttribute('cy', String(ny));
+        textEls[i].setAttribute('x', String(nx));
+        textEls[i].setAttribute('y', String(ny + 5));
+      }
+      for (var rr = 0; rr < relationships.length; rr++) {
+        var rrel = relationships[rr];
+        var x1 = parseFloat(circleEls[rrel.a].getAttribute('cx'));
+        var y1 = parseFloat(circleEls[rrel.a].getAttribute('cy'));
+        var x2 = parseFloat(circleEls[rrel.b].getAttribute('cx'));
+        var y2 = parseFloat(circleEls[rrel.b].getAttribute('cy'));
+        relLineEls[rr].setAttribute('x1', String(x1));
+        relLineEls[rr].setAttribute('y1', String(y1));
+        relLineEls[rr].setAttribute('x2', String(x2));
+        relLineEls[rr].setAttribute('y2', String(y2));
+        relLabelEls[rr].setAttribute('x', String((x1 + x2) / 2));
+        relLabelEls[rr].setAttribute('y', String((y1 + y2) / 2 - 8));
+      }
+      animId = requestAnimationFrame(driftLoop);
+    }
+
+    var btn = document.getElementById('btn-space-play');
+    btn.addEventListener('click', function() {
+      if (playing) {
+        playing = false;
+        btn.textContent = 'Play';
+      } else {
+        playing = true;
+        btn.textContent = 'Pause';
+        animId = requestAnimationFrame(driftLoop);
+      }
+    });
+
+    if (!reducedMotion) {
+      animId = requestAnimationFrame(driftLoop);
+    }
+  })();
+
+  /* ============================================================
+     SECTION IV: THE CONVERSATION — attention (click-driven)
+     ============================================================ */
+  (function initAttention() {
+    var svg = document.getElementById('svg-attn');
+    var descEl = document.getElementById('attn-desc');
+
+    var attn = {
+      0: {1:0.6, 8:0.7, 4:0.3},
+      1: {0:0.5, 2:0.6, 6:0.3, 7:0.2},
+      2: {6:0.7, 7:0.7, 3:0.4, 1:0.3},
+      3: {2:0.8, 0:0.2},
+      4: {5:0.5, 0:0.3, 2:0.3},
+      5: {4:0.5, 6:0.6, 7:0.4},
+      6: {7:0.8, 5:0.4, 2:0.3},
+      7: {6:0.8, 5:0.3, 2:0.4},
+      8: {0:0.7, 1:0.5, 2:0.3}
+    };
+
+    var descriptions = {
+      0: '“How” attends to “many” and “?” — it’s anchoring the question structure.',
+      1: '“many” reaches for “R” — what is being counted?',
+      2: '“R” connects strongly to “straw” and “berry” — the subject of the question. But it sees them as separate tokens.',
+      3: '“’s” looks back at “R” — possessive attachment.',
+      4: '“are” connects to “in” — syntactic pairing.',
+      5: '“in” reaches forward to “straw” and “berry” — what follows the preposition.',
+      6: '“straw” bonds tightly with “berry” — subword partners reuniting.',
+      7: '“berry” bonds tightly with “straw” — completing the word it was split from.',
+      8: '“?” looks back at “How” and “many” — question markers finding each other.'
+    };
+
+    // Token layout: horizontal line at y=100
+    var tokenY = 100;
+    var rectW = 100;
+    var rectH = 40;
+    var spacing = 120;
+    var centers = [];
+    for (var c = 0; c < 9; c++) {
+      centers.push({ x: 60 + c * spacing, y: tokenY });
+    }
+
+    // Pre-build 72 attention lines (behind everything)
+    var lines = {};
+    for (var qi = 0; qi < 9; qi++) {
+      lines[qi] = {};
+      for (var ki = 0; ki < 9; ki++) {
+        if (qi === ki) continue;
+        // Lines connect from bottom of query rect to bottom of key rect
+        // Use a curved path routed below the tokens
+        var x1 = centers[qi].x;
+        var x2 = centers[ki].x;
+        var yStart = tokenY + rectH / 2 + 5;
+        // Arc depth proportional to distance
+        var dist = Math.abs(qi - ki);
+        var arcY = yStart + 30 + dist * 35;
+        var midX = (x1 + x2) / 2;
+
+        var pathD = 'M ' + x1 + ' ' + yStart + ' Q ' + midX + ' ' + arcY + ' ' + x2 + ' ' + yStart;
+        lines[qi][ki] = svgEl('path', {
+          d: pathD,
+          stroke: tokens[qi].color,
+          'stroke-width': '1',
+          fill: 'none',
+          opacity: '0',
+          'class': 'attn-line'
+        }, svg);
+      }
+    }
+
+    // Build token rects, borders, text, and labels
+    var rects = [];
+    var borders = [];
+
+    for (var ti = 0; ti < 9; ti++) {
+      var cx = centers[ti].x;
+      var cy = centers[ti].y;
+
+      // Colored rect
+      var rect = svgEl('rect', {
+        x: String(cx - rectW / 2),
+        y: String(cy - rectH / 2),
+        width: String(rectW),
+        height: String(rectH),
+        rx: '6',
+        fill: tokens[ti].color,
+        'fill-opacity': '0.15',
+        stroke: tokens[ti].color,
+        'stroke-width': '2',
+        cursor: 'pointer',
+        'data-idx': String(ti),
+        'aria-label': 'Token ' + ti + ': ' + tokens[ti].text.trim(),
+        role: 'button',
+        tabindex: '0'
+      }, svg);
+      rects.push(rect);
+
+      // Highlight border (initially hidden)
+      borders.push(svgEl('rect', {
+        x: String(cx - rectW / 2 - 3),
+        y: String(cy - rectH / 2 - 3),
+        width: String(rectW + 6),
+        height: String(rectH + 6),
+        rx: '9',
+        fill: 'none',
+        stroke: '#1e293b',
+        'stroke-width': '3',
+        opacity: '0',
+        'pointer-events': 'none'
+      }, svg));
+
+      // Token text
+      var displayText = tokens[ti].text.trim();
+      if (displayText === '') displayText = tokens[ti].text;
+      svgEl('text', {
+        x: String(cx),
+        y: String(cy + 5),
+        'text-anchor': 'middle',
+        'font-size': '14',
+        'font-weight': 'bold',
+        fill: tokens[ti].color,
+        'pointer-events': 'none'
+      }, svg).textContent = displayText;
+
+      // Token ID below
+      svgEl('text', {
+        x: String(cx),
+        y: String(cy + rectH / 2 + 18),
+        'text-anchor': 'middle',
+        'font-size': '11',
+        fill: '#94a3b8',
+        'pointer-events': 'none'
+      }, svg).textContent = 'T' + ti;
+    }
+
+    // Instruction text at bottom
+    svgEl('text', {
+      x: '550', y: '475',
+      'text-anchor': 'middle',
+      'font-size': '13',
+      fill: '#94a3b8',
+      'pointer-events': 'none'
+    }, svg).textContent = 'Click a token to see what it attends to. Line thickness = attention strength.';
+
+    function selectToken(idx) {
+      // Reset all
+      for (var i = 0; i < 9; i++) {
+        borders[i].setAttribute('opacity', '0');
+        for (var j = 0; j < 9; j++) {
+          if (i !== j) {
+            lines[i][j].setAttribute('opacity', '0');
+            lines[i][j].setAttribute('stroke-width', '1');
+          }
+        }
+      }
+      // Highlight selected
+      borders[idx].setAttribute('opacity', '0.8');
+      // Show attention lines
+      var weights = attn[idx];
+      for (var jk in weights) {
+        if (weights.hasOwnProperty(jk)) {
+          var jj = parseInt(jk, 10);
+          var w = weights[jk];
+          lines[idx][jj].setAttribute('opacity', String(w));
+          lines[idx][jj].setAttribute('stroke-width', String(1 + 3 * w));
+        }
+      }
+      descEl.textContent = descriptions[idx];
+    }
+
+    // Attach click and keyboard handlers
+    for (var hi = 0; hi < 9; hi++) {
+      (function(idx) {
+        rects[idx].addEventListener('click', function() { selectToken(idx); });
+        rects[idx].addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectToken(idx); }
+        });
+      })(hi);
+    }
+
+    // Initial state: token 2 ("R") pre-selected
+    selectToken(2);
+  })();
+
+  /* ============================================================
+     SECTION V: THE CHOICE — sampling visualization
+     ============================================================ */
+  (function initSampling() {
+    var svg = document.getElementById('svg-sampling');
+    var slider = document.getElementById('temp-slider');
+    var tempDisplay = document.getElementById('temp-display');
+    var sampleBtn = document.getElementById('sample-btn');
+    var resultEl = document.getElementById('sample-result');
+
+    var candidates = [
+      { text: ' Three', prob: 0.32, color: '#10b981' },
+      { text: ' There', prob: 0.18, color: '#3b82f6' },
+      { text: ' Let',   prob: 0.12, color: '#f59e0b' },
+      { text: ' The',   prob: 0.08, color: '#ef4444' },
+      { text: ' Well',  prob: 0.06, color: '#8b5cf6' },
+      { text: ' I',     prob: 0.05, color: '#ec4899' },
+      { text: ' Yes',   prob: 0.04, color: '#06b6d4' },
+      { text: '(other)',prob: 0.15, color: '#94a3b8' }
+    ];
+
+    var barLeft = 160;
+    var barMaxW = 850;
+    var barY0 = 30;
+    var barH = 36;
+    var barGap = 8;
+
+    // Build bars, labels, flash overlays
+    var barEls = [];
+    var barFlashEls = [];
+    var barProbEls = [];
+
+    for (var i = 0; i < candidates.length; i++) {
+      var y = barY0 + i * (barH + barGap);
+      var w = candidates[i].prob * barMaxW;
+
+      // Token name label (left)
+      svgEl('text', {
+        x: String(barLeft - 12),
+        y: String(y + barH / 2 + 5),
+        'text-anchor': 'end',
+        'font-size': '14',
+        fill: candidates[i].color,
+        'font-weight': 'bold'
+      }, svg).textContent = candidates[i].text.trim();
+
+      // Bar rect
+      barEls.push(svgEl('rect', {
+        x: String(barLeft),
+        y: String(y),
+        width: String(w),
+        height: String(barH),
+        rx: '4',
+        fill: candidates[i].color,
+        'fill-opacity': '0.6'
+      }, svg));
+
+      // Flash overlay
+      barFlashEls.push(svgEl('rect', {
+        x: String(barLeft),
+        y: String(y),
+        width: String(w),
+        height: String(barH),
+        rx: '4',
+        fill: '#ffffff',
+        opacity: '0',
+        'pointer-events': 'none'
+      }, svg));
+
+      // Probability text
+      var probEl = svgEl('text', {
+        x: String(barLeft + w + 10),
+        y: String(y + barH / 2 + 5),
+        'text-anchor': 'start',
+        'font-size': '13',
+        fill: '#64748b'
+      }, svg);
+      probEl.textContent = (candidates[i].prob * 100).toFixed(1) + '%';
+      barProbEls.push(probEl);
+    }
+
+    function applyTemperature(T) {
+      var scaled = [];
+      for (var i = 0; i < candidates.length; i++) {
+        scaled.push(Math.exp(Math.log(candidates[i].prob) / T));
+      }
+      var sum = 0;
+      for (var j = 0; j < scaled.length; j++) sum += scaled[j];
+      return scaled.map(function(s) { return s / sum; });
+    }
+
+    function updateBars(T) {
+      var probs = applyTemperature(T);
+      var maxP = 0;
+      for (var m = 0; m < probs.length; m++) { if (probs[m] > maxP) maxP = probs[m]; }
+      for (var i = 0; i < candidates.length; i++) {
+        var w = (probs[i] / maxP) * barMaxW * 0.85;
+        barEls[i].setAttribute('width', String(w));
+        barFlashEls[i].setAttribute('width', String(w));
+        barProbEls[i].textContent = (probs[i] * 100).toFixed(1) + '%';
+        barProbEls[i].setAttribute('x', String(barLeft + w + 10));
+      }
+      return probs;
+    }
+
+    slider.addEventListener('input', function() {
+      var T = parseFloat(slider.value) / 100;
+      tempDisplay.textContent = T.toFixed(2);
+      updateBars(T);
+    });
+
+    sampleBtn.addEventListener('click', function() {
+      var T = parseFloat(slider.value) / 100;
+      var probs = applyTemperature(T);
+
+      // Weighted random selection
+      var r = Math.random();
+      var cumul = 0;
+      var chosen = 0;
+      for (var i = 0; i < probs.length; i++) {
+        cumul += probs[i];
+        if (r <= cumul) { chosen = i; break; }
+      }
+
+      // Flash effect on chosen bar
+      for (var f = 0; f < candidates.length; f++) {
+        barFlashEls[f].setAttribute('opacity', '0');
+      }
+      barFlashEls[chosen].setAttribute('opacity', '0.6');
+      setTimeout(function() {
+        barFlashEls[chosen].setAttribute('opacity', '0.25');
+      }, 150);
+      setTimeout(function() {
+        barFlashEls[chosen].setAttribute('opacity', '0');
+      }, 400);
+
+      resultEl.textContent = 'The model chose: “' + candidates[chosen].text.trim() + '”';
+    });
+
+    // Init at T=1.0
+    updateBars(1.0);
+  })();
+
+})();
+</script>
+</body>
+</html>

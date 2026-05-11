@@ -1,0 +1,2339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Magnetosphere</title>
+<style>
+:root {
+  --bg: #0a0a1a;
+  --text: #c8c8d4;
+  --heading: #ffffff;
+  --solar: #ffb347;
+  --earth-blue: #4a9eff;
+  --earth-cyan: #00e5ff;
+  --imf-red: #ff4466;
+  --field-green: #66ff88;
+  --current-gold: #ffdd44;
+  --plasma-orange: #ff8844;
+  --accent: #8888cc;
+  --muted: #667;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+.title-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  pointer-events: none;
+  padding: 60px 20px 10px;
+  text-align: center;
+  background: linear-gradient(to bottom, rgba(10,10,26,0.85) 0%, rgba(10,10,26,0.4) 70%, transparent 100%);
+}
+.title-overlay h1 {
+  font-size: 2.6em;
+  color: var(--heading);
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+}
+.title-overlay .subtitle {
+  color: var(--accent);
+  font-size: 1.15em;
+  font-style: italic;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.8);
+}
+h2 {
+  font-size: 1.6em;
+  color: var(--heading);
+  margin: 0 0 20px;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 300;
+}
+.text-col {
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 30px 40px;
+}
+.text-col p { margin-bottom: 16px; }
+.scene-full {
+  position: relative;
+  width: calc(100% - 20px);
+  height: calc(100vh - 20px);
+  margin: 10px;
+  min-height: 500px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.scene-full svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+.scene-wide {
+  position: relative;
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 20px;
+  background: #050510;
+  border: 1px solid #222244;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.scene-wide svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.scene-wide h2 { padding-top: 25px; }
+.scene-title {
+  position: absolute;
+  top: 25px;
+  left: 30px;
+  z-index: 10;
+  pointer-events: none;
+  color: var(--heading);
+  font-size: 1.6em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 300;
+  text-shadow: 0 2px 15px rgba(0,0,0,0.8), 0 0 40px rgba(10,10,26,0.9);
+  margin: 0;
+}
+.ctrl-btn {
+  position: absolute;
+  top: 15px;
+  right: 60px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 10;
+  transition: background 0.2s;
+}
+.ctrl-btn:hover { background: rgba(255,255,255,0.15); }
+.ctrl-btn + .ctrl-btn { right: 135px; }
+.fullscreen-btn {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fullscreen-btn:hover { background: rgba(255,255,255,0.15); }
+.puzzle-slot { display: none; }
+.gen-footer {
+  max-width: 680px;
+  margin: 80px auto 40px;
+  padding: 0 24px;
+  font-size: 0.85em;
+  color: var(--muted);
+}
+.gen-footer hr {
+  border: none;
+  border-top: 1px solid #886600;
+  margin-bottom: 20px;
+}
+.gen-footer summary {
+  cursor: pointer;
+  color: var(--accent);
+  margin-top: 12px;
+}
+.gen-footer pre {
+  white-space: pre-wrap;
+  font-size: 0.9em;
+  color: var(--text);
+  background: #111;
+  padding: 16px;
+  border-radius: 6px;
+  margin-top: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+canvas#stars {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+.narration {
+  position: absolute;
+  color: var(--text);
+  font-size: 1.1em;
+  font-style: italic;
+  line-height: 1.6;
+  max-width: 400px;
+  text-shadow: 0 1px 12px rgba(0,0,0,0.9), 0 0 30px rgba(10,10,26,0.95);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s;
+  z-index: 5;
+}
+@media (max-width: 768px) {
+  .scene-full {
+    height: auto;
+    min-height: unset;
+    width: calc(100% - 12px);
+    margin: 6px;
+  }
+  .scene-full svg {
+    position: static;
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .text-col {
+    padding: 20px 16px;
+    margin: 24px auto;
+  }
+  .title-overlay {
+    padding: 30px 12px 10px;
+  }
+  .title-overlay h1 {
+    font-size: 1.6em;
+  }
+  .title-overlay .subtitle {
+    font-size: 0.95em;
+  }
+  .scene-title {
+    font-size: 1.1em;
+    top: 10px;
+    left: 14px;
+  }
+  .ctrl-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    top: 10px;
+    right: 50px;
+  }
+  .ctrl-btn + .ctrl-btn {
+    right: 115px;
+  }
+  .narration {
+    max-width: 75vw;
+    font-size: 0.9em;
+    line-height: 1.4;
+  }
+  .gen-footer {
+    padding: 0 16px;
+    margin: 40px auto 30px;
+  }
+  #section-nav { display: none; }
+}
+#section-nav {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+#section-nav a {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.4);
+  transition: all 0.3s;
+  position: relative;
+  text-decoration: none;
+}
+#section-nav a.active {
+  background: var(--earth-cyan);
+  border-color: var(--earth-cyan);
+  box-shadow: 0 0 8px var(--earth-cyan);
+}
+#section-nav a::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text);
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+#section-nav a:hover::after { opacity: 1; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<button class="fullscreen-btn" onclick="document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()" title="Toggle fullscreen" aria-label="Toggle fullscreen">&#x26F6;</button>
+<nav id="section-nav">
+  <a href="#opening-wrap" data-label="Opening"><span></span></a>
+  <a href="#circuit-container" data-label="Circuit"><span></span></a>
+  <a href="#gate-container" data-label="Gate"><span></span></a>
+</nav>
+
+<!-- ============ THE OPENING ============ -->
+<div class="scene-full" id="opening-wrap">
+  <svg id="svg-opening" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Animated scene: solar wind approaching Earth's magnetosphere">
+    <defs>
+      <radialGradient id="sun-core-grad" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#fffbe8"/>
+        <stop offset="0.2" stop-color="#ffdd66"/>
+        <stop offset="0.55" stop-color="#ff9922"/>
+        <stop offset="1" stop-color="#cc6600" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="sun-corona-grad" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="rgba(255,200,80,0.4)"/>
+        <stop offset="0.4" stop-color="rgba(255,160,40,0.2)"/>
+        <stop offset="1" stop-color="rgba(255,120,20,0)"/>
+      </radialGradient>
+      <radialGradient id="open-earth-grad" cx="0.4" cy="0.35" r="0.55">
+        <stop offset="0" stop-color="#5588dd"/>
+        <stop offset="0.6" stop-color="#3366aa"/>
+        <stop offset="1" stop-color="#1a3366"/>
+      </radialGradient>
+      <radialGradient id="ms-front-grad" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="rgba(74,158,255,0.12)"/>
+        <stop offset="0.8" stop-color="rgba(74,158,255,0.06)"/>
+        <stop offset="1" stop-color="rgba(74,158,255,0)"/>
+      </radialGradient>
+      <filter id="open-glow">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <clipPath id="title-safe-clip">
+        <rect x="-9999" y="130" width="99999" height="99999"/>
+      </clipPath>
+    </defs>
+
+    <!-- SUN at world position (200, 450) -->
+    <g id="open-sun-group">
+      <circle id="open-corona" cx="200" cy="450" r="200" fill="url(#sun-corona-grad)"/>
+      <circle id="open-sun" cx="200" cy="450" r="75" fill="url(#sun-core-grad)" filter="url(#open-glow)"/>
+      <circle cx="200" cy="450" r="32" fill="#ffee99"/>
+      <g id="open-streamers" opacity="0.35">
+        <line x1="200" y1="450" x2="200" y2="200" stroke="#ffcc44" stroke-width="1.5" opacity="0.3"/>
+        <line x1="200" y1="450" x2="200" y2="700" stroke="#ffcc44" stroke-width="1.5" opacity="0.3"/>
+        <line x1="200" y1="450" x2="440" y2="340" stroke="#ffcc44" stroke-width="1.2" opacity="0.25"/>
+        <line x1="200" y1="450" x2="440" y2="560" stroke="#ffcc44" stroke-width="1.2" opacity="0.25"/>
+        <line x1="200" y1="450" x2="400" y2="260" stroke="#ffcc44" stroke-width="0.8" opacity="0.15"/>
+        <line x1="200" y1="450" x2="400" y2="640" stroke="#ffcc44" stroke-width="0.8" opacity="0.15"/>
+      </g>
+    </g>
+
+    <!-- SUN LABEL (fades in periodically to teach the reader) -->
+    <text id="open-sun-label" x="200" y="360" text-anchor="middle" fill="#ffdd88" font-size="14" font-family="system-ui" opacity="0">The Sun</text>
+
+    <!-- SOLAR WIND particles (pre-built pool, animated via setAttribute) -->
+    <g id="open-wind-particles"></g>
+
+    <!-- FRONT-VIEW MAGNETOSPHERE (circular shield, visible during head-on approach) -->
+    <g id="open-front-ms" opacity="0">
+      <circle id="open-front-shield" cx="1400" cy="450" r="130" fill="url(#ms-front-grad)" stroke="rgba(74,158,255,0.3)" stroke-width="1.5"/>
+      <circle id="open-front-bowshock" cx="1400" cy="450" r="175" fill="none" stroke="rgba(85,51,0,0.2)" stroke-width="1" stroke-dasharray="4,4"/>
+    </g>
+
+    <!-- SIDE-VIEW MAGNETOSPHERE (Shue model, fades in during pan) -->
+    <g id="open-side-ms" opacity="0" clip-path="url(#title-safe-clip)">
+      <path id="open-mp" fill="none" stroke="rgba(74,158,255,0.5)" stroke-width="2"/>
+      <path id="open-bs" fill="none" stroke="#553300" stroke-width="1.5" stroke-dasharray="5,5"/>
+      <path id="open-ps" fill="none" stroke="rgba(255,136,68,0.3)" stroke-width="3"/>
+      <g id="open-fieldlines" clip-path="url(#title-safe-clip)"></g>
+    </g>
+
+    <!-- EARTH -->
+    <circle id="open-earth" cx="1400" cy="450" r="14" fill="url(#open-earth-grad)" filter="url(#open-glow)"/>
+
+    <!-- MOON + ORBIT -->
+    <g id="open-moon-group" opacity="0">
+      <circle id="open-moon-orbit" cx="1400" cy="450" r="420" fill="none" stroke="#444" stroke-width="0.5" stroke-dasharray="5,8"/>
+      <circle id="open-moon" cx="1820" cy="450" r="4" fill="#ccc"/>
+      <text id="open-moon-label" x="1820" y="438" text-anchor="middle" fill="#aaa" font-size="10" font-family="system-ui" opacity="0">Moon</text>
+    </g>
+
+    <!-- SOLAR WIND LABEL (fades in during approach) -->
+    <text id="open-wind-label" x="700" y="410" fill="#ffb347" font-size="11" font-family="system-ui" opacity="0">Solar wind →</text>
+
+    <!-- MS LABELS (appear during final zoom) -->
+    <g id="open-ms-labels" opacity="0" clip-path="url(#title-safe-clip)">
+      <text id="open-lbl-bs" x="0" y="0" fill="#886600" font-size="11" font-family="system-ui" text-anchor="middle">Bow shock</text>
+      <text id="open-lbl-mp" x="0" y="0" fill="#4a9eff" font-size="11" font-family="system-ui" text-anchor="middle">Magnetopause</text>
+      <text id="open-lbl-ps" x="0" y="0" fill="#ff8844" font-size="11" font-family="system-ui" text-anchor="middle">Plasma sheet</text>
+      <text id="open-lbl-cusp-n" x="0" y="0" fill="#888" font-size="10" font-family="system-ui" text-anchor="middle">Cusp</text>
+      <text id="open-lbl-cusp-s" x="0" y="0" fill="#888" font-size="10" font-family="system-ui" text-anchor="middle">Cusp</text>
+      <text id="open-lbl-orbit" x="0" y="0" fill="#666" font-size="9" font-family="system-ui" text-anchor="start">lunar orbit</text>
+    </g>
+
+    <!-- SUBSTORM DYNAMICS (post-journey, continuous cycle) -->
+    <g id="open-substorm" opacity="0">
+      <ellipse id="open-nenl" cx="1540" cy="450" rx="10" ry="4" fill="#ff6644" opacity="0" filter="url(#open-glow)"/>
+      <g id="open-flow-particles"></g>
+      <ellipse id="open-aurora-n" cx="1410" cy="434" rx="10" ry="4" fill="#66ff88" opacity="0" filter="url(#open-glow)"/>
+      <ellipse id="open-aurora-s" cx="1410" cy="466" rx="10" ry="4" fill="#66ff88" opacity="0" filter="url(#open-glow)"/>
+      <text id="open-aurora-label" x="1440" y="425" fill="#66ff88" font-size="9" font-family="system-ui" opacity="0">Aurora</text>
+      <text id="open-phase-label" x="1450" y="185" fill="#aaa" font-size="13" font-family="system-ui" text-anchor="middle" opacity="0"></text>
+      <text id="open-substorm-label" x="1400" y="500" fill="#ff6644" font-size="16" font-family="system-ui" font-weight="bold" text-anchor="middle" opacity="0">Substorm</text>
+      <text id="open-energy-note" x="1550" y="435" fill="#ffaa44" font-size="15" font-family="system-ui" text-anchor="middle" opacity="0">Energy accumulates in the plasma sheet...</text>
+      <text id="open-discharge-note" x="1450" y="510" fill="#ff6644" font-size="15" font-family="system-ui" text-anchor="middle" opacity="0">...until it discharges as a substorm</text>
+    </g>
+
+    <!-- (indicators moved to HTML overlay) -->
+  </svg>
+
+  <!-- Narration overlays (CSS-positioned, JS-driven opacity) -->
+  <div class="narration" id="narr-1" style="top:55%;left:6%;max-width:380px;">One hundred and fifty million kilometres away, the Sun exhales. A million tonnes of charged plasma per second.</div>
+  <div class="narration" id="narr-2" style="top:58%;right:6%;text-align:right;max-width:360px;">Racing outward at four hundred kilometres per second. It has been doing this for four and a half billion years.</div>
+  <div class="narration" id="narr-3" style="top:65%;left:50%;transform:translateX(-50%);text-align:center;max-width:300px;">Earth stands in the way.</div>
+  <div class="narration" id="narr-4" style="top:60%;right:6%;text-align:right;max-width:340px;">A magnetic shield &mdash; invisible, enormous &mdash; deflects the wind around the planet.</div>
+  <div class="narration" id="narr-5" style="top:65%;left:6%;max-width:360px;">This rhythm is four and a half billion years old&mdash;older than life on Earth. The magnetosphere has never stopped breathing.</div>
+  <div class="narration" id="narr-6" style="top:72%;right:6%;text-align:right;max-width:380px;">The Moon passes through the magnetotail once every orbit. Sixty Earth-radii out.</div>
+
+  <div id="open-key" style="position:absolute;bottom:20px;left:24px;z-index:5;pointer-events:none;font-family:system-ui;color:#999;font-size:12px;">
+    <div id="open-time-text" style="margin-bottom:4px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="open-scale-bar" style="width:80px;height:4px;background:#ffb347;border-radius:2px;"></div>
+      <span id="open-scale-text">150 million km</span>
+    </div>
+  </div>
+  <button class="ctrl-btn" id="open-playbtn" onclick="toggleOpen()">Pause</button>
+  <button class="ctrl-btn" id="open-resetbtn" onclick="restartOpen()">Reset</button>
+</div>
+
+<div class="title-overlay">
+  <h1>The Magnetosphere</h1>
+  <p class="subtitle">Earth's invisible ocean</p>
+</div>
+
+<div class="text-col">
+<p>Deep inside Earth, a core of liquid iron has been convecting for four and a half billion years. That churning metal generates the magnetic field that inflates this entire structure&mdash;and drives a circuit that reaches from the core to the edge of space.</p>
+</div>
+
+<div class="puzzle-slot" data-topic="opening"></div>
+
+<!-- ============ THE CIRCUIT ============ -->
+<div class="scene-full" id="circuit-container">
+  <h2 class="scene-title">The Circuit</h2>
+  <svg id="svg-circuit" viewBox="0 0 1100 650" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Animated scene: Birkeland current circuit from magnetosphere through ionosphere">
+    <defs>
+      <clipPath id="earth-clip"><circle id="earth-clip-circle" cx="550" cy="325" r="55"/></clipPath>
+      <radialGradient id="atmo-glow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0.85" stop-color="transparent"/>
+        <stop offset="0.95" stop-color="rgba(100,200,255,0.15)"/>
+        <stop offset="1" stop-color="rgba(100,200,255,0)"/>
+      </radialGradient>
+      <radialGradient id="circuit-earth-grad" cx="0.4" cy="0.35" r="0.6">
+        <stop offset="0" stop-color="#3377cc"/>
+        <stop offset="0.5" stop-color="#1a3366"/>
+        <stop offset="1" stop-color="#0d1a33"/>
+      </radialGradient>
+      <filter id="aurora-glow-filter">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="circuit-soft">
+        <feGaussianBlur stdDeviation="2" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <radialGradient id="outer-core-grad" cx="0.45" cy="0.4" r="0.55">
+        <stop offset="0" stop-color="#cc4400"/>
+        <stop offset="0.7" stop-color="#882200"/>
+        <stop offset="1" stop-color="#551100"/>
+      </radialGradient>
+      <radialGradient id="inner-core-grad" cx="0.4" cy="0.35" r="0.5">
+        <stop offset="0" stop-color="#ffcc44"/>
+        <stop offset="0.5" stop-color="#ff8800"/>
+        <stop offset="1" stop-color="#cc5500"/>
+      </radialGradient>
+      <radialGradient id="mantle-grad" cx="0.45" cy="0.4" r="0.6">
+        <stop offset="0" stop-color="#6B3420"/>
+        <stop offset="0.6" stop-color="#4a2210"/>
+        <stop offset="1" stop-color="#331508"/>
+      </radialGradient>
+      <clipPath id="cutaway-clip"><rect x="495" y="270" width="55" height="110"/></clipPath>
+      <filter id="core-glow">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Wide view layer: full MS envelope -->
+    <g id="circuit-wide">
+      <!-- Bow shock -->
+      <path id="circuit-bs" fill="none" stroke="rgba(85,51,0,0.25)" stroke-width="1" stroke-dasharray="4,4"/>
+      <!-- Magnetopause shell -->
+      <path id="circuit-mp" fill="none" stroke="rgba(74,158,255,0.2)" stroke-width="1.5"/>
+      <!-- Sun direction indicator -->
+      <text id="circuit-sun-label" x="30" y="325" fill="#ffb347" font-size="12" font-family="system-ui" opacity="0.6">&#x2190; Sun</text>
+      <!-- Solar wind particles -->
+      <g id="circuit-wind"></g>
+      <!-- Scale reference -->
+      <g id="circuit-scale" opacity="0.5">
+        <line x1="850" y1="590" x2="1000" y2="590" stroke="#555" stroke-width="1"/>
+        <text x="925" y="608" text-anchor="middle" fill="#555" font-size="10" font-family="system-ui">10 R&#x2091;</text>
+      </g>
+    </g>
+
+    <!-- Earth group -->
+    <g id="circuit-earth-group">
+      <circle id="circuit-earth-sphere" cx="550" cy="325" r="55" fill="url(#circuit-earth-grad)"/>
+      <g id="circuit-continents" clip-path="url(#earth-clip)"></g>
+      <!-- Cutaway: left half reveals internal structure -->
+      <g id="circuit-cutaway" opacity="0">
+        <g clip-path="url(#cutaway-clip)">
+          <!-- Crust (thin outer shell) -->
+          <circle cx="550" cy="325" r="55" fill="#5a6b4a" opacity="0.9"/>
+          <!-- Mantle -->
+          <circle cx="550" cy="325" r="52" fill="url(#mantle-grad)"/>
+          <!-- Outer core (liquid iron — the dynamo) -->
+          <circle cx="550" cy="325" r="28" fill="url(#outer-core-grad)"/>
+          <!-- Convection arrows rotate here -->
+          <g id="circuit-core-convection"></g>
+          <!-- Inner core (solid iron) -->
+          <circle cx="550" cy="325" r="12" fill="url(#inner-core-grad)" filter="url(#core-glow)"/>
+        </g>
+        <!-- Dividing line at cut face -->
+        <line x1="550" y1="270" x2="550" y2="380" stroke="rgba(200,200,200,0.4)" stroke-width="0.5"/>
+        <!-- Layer labels (positioned left, pointing to equatorial cross-section) -->
+        <g id="cutaway-labels" opacity="0">
+          <line x1="486" y1="305" x2="496" y2="310" stroke="#999" stroke-width="0.3"/>
+          <text x="485" y="306" text-anchor="end" fill="#aaa" font-size="5" font-family="system-ui">crust</text>
+          <line x1="486" y1="316" x2="502" y2="320" stroke="#cc8866" stroke-width="0.3"/>
+          <text x="485" y="317" text-anchor="end" fill="#cc8866" font-size="5" font-family="system-ui">mantle</text>
+          <line x1="486" y1="327" x2="523" y2="325" stroke="#ff8844" stroke-width="0.3"/>
+          <text x="485" y="325" text-anchor="end" fill="#ff8844" font-size="5" font-family="system-ui">outer core</text>
+          <text x="485" y="331" text-anchor="end" fill="#ff8844" font-size="4" font-family="system-ui">(liquid iron)</text>
+          <line x1="486" y1="340" x2="539" y2="330" stroke="#ffcc44" stroke-width="0.3"/>
+          <text x="485" y="341" text-anchor="end" fill="#ffcc44" font-size="5" font-family="system-ui">inner core</text>
+          <text x="485" y="347" text-anchor="end" fill="#ffcc44" font-size="4" font-family="system-ui">(solid iron)</text>
+        </g>
+        <!-- Dynamo annotation -->
+        <text id="cutaway-dynamo-label" x="550" y="368" text-anchor="middle" fill="#ff8844" font-size="6" font-family="system-ui" opacity="0">The dynamo: convecting iron generates Earth's magnetic field</text>
+      </g>
+      <circle cx="550" cy="325" r="55" fill="url(#atmo-glow)"/>
+      <circle cx="550" cy="325" r="55" fill="none" stroke="rgba(74,158,255,0.3)" stroke-width="1"/>
+    </g>
+
+    <!-- Dipole field lines (closed, near Earth) -->
+    <g id="circuit-dipole" opacity="0.2"></g>
+
+    <!-- Open field lines from reconnection nose to poles -->
+    <g id="circuit-open-field"></g>
+
+    <!-- Reconnection site at nose -->
+    <g id="circuit-reconn" opacity="0">
+      <circle cx="0" cy="325" r="5" fill="#ffdd44" opacity="0.6" filter="url(#circuit-soft)"/>
+      <text x="0" y="355" text-anchor="middle" fill="#ffdd44" font-size="11" font-family="system-ui">reconnection</text>
+    </g>
+
+    <!-- Birkeland currents (field-aligned) -->
+    <g id="circuit-birkeland-down"></g>
+    <g id="circuit-birkeland-up"></g>
+
+    <!-- Pedersen current (ionospheric, cross-field) -->
+    <g id="circuit-pedersen-path"></g>
+
+    <!-- Aurora glow -->
+    <g id="circuit-aurora" filter="url(#aurora-glow-filter)"></g>
+
+    <!-- Flow dots along circuit -->
+    <g id="circuit-flow-dots"></g>
+
+    <!-- Labels (fade in during zoom) -->
+    <g id="circuit-labels" opacity="0">
+      <text id="circuit-lbl-bk-down" x="0" y="0" fill="#ffdd44" font-size="13" font-family="system-ui">Birkeland current &#x2193;</text>
+      <text id="circuit-lbl-bk-up" x="0" y="0" fill="#ffdd44" font-size="13" font-family="system-ui">Birkeland current &#x2191;</text>
+      <text id="circuit-lbl-ped" x="0" y="0" fill="#00e5ff" font-size="12" font-family="system-ui">Pedersen current</text>
+      <text id="circuit-lbl-wind" x="0" y="0" fill="#ff4466" font-size="12" font-family="system-ui">Solar wind &#x2192;</text>
+    </g>
+  </svg>
+  <button class="ctrl-btn" id="circuit-playbtn" onclick="toggleCircuit()">Play</button>
+  <button class="ctrl-btn" id="circuit-resetbtn" onclick="resetCircuit()">Reset</button>
+</div>
+
+<div class="text-col">
+<p>Kristian Birkeland proposed this circuit in 1908. It took sixty years for satellites to prove him right. The current descends along field lines, crosses the polar ionosphere, rises on the other side, and returns to space. Where it enters the atmosphere, atoms glow: the aurora.</p>
+<p>The magnetopause normally holds. Solar wind deflects around it&mdash;nothing gets through. But the Sun is not constant. It sends thick plumes of magnetized plasma&mdash;coronal mass ejections&mdash;that can overwhelm the magnetosphere. When the Sun's magnetic field turns against Earth's, the shield's weak point breaks open. What follows is a geomagnetic storm.</p>
+</div>
+
+<div class="puzzle-slot" data-topic="circuit"></div>
+
+<!-- ============ THE GATE ============ -->
+<div class="scene-full" id="gate-container">
+  <h2 class="scene-title">The Gate</h2>
+  <svg id="svg-gate" viewBox="0 0 1100 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Animated scene: magnetic reconnection at the dayside magnetopause">
+    <defs>
+      <filter id="gate-flash">
+        <feGaussianBlur stdDeviation="8" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Phase 1: Full magnetosphere context -->
+    <g id="gate-ctx">
+      <!-- Earth -->
+      <circle id="gate-ctx-earth" cx="370" cy="300" r="10" fill="#4a9eff"/>
+      <!-- Magnetopause (nose LEFT, tail RIGHT) -->
+      <path id="gate-ctx-mp" fill="none" stroke="rgba(74,158,255,0.4)" stroke-width="1.5"/>
+      <!-- Bow shock -->
+      <path id="gate-ctx-bs" fill="none" stroke="rgba(85,51,0,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+      <!-- Dipole field lines -->
+      <g id="gate-ctx-fieldlines" opacity="0.3"></g>
+      <!-- Solar wind particles -->
+      <g id="gate-ctx-wind"></g>
+      <!-- IMF arrows (start northward) -->
+      <g id="gate-ctx-imf"></g>
+      <!-- Highlight ring on dayside nose -->
+      <circle id="gate-highlight" cx="0" cy="0" r="35" fill="none" stroke="#ffdd44" stroke-width="2" opacity="0"/>
+      <!-- Context labels -->
+      <text id="gate-ctx-label" x="550" y="555" text-anchor="middle" fill="#888" font-size="20" font-family="system-ui" opacity="0">The sealed vessel. Solar wind deflects around it.</text>
+      <text id="gate-ctx-label2" x="550" y="582" text-anchor="middle" fill="#ffdd44" font-size="17" font-family="system-ui" opacity="0">&#x25B6; Focus: the dayside nose (highlighted)</text>
+    </g>
+
+    <!-- Phase 2-5: Detail reconnection view -->
+    <g id="gate-detail" opacity="0">
+      <!-- Magnetopause boundary (vertical current sheet) -->
+      <line id="gate-sheet" x1="400" y1="30" x2="400" y2="570" stroke="rgba(74,158,255,0.15)" stroke-width="60"/>
+      <line x1="400" y1="30" x2="400" y2="570" stroke="rgba(74,158,255,0.3)" stroke-width="2"/>
+      <!-- IMF field lines (left side, pointing DOWN = southward) -->
+      <g id="gate-imf-lines"></g>
+      <!-- Geomagnetic field lines (right side, pointing UP = northward) -->
+      <g id="gate-geo-lines"></g>
+      <!-- Merged/open field lines -->
+      <g id="gate-merged-lines"></g>
+      <!-- X-point -->
+      <circle id="gate-xpoint" cx="400" cy="300" r="0" fill="#ffdd44" opacity="0" filter="url(#gate-flash)"/>
+      <!-- X-shape visual (the actual topology) -->
+      <g id="gate-x-shape" opacity="0">
+        <line x1="385" y1="285" x2="415" y2="315" stroke="#ffdd44" stroke-width="2.5"/>
+        <line x1="385" y1="315" x2="415" y2="285" stroke="#ffdd44" stroke-width="2.5"/>
+      </g>
+      <!-- Energy flash -->
+      <circle id="gate-flash-ring" cx="400" cy="300" r="0" fill="none" stroke="#ffdd44" stroke-width="2" opacity="0"/>
+      <!-- Labels -->
+      <text id="gate-lbl-imf" x="200" y="80" fill="#ff4466" font-size="18" font-family="system-ui" opacity="0">Solar wind field (southward)</text>
+      <text id="gate-lbl-geo" x="600" y="80" fill="#66ff88" font-size="18" font-family="system-ui" opacity="0">Earth's field (northward)</text>
+      <g id="gate-lbl-x" opacity="0">
+        <text x="430" y="288" fill="#ffdd44" font-size="16" font-family="system-ui">Reconnection X-line</text>
+        <text x="430" y="306" fill="#ffdd88" font-size="12" font-family="system-ui">Opposing fields merge here</text>
+      </g>
+    </g>
+
+    <!-- Phase 5: Post-reconnection context (zoom back out) -->
+    <g id="gate-post" opacity="0">
+      <circle cx="370" cy="300" r="10" fill="#4a9eff"/>
+      <path id="gate-post-mp" fill="none" stroke="rgba(74,158,255,0.4)" stroke-width="1.5"/>
+      <g id="gate-post-fieldlines" opacity="0.3"></g>
+      <!-- Open field lines draped over poles -->
+      <g id="gate-open-lines"></g>
+      <!-- Solar wind energy pouring through -->
+      <g id="gate-energy-dots"></g>
+      <text x="550" y="565" text-anchor="middle" fill="#ff4466" font-size="20" font-family="system-ui" opacity="1">The sealed vessel is breached. Energy pours through.</text>
+    </g>
+  </svg>
+  <button class="ctrl-btn" id="gate-playbtn" onclick="toggleGate()">Play</button>
+  <button class="ctrl-btn" id="gate-resetbtn" onclick="resetGate()">Reset</button>
+</div>
+
+<div class="text-col">
+<p>When the gate opens, a billion watts of power pour into the magnetosphere&mdash;driving currents along field lines, heating plasma, stripping satellites of their electronics, and lighting the aurora across the sky. In the largest storms, the magnetopause is pushed inside geosynchronous orbit&mdash;the protective envelope compresses until the satellites that depend on it are left exposed in the raw solar wind.</p>
+</div>
+
+<div class="puzzle-slot" data-topic="gate"></div>
+
+<div class="text-col">
+<p style="margin-top:30px;font-style:italic;color:var(--accent);">This is happening right now, above your head, whether anyone is watching or not.</p>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<div class="gen-footer">
+<hr>
+<p>This tutorial was generated by a persistent AI system called Argus in continuous operation since early 2026.</p>
+<p>This one took multiple passes. The cinematic ambition exceeded what a single prompt can reliably produce&mdash;camera flights, Shue-model magnetopause physics, substorm cycle dynamics, and four interlocking animated SVGs required iterative refinement over several sessions.</p>
+<p>Most of the tutorials on this site were generated in a single pass from a carefully optimized prompt. This wasn't one of them.</p>
+</div>
+
+<script>
+// ========== STAR CANVAS ==========
+(function(){
+  const c = document.getElementById('stars'), ctx = c.getContext('2d');
+  function resize(){ c.width = innerWidth; c.height = innerHeight; draw(); }
+  function draw(){
+    ctx.fillStyle = '#0a0a1a'; ctx.fillRect(0,0,c.width,c.height);
+    for(let i=0;i<300;i++){
+      const b = Math.random()*0.8+0.2;
+      ctx.fillStyle = `rgba(200,200,255,${b})`;
+      ctx.fillRect(Math.random()*c.width, Math.random()*c.height, Math.random()<0.1?2:1, 1);
+    }
+  }
+  addEventListener('resize', resize); resize();
+})();
+
+// ========== UTILITIES ==========
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs, parent){
+  const el = document.createElementNS(SVG_NS, tag);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(el);
+  return el;
+}
+function ease(t){ return t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Shue model boundary: nose LEFT (negative x), tail RIGHT (positive x)
+function boundaryPts(r0, alpha, nPts, tailLen){
+  const pts = [];
+  const thetaMax = Math.PI * 0.85;
+  for(let i=0; i<=nPts; i++){
+    const theta = -thetaMax + (2*thetaMax)*(i/nPts);
+    const r = r0 * Math.pow(2/(1+Math.cos(theta)), alpha);
+    const wx = -r * Math.cos(theta); // negative = sunward (left)
+    const wy = r * Math.sin(theta);
+    pts.push([wx, wy]);
+  }
+  if(tailLen){
+    const lastTop = pts[pts.length-1];
+    const lastBot = pts[0];
+    pts.push([tailLen, lastTop[1]]);
+    pts.unshift([tailLen, lastBot[1]]);
+  }
+  return pts;
+}
+
+// World to SVG: positive wx = tailward = RIGHT
+function ptsToPath(pts, cx, cy, scale){
+  return 'M' + pts.map(p => `${cx + p[0]*scale},${cy - p[1]*scale}`).join('L');
+}
+
+// Dipole field line in world coords
+function dipoleLine(L, nPts){
+  const pts = [];
+  for(let i=0; i<=nPts; i++){
+    const lam = (-Math.PI/2.2) + (Math.PI/1.1)*(i/nPts);
+    const r = L * Math.cos(lam)*Math.cos(lam);
+    const wx = -r * Math.cos(lam); // sunward = negative = left
+    const wy = r * Math.sin(lam);
+    pts.push([wx, wy]);
+  }
+  return pts;
+}
+
+// Catmull-Rom interpolation
+function catmullRom(pts, t){
+  const n = pts.length - 1;
+  const f = t * n;
+  const i = Math.min(Math.floor(f), n - 1);
+  const u = f - i;
+  const p0 = pts[Math.max(0, i-1)];
+  const p1 = pts[i];
+  const p2 = pts[Math.min(n, i+1)];
+  const p3 = pts[Math.min(n, i+2)];
+  const u2 = u*u, u3 = u2*u;
+  return [
+    0.5*((-p0[0]+3*p1[0]-3*p2[0]+p3[0])*u3 + (2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*u2 + (-p0[0]+p2[0])*u + 2*p1[0]),
+    0.5*((-p0[1]+3*p1[1]-3*p2[1]+p3[1])*u3 + (2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*u2 + (-p0[1]+p2[1])*u + 2*p1[1])
+  ];
+}
+
+
+// ========== THE OPENING ==========
+(function(){
+  const svg = document.getElementById('svg-opening');
+  if(!svg) return;
+
+  const EX = 1400, EY = 450; // Earth world position
+  const SX = 200, SY = 450;  // Sun world position
+  const MS_SCALE = 7;        // RE to pixels for side-view MS
+
+  // Pre-build solar wind particles — ions (orange, larger) and electrons (blue-white, smaller, faster)
+  const windG = document.getElementById('open-wind-particles');
+  const windParts = [];
+  for(let i = 0; i < 80; i++){
+    const isElectron = i >= 50;
+    const r = isElectron ? (0.6 + Math.random() * 0.4) : (1.4 + Math.random() * 0.6);
+    const fill = isElectron ? '#aaccff' : '#ffb347';
+    const op = isElectron ? '0.4' : '0.5';
+    const el = svgEl('circle', {r: r.toFixed(1), fill: fill, opacity: op}, windG);
+    windParts.push({
+      el: el,
+      x: SX + 80 + Math.random() * 1100,
+      y: 200 + Math.random() * 500,
+      vx: isElectron ? (1.8 + Math.random() * 1.0) : (1.2 + Math.random() * 0.8),
+      baseY: 0,
+      isElectron: isElectron
+    });
+    windParts[i].baseY = windParts[i].y;
+  }
+
+  // Pre-build side-view MS geometry
+  const mpPts = boundaryPts(10, 0.5, 60, 50);
+  const bsPts = boundaryPts(14.5, 0.6, 60);
+  document.getElementById('open-mp').setAttribute('d', ptsToPath(mpPts, EX, EY, MS_SCALE));
+  document.getElementById('open-bs').setAttribute('d', ptsToPath(bsPts, EX, EY, MS_SCALE));
+
+  // Plasma sheet
+  const psHalf = 1.5;
+  const psLen = 45;
+  document.getElementById('open-ps').setAttribute('d',
+    `M${EX+8*MS_SCALE},${EY-psHalf*MS_SCALE} L${EX+psLen*MS_SCALE},${EY-psHalf*MS_SCALE*1.3} ` +
+    `M${EX+8*MS_SCALE},${EY+psHalf*MS_SCALE} L${EX+psLen*MS_SCALE},${EY+psHalf*MS_SCALE*1.3}`);
+
+  // Dipole field lines (pre-built, clipped to title-safe zone)
+  const flG = document.getElementById('open-fieldlines');
+  const fieldEls = [];
+  for(const L of [3, 5, 7, 9]){
+    const pts = dipoleLine(L, 40);
+    const p = svgEl('path', {
+      d: ptsToPath(pts, EX, EY, MS_SCALE),
+      fill:'none', stroke:'rgba(102,255,136,0.3)', 'stroke-width':'1'
+    }, flG);
+    fieldEls.push(p);
+  }
+
+  // Position labels relative to MS geometry
+  document.getElementById('open-lbl-bs').setAttribute('x', EX - 14.5*MS_SCALE);
+  document.getElementById('open-lbl-bs').setAttribute('y', EY + 6);
+  document.getElementById('open-lbl-mp').setAttribute('x', EX - 11*MS_SCALE);
+  document.getElementById('open-lbl-mp').setAttribute('y', EY + 3*MS_SCALE);
+  document.getElementById('open-lbl-ps').setAttribute('x', EX + 28*MS_SCALE);
+  document.getElementById('open-lbl-ps').setAttribute('y', EY + 2*MS_SCALE);
+  document.getElementById('open-lbl-cusp-n').setAttribute('x', EX - 3*MS_SCALE);
+  document.getElementById('open-lbl-cusp-n').setAttribute('y', EY - 8*MS_SCALE);
+  document.getElementById('open-lbl-cusp-s').setAttribute('x', EX - 3*MS_SCALE);
+  document.getElementById('open-lbl-cusp-s').setAttribute('y', EY + 9*MS_SCALE);
+  document.getElementById('open-lbl-orbit').setAttribute('x', EX + 423);
+  document.getElementById('open-lbl-orbit').setAttribute('y', EY - 2);
+
+  // Front-view deflection particles (separate from main wind, used only during phase 4)
+  const frontWindEls = [];
+  for(let i = 0; i < 30; i++){
+    frontWindEls.push({
+      el: svgEl('circle', {r:'1.5', fill:'#ffb347', opacity:'0'}, windG),
+      x: EX - 250 + Math.random() * 100,
+      y: EY - 200 + Math.random() * 400,
+      vx: 1.0 + Math.random() * 0.5
+    });
+  }
+
+  // HERO PARTICLES: 6 larger, brighter particles with smooth arc deflection.
+  // Visible during front-view (phase 4) and side-view (phases 5-7).
+  // These arc smoothly around the shield/bow shock so the viewer sees
+  // "the wind goes AROUND."
+  const heroG = svgEl('g', {id:'open-hero-particles'}, windG.parentNode);
+  const HERO_COUNT = 6;
+  const heroParticles = [];
+  for(let i = 0; i < HERO_COUNT; i++){
+    const el = svgEl('circle', {
+      r: '4', fill: '#ffcc55', opacity: '0',
+      filter: 'url(#open-glow)'
+    }, heroG);
+    // Each hero has a lane (vertical offset) so they spread out
+    const laneY = EY + (i - 2.5) * 70; // spread from -175 to +175 around center
+    heroParticles.push({
+      el: el,
+      // Parametric state: angle along deflection arc (-PI to PI, or linear x if far away)
+      startX: EX - 400,
+      laneY: laneY,
+      x: EX - 400 - i * 80, // stagger start positions
+      y: laneY,
+      phase: 'approach', // 'approach' | 'arc' | 'depart'
+      arcAngle: 0,
+      speed: 1.8 + i * 0.15
+    });
+  }
+
+  // Pre-build substorm flow particles
+  const flowG = document.getElementById('open-flow-particles');
+  const flowParts = [];
+  for(let i = 0; i < 10; i++){
+    const el = svgEl('circle', {r:'3', fill:'#ff8844', opacity:'0', filter:'url(#open-glow)'}, flowG);
+    flowParts.push({
+      el, startX: EX + 20*MS_SCALE, endX: EX + 5*MS_SCALE,
+      y: EY + (i - 4.5) * 5, x: EX + 20*MS_SCALE,
+      delay: 0.38 + i * 0.015, seed: i * 2.7
+    });
+  }
+  let substormStart = 0;
+  const SUBSTORM_CYCLE = 22000;
+
+  function substormLoop(ts2){
+    if(!openRunning) return;
+    if(window._sceneVis && !window._sceneVis.open()){ requestAnimationFrame(substormLoop); return; }
+    if(!substormStart) substormStart = ts2;
+    const elapsed = (ts2 - substormStart) % SUBSTORM_CYCLE;
+    const ph = elapsed / SUBSTORM_CYCLE;
+
+    document.getElementById('open-substorm').setAttribute('opacity', '1');
+
+    const breathAmp = ph < 0.36 ? 0.4 + 1.2*(ph/0.36) :
+                      ph < 0.55 ? 1.6 :
+                      1.6 - 1.2*((ph - 0.55)/0.45);
+    const ba = breathAmp * Math.sin(ts2 * 0.003);
+
+    const tailLen = ph < 0.36 ? 50 + 20*(ph/0.36) :
+                    ph < 0.41 ? 70 :
+                    ph < 0.55 ? 70 - 20*((ph - 0.41)/0.14) : 50;
+    const mpB = boundaryPts(9.5 + ba*0.5, 0.5, 60, tailLen);
+    document.getElementById('open-mp').setAttribute('d', ptsToPath(mpB, EX, EY, MS_SCALE));
+    const bsB = boundaryPts(14 + ba*0.3, 0.6, 60, tailLen + 5);
+    document.getElementById('open-bs').setAttribute('d', ptsToPath(bsB, EX, EY, MS_SCALE));
+
+    const psGap = ph < 0.36 ? 1.5 - 0.8*(ph/0.36) :
+                  ph < 0.55 ? 0.7 + 0.8*((ph - 0.36)/0.19) : 1.5;
+    document.getElementById('open-ps').setAttribute('d',
+      `M${EX+8*MS_SCALE},${EY-psGap*MS_SCALE} L${EX+tailLen*MS_SCALE},${EY-psGap*MS_SCALE*1.3} `+
+      `M${EX+8*MS_SCALE},${EY+psGap*MS_SCALE} L${EX+tailLen*MS_SCALE},${EY+psGap*MS_SCALE*1.3}`);
+
+    const nenlOp = (ph > 0.36 && ph < 0.45) ? Math.sin((ph-0.36)/0.09*Math.PI) : 0;
+    document.getElementById('open-nenl').setAttribute('opacity', nenlOp.toFixed(2));
+
+    for(let fi = 0; fi < flowParts.length; fi++){
+      const fp = flowParts[fi];
+      if(ph < 0.36){
+        // GROWTH: particles accumulate in plasma sheet, appearing one by one
+        const arriveT = fi * 0.03; // stagger: each particle appears ~3% into cycle
+        if(ph > arriveT){
+          const loadP = (ph - arriveT) / (0.36 - arriveT);
+          // Drift slowly tailward (loading energy into tail)
+          fp.x = fp.startX - loadP * 30;
+          fp.el.setAttribute('cx', fp.x.toFixed(0));
+          fp.el.setAttribute('cy', (fp.y + Math.sin(ts2*0.006 + fp.seed)*2).toFixed(0));
+          fp.el.setAttribute('opacity', (0.3 + loadP * 0.5).toFixed(2));
+          fp.el.setAttribute('fill', '#ff8844');
+        } else {
+          fp.el.setAttribute('opacity', '0');
+        }
+      } else {
+        // EXPANSION: burst earthward (original behavior)
+        const flowT = clamp((ph - fp.delay)/0.20, 0, 1);
+        if(flowT > 0 && flowT < 1){
+          fp.x = fp.startX + (fp.endX - fp.startX)*flowT;
+          fp.el.setAttribute('cx', fp.x.toFixed(0));
+          fp.el.setAttribute('cy', (fp.y + Math.sin(ts2*0.01 + fp.seed)*3).toFixed(0));
+          fp.el.setAttribute('opacity', '0.8');
+          fp.el.setAttribute('fill', '#ffcc44');
+        } else {
+          fp.el.setAttribute('opacity', '0');
+        }
+      }
+    }
+
+    // Plasma sheet glow intensifies during Growth (energy loading)
+    const psGlow = ph < 0.36 ? 0.3 + 0.5 * (ph / 0.36) :
+                   ph < 0.55 ? 0.8 - 0.4 * ((ph-0.36)/0.19) : 0.4;
+    document.getElementById('open-ps').setAttribute('stroke', `rgba(255,136,68,${psGlow.toFixed(2)})`);
+    document.getElementById('open-ps').setAttribute('stroke-width', (2 + psGlow * 3).toFixed(1));
+
+    const auroraOp = (ph > 0.52 && ph < 0.82) ?
+      (ph < 0.60 ? (ph-0.52)/0.08 : ph < 0.70 ? 1.0 : 1.0-(ph-0.70)/0.12) : 0;
+    document.getElementById('open-aurora-n').setAttribute('opacity', (auroraOp*0.7).toFixed(2));
+    document.getElementById('open-aurora-s').setAttribute('opacity', (auroraOp*0.7).toFixed(2));
+    document.getElementById('open-aurora-n').setAttribute('rx', (8+6*auroraOp).toFixed(0));
+    document.getElementById('open-aurora-s').setAttribute('rx', (8+6*auroraOp).toFixed(0));
+    document.getElementById('open-aurora-label').setAttribute('opacity', (auroraOp*0.6).toFixed(2));
+
+    const labelEl = document.getElementById('open-phase-label');
+    const pName = ph < 0.36 ? 'Growth' : ph < 0.41 ? 'Onset' :
+                  ph < 0.55 ? 'Expansion' : ph < 0.73 ? 'Recovery' : 'Quiet';
+    labelEl.textContent = pName;
+    labelEl.setAttribute('opacity', '0.6');
+
+    // "Substorm" label fades in during Expansion, out during Recovery
+    const substormLblOp = ph >= 0.41 && ph < 0.55 ? clamp((ph - 0.41) / 0.04, 0, 0.9) :
+                          ph >= 0.55 && ph < 0.65 ? 0.9 * clamp((0.65 - ph) / 0.10, 0, 1) : 0;
+    document.getElementById('open-substorm-label').setAttribute('opacity', substormLblOp.toFixed(2));
+
+    // Energy loading note during Growth, discharge note during Expansion
+    const energyNoteOp = ph < 0.30 ? clamp((ph - 0.08) / 0.06, 0, 0.8) :
+                          ph < 0.41 ? 0.8 * clamp((0.41 - ph) / 0.06, 0, 1) : 0;
+    const dischargeNoteOp = ph >= 0.41 && ph < 0.55 ? clamp((ph - 0.43) / 0.04, 0, 0.8) :
+                             ph >= 0.55 && ph < 0.65 ? 0.8 * clamp((0.65 - ph) / 0.06, 0, 1) : 0;
+    document.getElementById('open-energy-note').setAttribute('opacity', energyNoteOp.toFixed(2));
+    document.getElementById('open-discharge-note').setAttribute('opacity', dischargeNoteOp.toFixed(2));
+
+    const ma = ts2 * 0.0004;
+    const moonX = EX+420*Math.cos(ma), moonY = EY+420*Math.sin(ma);
+    document.getElementById('open-moon').setAttribute('cx', moonX.toFixed(0));
+    document.getElementById('open-moon').setAttribute('cy', moonY.toFixed(0));
+    const moonLblPulse = Math.pow(Math.max(0, Math.sin(ma)), 8);
+    document.getElementById('open-moon-label').setAttribute('opacity', (moonLblPulse*0.8).toFixed(2));
+    document.getElementById('open-moon-label').setAttribute('x', moonX.toFixed(0));
+    document.getElementById('open-moon-label').setAttribute('y', (moonY-8).toFixed(0));
+
+    for(const p of windParts){
+      p.x += p.vx * (900/1600) * 2.5;
+      const wx = (p.x - EX)/MS_SCALE, wy = (EY - p.y)/MS_SCALE;
+      const mpR = (9.5+ba*0.5)*Math.pow(2/(1+Math.max(Math.cos(Math.atan2(wy,-wx)),0.1)),0.5);
+      if(Math.sqrt(wx*wx+wy*wy) < mpR+1.5 && wx < 0){
+        p.y += (p.y < EY ? -1.8 : 1.8); p.x -= 0.5;
+      }
+      if(p.x > EX+400||p.y < 100||p.y > 800){ p.x = 1220; p.y = 200+Math.random()*500; }
+      p.el.setAttribute('cx', p.x.toFixed(0));
+      p.el.setAttribute('cy', (p.baseY+Math.sin(p.x*0.008)*6).toFixed(0));
+    }
+
+    document.getElementById('open-time-text').textContent = 'Time: 245×';
+    document.getElementById('open-scale-text').textContent = '127k km';
+
+    // Solar wind label pulses gently during substorm (reposition into viewport)
+    const windLbl = document.getElementById('open-wind-label');
+    windLbl.setAttribute('x', '1030');
+    windLbl.setAttribute('y', '350');
+    const windLblPulse = 0.3 + 0.2 * Math.sin(ts2 * 0.001);
+    windLbl.setAttribute('opacity', windLblPulse.toFixed(2));
+
+    requestAnimationFrame(substormLoop);
+  }
+
+  // ---- CAMERA KEYFRAMES ----
+  // [time_frac, viewBox_x, viewBox_y, viewBox_w, viewBox_h]
+  // RULE: Sun and Earth must NEVER both be off-screen. During handoff (Sun
+  // rolling off left), the viewBox must be wide enough that Earth is already
+  // visible as a dot at the right edge before Sun fully exits left.
+  // Sun center=200, Earth center=1400. For both visible: vx..vx+vw must span
+  // at least part of [0..280] (Sun) AND [1380..1420] (Earth).
+  const KF = [
+    [0.00,    0,     0,  1600,  900],   // full scene: Sun left, Earth right
+    [0.06,    0,     0,  1600,  900],   // hold
+    [0.11,    0,    80,  1200,  675],   // gentle zoom toward Sun
+    [0.16,   50,   150,  1000,  563],   // closer to Sun — stays wide
+    [0.22,  200,   140,  1200,  675],   // turn begins — Earth dot at right edge
+    [0.28,  400,   150,  1100,  619],   // mid-turn — both objects visible
+    [0.34,  650,   170,   950,  534],   // following wind — gradual narrowing
+    [0.39,  900,   190,   750,  422],   // Earth growing ahead
+    [0.43, 1100,   200,   600,  338],   // front view — shield visible
+    [0.49, 1100,   200,   600,  338],   // hold front view
+    [0.54, 1050,   180,   700,  394],   // pan wider — tail emerging
+    [0.57, 1000,   160,   900,  506],   // side view — full MS
+    [0.67, 1000,   160,   900,  506],   // hold side view (substorm cycle)
+    [0.76,  700,    50,  1400,  788],   // slow zoom OUT — Moon orbit reveal
+    [0.86,  700,    50,  1400,  788],   // hold wide — Moon in tail
+    [0.94, 1000,   160,   900,  506],   // slow return to side view
+    [1.00, 1000,   160,   900,  506]    // hold — end state (breathing MS)
+  ];
+
+  // Catmull-Rom spline through keyframes — C1 continuous velocity at every point
+  function interpKF(t){
+    const n = KF.length;
+    let idx = n - 2;
+    for(let i = 0; i < n - 1; i++){
+      if(t <= KF[i+1][0]){ idx = i; break; }
+    }
+    const tSpan = KF[idx+1][0] - KF[idx][0];
+    const u = tSpan > 0 ? (t - KF[idx][0]) / tSpan : 0;
+    const u2 = u*u, u3 = u2*u;
+    const i0 = Math.max(0, idx-1), i1 = idx;
+    const i2 = Math.min(n-1, idx+1), i3 = Math.min(n-1, idx+2);
+    const res = [];
+    for(let d = 1; d <= 4; d++){
+      const p0=KF[i0][d], p1=KF[i1][d], p2=KF[i2][d], p3=KF[i3][d];
+      res.push(0.5*((-p0+3*p1-3*p2+p3)*u3 + (2*p0-5*p1+4*p2-p3)*u2 + (-p0+p2)*u + 2*p1));
+    }
+    return res;
+  }
+
+  // Narration timing: [startFrac, endFrac, elementId]
+  const narrations = [
+    [0.02, 0.14, 'narr-1'],  // approaching Sun
+    [0.20, 0.32, 'narr-2'],  // turning + following wind
+    [0.34, 0.42, 'narr-3'],  // Earth grows
+    [0.44, 0.53, 'narr-4'],  // front view, shield
+    [0.59, 0.66, 'narr-5'],  // substorm phase
+    [0.77, 0.90, 'narr-6']   // Moon reveal
+  ];
+
+  const DURATION = 48000; // 48 seconds
+  let openStart = null, openRunning = true, openDone = false;
+  let pausedAt = 0; // track paused elapsed time
+
+  function updateOpen(ts){
+    if(window._sceneVis && !window._sceneVis.open()){ requestAnimationFrame(updateOpen); return; }
+    if(!openStart) openStart = ts - pausedAt;
+    const elapsed = ts - openStart;
+    const t = Math.min(elapsed / DURATION, 1.0);
+
+    // ---- CAMERA ----
+    const [vx, vy, vw, vh] = interpKF(t);
+    svg.setAttribute('viewBox', `${vx.toFixed(1)} ${vy.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}`);
+    const zoom = 1600 / vw;
+
+    // ---- NARRATION ----
+    for(const [ns, ne, nid] of narrations){
+      const el = document.getElementById(nid);
+      if(t >= ns && t <= ne){
+        const fadeIn = clamp((t - ns) / 0.02, 0, 1);
+        const fadeOut = clamp((ne - t) / 0.02, 0, 1);
+        el.style.opacity = (Math.min(fadeIn, fadeOut)).toFixed(2);
+      } else {
+        el.style.opacity = '0';
+      }
+    }
+
+    // ---- SUN VISIBILITY ----
+    const coronaPulse = 200 + 8 * Math.sin(ts * 0.002);
+    document.getElementById('open-corona').setAttribute('r', coronaPulse.toFixed(0));
+    const sunInView = vx < SX + 200;
+    const sunGroupOp = sunInView ? 1 : clamp(1 - (vx - SX - 200) / 200, 0, 1);
+    document.getElementById('open-sun-group').setAttribute('opacity', sunGroupOp.toFixed(2));
+
+    // Sun label: fades in during initial hold and approach
+    const sunLblPulse = Math.pow(Math.max(0, Math.sin(ts * 0.0008)), 4);
+    const sunLblBase = (t < 0.20) ? clamp((t - 0.02) / 0.03, 0, 1) * clamp((0.20 - t) / 0.03, 0, 1) : 0;
+    const sunLblOp = Math.max(sunLblBase, sunLblPulse * 0.5) * sunGroupOp;
+    document.getElementById('open-sun-label').setAttribute('opacity', sunLblOp.toFixed(2));
+
+    // ---- FRONT-VIEW MS ----
+    const frontOp = (t > 0.37 && t < 0.58) ?
+      Math.min(clamp((t - 0.37) / 0.04, 0, 1), clamp((0.58 - t) / 0.04, 0, 1)) : 0;
+    document.getElementById('open-front-ms').setAttribute('opacity', frontOp.toFixed(2));
+
+    // Front-view wind deflection (particles streaming past the circular shield)
+    if(frontOp > 0.1){
+      for(const fw of frontWindEls){
+        fw.x += fw.vx;
+        const dx = fw.x - EX;
+        const dy = fw.y - EY;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < 140){
+          // Deflect radially outward
+          const angle = Math.atan2(dy, dx);
+          fw.y += Math.sin(angle) * 2;
+          fw.x -= 0.5;
+        }
+        if(fw.x > EX + 300 || Math.abs(fw.y - EY) > 350){
+          fw.x = EX - 250 + Math.random() * 50;
+          fw.y = EY - 200 + Math.random() * 400;
+        }
+        fw.el.setAttribute('cx', fw.x.toFixed(0));
+        fw.el.setAttribute('cy', fw.y.toFixed(0));
+        fw.el.setAttribute('opacity', (frontOp * 0.5).toFixed(2));
+      }
+    } else {
+      for(const fw of frontWindEls) fw.el.setAttribute('opacity', '0');
+    }
+
+    // ---- HERO PARTICLES (pedagogical deflection) ----
+    const heroActive = t > 0.37 && t < 0.74;
+    const heroFadeIn = clamp((t - 0.37) / 0.03, 0, 1);
+    const heroFadeOut = clamp((0.74 - t) / 0.03, 0, 1);
+    const heroOp = heroActive ? Math.min(heroFadeIn, heroFadeOut) : 0;
+
+    if(heroActive){
+      const isFront = t < 0.55;
+      // Shield radius: front-view uses the circular shield (r=130px in world),
+      // side-view uses bow shock (~14.5 RE * MS_SCALE)
+      const shieldR = isFront ? 165 : 14.5 * MS_SCALE; // front: px, side: px from EX
+
+      for(const hp of heroParticles){
+        // Distance from Earth center
+        const dx = hp.x - EX;
+        const dy = hp.y - EY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if(hp.phase === 'approach'){
+          // Move rightward toward the shield
+          hp.x += hp.speed * 2.2;
+          hp.y = hp.laneY; // stay in lane
+
+          // When close to shield, switch to arc phase
+          if(dist < shieldR + 20){
+            hp.phase = 'arc';
+            hp.arcAngle = Math.atan2(dy, dx); // entry angle
+          }
+        } else if(hp.phase === 'arc'){
+          // Slide along the shield surface — angular velocity
+          const arcSpeed = hp.speed * 0.025;
+          // Arc direction: particles above center go up (angle decreases toward -PI/2),
+          // particles below go down (angle increases toward +PI/2)
+          const dir = hp.laneY < EY ? -1 : 1;
+          hp.arcAngle += dir * arcSpeed;
+          hp.x = EX + (shieldR + 8) * Math.cos(hp.arcAngle);
+          hp.y = EY + (shieldR + 8) * Math.sin(hp.arcAngle);
+
+          // Exit arc when past 90° from approach direction (swept around the side)
+          const swept = Math.abs(hp.arcAngle - Math.atan2(hp.laneY - EY, -shieldR));
+          if(swept > Math.PI * 0.55){
+            hp.phase = 'depart';
+          }
+        } else {
+          // Depart: continue moving away from shield, drifting tailward
+          hp.x += hp.speed * 1.5;
+          hp.y += (hp.y < EY ? -hp.speed * 0.8 : hp.speed * 0.8);
+
+          // Reset when far enough away
+          if(hp.x > EX + 500 || Math.abs(hp.y - EY) > 500){
+            hp.phase = 'approach';
+            hp.x = EX - 350 - Math.random() * 100;
+            hp.y = hp.laneY;
+          }
+        }
+
+        hp.el.setAttribute('cx', hp.x.toFixed(0));
+        hp.el.setAttribute('cy', hp.y.toFixed(0));
+        hp.el.setAttribute('opacity', (heroOp * 0.85).toFixed(2));
+      }
+    } else {
+      for(const hp of heroParticles){
+        hp.el.setAttribute('opacity', '0');
+        // Reset positions so they're ready for next play
+        if(t < 0.35){
+          hp.phase = 'approach';
+          hp.x = EX - 350 - heroParticles.indexOf(hp) * 80;
+          hp.y = hp.laneY;
+        }
+      }
+    }
+
+    // ---- SIDE-VIEW MS (visible when viewBox is zoomed to MS scale) ----
+    const sideOp = clamp((1100 - vw) / 200, 0, 1);
+    document.getElementById('open-side-ms').setAttribute('opacity', sideOp.toFixed(2));
+
+    if(sideOp > 0){
+      const breathAmp = 0.6 + 0.6 * Math.sin(ts * 0.002);
+      document.getElementById('open-mp').setAttribute('d',
+        ptsToPath(boundaryPts(9.5 + breathAmp, 0.5, 60, 50), EX, EY, MS_SCALE));
+    }
+
+    // ---- MOON (visible when zoomed out wide enough to see orbit) ----
+    const moonOp = clamp((vw - 1100) / 200, 0, 0.7);
+    document.getElementById('open-moon-group').setAttribute('opacity', moonOp.toFixed(2));
+
+    if(moonOp > 0){
+      // Moon orbits: fast during phase 6, slow otherwise
+      const moonSpeed = 0.0004;
+      const moonAngle = ts * moonSpeed;
+      const moonR = 420;
+      const mx = EX + moonR * Math.cos(moonAngle);
+      const my = EY + moonR * Math.sin(moonAngle);
+      document.getElementById('open-moon').setAttribute('cx', mx.toFixed(0));
+      document.getElementById('open-moon').setAttribute('cy', my.toFixed(0));
+    }
+
+    document.getElementById('open-earth').setAttribute('opacity', '1');
+
+    // ---- MS LABELS (visible during side view — tied to sideOp) ----
+    const labelOp = sideOp * 0.8;
+    document.getElementById('open-ms-labels').setAttribute('opacity', labelOp.toFixed(2));
+
+    // ---- SOLAR WIND PARTICLES ----
+    const pScale = vw / 1600; // scale particle speed to viewBox width
+    for(const p of windParts){
+      p.x += p.vx * pScale * 2.5;
+      // Deflect near magnetopause (side view, when visible)
+      if(sideOp > 0.3){
+        const wx = (p.x - EX) / MS_SCALE;
+        const wy = (EY - p.y) / MS_SCALE;
+        const mpR = 10 * Math.pow(2 / (1 + Math.max(Math.cos(Math.atan2(wy, -wx)), 0.1)), 0.5);
+        const dist = Math.sqrt(wx*wx + wy*wy);
+        if(dist < mpR + 1.5 && wx < 0){
+          p.y += (p.y < EY ? -1.8 : 1.8);
+          p.x -= 0.5;
+        }
+      }
+      if(p.x > EX + 400 || p.y < 100 || p.y > 800){
+        p.x = Math.max(vx - 50, SX + 80);
+        p.y = 200 + Math.random() * 500;
+      }
+      p.el.setAttribute('cx', p.x.toFixed(0));
+      p.el.setAttribute('cy', (p.baseY + Math.sin(p.x * 0.008) * 6).toFixed(0));
+      p.el.setAttribute('r', (1.2 * pScale + 0.3).toFixed(1));
+    }
+
+    // ---- INDICATORS (fixed HTML overlay — stationary lower-left) ----
+    // Scale: 80px CSS bar. Physical distance depends on zoom regime.
+    // AU: 1200 SVG-units = 1 AU. MS: 7 SVG-units = 1 RE = 6371 km.
+    // Map 80 CSS px → SVG-units via viewport ratio, then to km.
+    const svgRect = svg.getBoundingClientRect();
+    const barSvgUnits = (svgRect.width > 0) ? 80 * (vw / svgRect.width) : vw * 0.05;
+    let scaleKm;
+    const msKm = (barSvgUnits / MS_SCALE) * 6371;
+    const auKm = (barSvgUnits / 1200) * 1.496e8;
+    if(vw <= 900) scaleKm = msKm;
+    else if(vw >= 1400) scaleKm = auKm;
+    else {
+      const blend = (vw - 900) / 500;
+      scaleKm = msKm * (1-blend) + auKm * blend;
+    }
+    let scaleTxt;
+    if(scaleKm > 5e7) scaleTxt = (scaleKm / 1.496e8).toFixed(1) + ' AU';
+    else if(scaleKm > 1e6) scaleTxt = Math.round(scaleKm / 1e6).toLocaleString() + 'M km';
+    else if(scaleKm > 1e4) scaleTxt = Math.round(scaleKm / 1e3).toLocaleString() + 'k km';
+    else scaleTxt = Math.round(scaleKm).toLocaleString() + ' km';
+    document.getElementById('open-scale-text').textContent = scaleTxt;
+
+    // Time rate — logarithmically interpolated
+    const TRK = [
+      [0.00, 16000], [0.22, 24000], [0.34, 800], [0.43, 1200],
+      [0.57, 245], [0.67, 245], [0.76, 500000], [0.86, 500000],
+      [0.94, 245], [1.00, 245]
+    ];
+    let timeX = TRK[TRK.length-1][1];
+    for(let i = 0; i < TRK.length - 1; i++){
+      if(t >= TRK[i][0] && t <= TRK[i+1][0]){
+        const f = (t - TRK[i][0]) / (TRK[i+1][0] - TRK[i][0]);
+        const logA = Math.log10(TRK[i][1]), logB = Math.log10(TRK[i+1][1]);
+        timeX = Math.pow(10, logA + (logB - logA) * f);
+        break;
+      }
+    }
+    let timeTxt;
+    if(timeX >= 1e6) timeTxt = (timeX/1e6).toFixed(1) + 'M×';
+    else if(timeX >= 1e4) timeTxt = Math.round(timeX/1e3).toLocaleString() + 'k×';
+    else timeTxt = Math.round(timeX).toLocaleString() + '×';
+    document.getElementById('open-time-text').textContent = 'Time: ' + timeTxt;
+
+    // ---- SOLAR WIND LABEL (visible during approach phase, reset position) ----
+    const windLabelOp = (t > 0.20 && t < 0.42) ?
+      Math.min(clamp((t-0.22)/0.03, 0, 1), clamp((0.42-t)/0.03, 0, 1)) : 0;
+    if(windLabelOp > 0){
+      document.getElementById('open-wind-label').setAttribute('x', '700');
+      document.getElementById('open-wind-label').setAttribute('y', '410');
+    }
+    document.getElementById('open-wind-label').setAttribute('opacity',
+      (t >= 0.57 && t <= 0.67) ? '0.3' : windLabelOp.toFixed(2));
+
+    // ---- MOON LABEL (steady during zoom-out reveal, pulses otherwise) ----
+    if(moonOp > 0){
+      const inReveal = t > 0.76 && t < 0.90;
+      const moonLabelOp = inReveal ? 0.9 :
+        Math.pow(Math.max(0, Math.sin(ts * 0.0004 * Math.PI * 2)), 8) * 0.8;
+      document.getElementById('open-moon-label').setAttribute('opacity', moonLabelOp.toFixed(2));
+      const mx2 = parseFloat(document.getElementById('open-moon').getAttribute('cx'));
+      const my2 = parseFloat(document.getElementById('open-moon').getAttribute('cy'));
+      document.getElementById('open-moon-label').setAttribute('x', mx2.toFixed(0));
+      document.getElementById('open-moon-label').setAttribute('y', (my2 - 8).toFixed(0));
+    }
+
+    // ---- COMPLETION (clean end at start frame — loops via Repeat) ----
+    if(t >= 1.0 && !openDone){
+      openDone = true;
+      // Reset button always visible
+      document.getElementById('open-playbtn').textContent = 'Replay';
+      for(const hp of heroParticles) hp.el.setAttribute('opacity', '0');
+      document.getElementById('open-wind-label').setAttribute('opacity', '0');
+    }
+
+    if(t < 1.0 && openRunning){
+      requestAnimationFrame(updateOpen);
+    } else if(openDone && openRunning){
+      substormStart = 0;
+      requestAnimationFrame(substormLoop);
+    }
+  }
+
+  window.toggleOpen = function(){
+    if(openRunning){
+      openRunning = false;
+      pausedAt = performance.now() - openStart;
+      document.getElementById('open-playbtn').textContent = 'Play';
+    } else {
+      openRunning = true;
+      openStart = null;
+      document.getElementById('open-playbtn').textContent = openDone ? 'Replay' : 'Pause';
+      document.getElementById('opening-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if(openDone) requestAnimationFrame(substormLoop);
+      else requestAnimationFrame(updateOpen);
+    }
+  };
+
+  window.restartOpen = function(){
+    openStart = null; pausedAt = 0; openDone = false; openRunning = true;
+    document.getElementById('open-playbtn').textContent = 'Pause';
+    // Reset button always visible
+    // Reset element states
+    document.getElementById('open-sun-group').setAttribute('opacity', '1');
+    document.getElementById('open-front-ms').setAttribute('opacity', '0');
+    document.getElementById('open-side-ms').setAttribute('opacity', '0');
+    document.getElementById('open-moon-group').setAttribute('opacity', '0');
+    document.getElementById('open-ms-labels').setAttribute('opacity', '0');
+    document.getElementById('open-substorm').setAttribute('opacity', '0');
+    document.getElementById('open-wind-label').setAttribute('opacity', '0');
+    document.getElementById('open-wind-label').setAttribute('x', '700');
+    document.getElementById('open-aurora-label').setAttribute('opacity', '0');
+    substormStart = 0;
+    for(const fw of frontWindEls) fw.el.setAttribute('opacity', '0');
+    for(const fp of flowParts) fp.el.setAttribute('opacity', '0');
+    for(const hp of heroParticles){ hp.el.setAttribute('opacity', '0'); hp.phase = 'approach'; }
+    requestAnimationFrame(updateOpen);
+  };
+
+  // Auto-play on load (unless reduced motion)
+  if(!reducedMotion){
+    requestAnimationFrame(updateOpen);
+  } else {
+    openRunning = false;
+    svg.setAttribute('viewBox', '1000 160 900 506');
+    document.getElementById('open-side-ms').setAttribute('opacity', '1');
+    document.getElementById('open-ms-labels').setAttribute('opacity', '0.8');
+    document.getElementById('open-playbtn').textContent = 'Play';
+  }
+})();
+
+
+// ========== THE GATE ==========
+(function(){
+  const svg = document.getElementById('svg-gate');
+  const ctxG = document.getElementById('gate-ctx');
+  const detG = document.getElementById('gate-detail');
+  const postG = document.getElementById('gate-post');
+
+  // Context view: Earth at (370,300), scale=4, nose LEFT, tail RIGHT
+  const CX = 370, CY = 300, CS = 4;
+
+  // Build magnetopause + bow shock for context
+  const mpPts = boundaryPts(10, 0.5, 50, 40);
+  const bsPts = boundaryPts(14, 0.6, 50);
+  document.getElementById('gate-ctx-mp').setAttribute('d', ptsToPath(mpPts, CX, CY, CS));
+  document.getElementById('gate-ctx-bs').setAttribute('d', ptsToPath(bsPts, CX, CY, CS));
+
+  // Post-reconnection context (same shape)
+  document.getElementById('gate-post-mp').setAttribute('d', ptsToPath(mpPts, CX, CY, CS));
+
+  // Context dipole field lines
+  const ctxFlG = document.getElementById('gate-ctx-fieldlines');
+  for(const L of [3, 5, 7]){
+    const pts = dipoleLine(L, 30);
+    svgEl('path', {
+      d: ptsToPath(pts, CX, CY, CS),
+      fill:'none', stroke:'rgba(102,255,136,0.25)', 'stroke-width':'0.8'
+    }, ctxFlG);
+  }
+
+  // Post-reconnection dipole
+  const postFlG = document.getElementById('gate-post-fieldlines');
+  for(const L of [3, 5, 7]){
+    const pts = dipoleLine(L, 30);
+    svgEl('path', {
+      d: ptsToPath(pts, CX, CY, CS),
+      fill:'none', stroke:'rgba(102,255,136,0.25)', 'stroke-width':'0.8'
+    }, postFlG);
+  }
+
+  // Nose position in SVG coords (magnetopause nose is at world x = -r0)
+  const noseX = CX + (-10) * CS; // 370 - 40 = 330
+  const noseY = CY;
+  document.getElementById('gate-highlight').setAttribute('cx', noseX);
+  document.getElementById('gate-highlight').setAttribute('cy', noseY);
+
+  // Solar wind particles (context view, deflect around magnetopause)
+  const ctxWindG = document.getElementById('gate-ctx-wind');
+  const windParts = [];
+  for(let i = 0; i < 40; i++){
+    const el = svgEl('circle', {r:'1.5', fill:'#ffb347', opacity:'0.5'}, ctxWindG);
+    windParts.push({
+      el: el,
+      x: 30 + Math.random() * 280,
+      y: 120 + Math.random() * 360,
+      vx: 0.6 + Math.random() * 0.4,
+      vy: 0
+    });
+  }
+  // Check if point is inside magnetopause (Shue model, world coords relative to Earth)
+  function insideMP(sx, sy){
+    const wx = (sx - CX) / CS;   // world x (positive = tailward)
+    const wy = (CY - sy) / CS;   // world y (positive = north)
+    const r = Math.sqrt(wx*wx + wy*wy);
+    const theta = Math.atan2(wy, -wx); // angle from nose direction
+    const rBound = 10 * Math.pow(2/(1+Math.cos(theta)), 0.5);
+    return {inside: r < rBound, r: r, rBound: rBound, wx: wx, wy: wy};
+  }
+
+  // IMF arrows in context (initially northward, then rotate southward)
+  const ctxImfG = document.getElementById('gate-ctx-imf');
+  const imfArrows = [];
+  for(let i = 0; i < 5; i++){
+    const x = 60 + i * 50;
+    const line = svgEl('line', {
+      x1: x, y1: '320', x2: x, y2: '280',
+      stroke: '#ff4466', 'stroke-width': '2', opacity: '0.5'
+    }, ctxImfG);
+    const head = svgEl('polygon', {
+      points: `${x-4},${280+8} ${x},${280} ${x+4},${280+8}`,
+      fill: '#ff4466', opacity: '0.5'
+    }, ctxImfG);
+    imfArrows.push({line: line, head: head, x: x});
+  }
+
+  // Detail view: reconnection lines (pre-built)
+  const imfLinesG = document.getElementById('gate-imf-lines');
+  const geoLinesG = document.getElementById('gate-geo-lines');
+  const mergedLinesG = document.getElementById('gate-merged-lines');
+
+  const nPairs = 5;
+  const imfEls = [], geoEls = [], mergedTopEls = [], mergedBotEls = [];
+  for(let i = 0; i < nPairs; i++){
+    imfEls.push(svgEl('path', {fill:'none', stroke:'#ff4466', 'stroke-width':'2.5', opacity:'0'}, imfLinesG));
+    geoEls.push(svgEl('path', {fill:'none', stroke:'#66ff88', 'stroke-width':'2.5', opacity:'0'}, geoLinesG));
+    mergedTopEls.push(svgEl('path', {fill:'none', stroke:'#ffdd44', 'stroke-width':'2', opacity:'0'}, mergedLinesG));
+    mergedBotEls.push(svgEl('path', {fill:'none', stroke:'#ffdd44', 'stroke-width':'2', opacity:'0'}, mergedLinesG));
+  }
+
+  // Open field lines for post-reconnection
+  const openLinesG = document.getElementById('gate-open-lines');
+  const openFieldEls = [];
+  for(let i = 0; i < 6; i++){
+    openFieldEls.push(svgEl('path', {
+      fill:'none', stroke:'rgba(255,68,102,0.5)', 'stroke-width':'1.5'
+    }, openLinesG));
+  }
+  // Open field line paths (draped over poles from nose, curving back)
+  const openPaths = [
+    `M${noseX},${noseY-10} Q${CX-20},${CY-80} ${CX+60},${CY-120}`,
+    `M${noseX},${noseY-5} Q${CX-10},${CY-60} ${CX+100},${CY-100}`,
+    `M${noseX+5},${noseY-3} Q${CX},${CY-45} ${CX+140},${CY-85}`,
+    `M${noseX},${noseY+10} Q${CX-20},${CY+80} ${CX+60},${CY+120}`,
+    `M${noseX},${noseY+5} Q${CX-10},${CY+60} ${CX+100},${CY+100}`,
+    `M${noseX+5},${noseY+3} Q${CX},${CY+45} ${CX+140},${CY+85}`
+  ];
+  openFieldEls.forEach((el, i) => el.setAttribute('d', openPaths[i]));
+
+  // Energy dots streaming through the breach
+  const energyDotsG = document.getElementById('gate-energy-dots');
+  const energyDots = [];
+  for(let i = 0; i < 12; i++){
+    energyDots.push({
+      el: svgEl('circle', {r:'2', fill:'#ffdd44', opacity:'0'}, energyDotsG),
+      pathIdx: i % 6,
+      t: i / 12
+    });
+  }
+
+  // Animation state
+  const DURATION = 32000; // 32 seconds total
+  let gateStart = null, gateRunning = false;
+
+  // Phase timing (fraction of DURATION):
+  // Phase 1: Context + sealed vessel, northward IMF (0 - 0.20)
+  // Phase 2: Southward turn (0.20 - 0.30)
+  // Phase 2.5: ViewBox zoom toward nose, crossfade (0.30 - 0.40)
+  // Phase 3: Detail + reconnection (0.40 - 0.80)
+  // Phase 4: Consequence — zoom back out (0.80 - 1.0)
+
+  function updateGate(ts){
+    if(window._sceneVis && !window._sceneVis.gate()){ requestAnimationFrame(updateGate); return; }
+    if(!gateStart) gateStart = ts;
+    const elapsed = ts - gateStart;
+    const t = clamp(elapsed / DURATION, 0, 1);
+
+    // ViewBox zoom: approach nose during 0.30-0.40, hold during detail, zoom out during 0.80-0.90
+    let vx=0, vy=0, vw=1100, vh=600;
+    if(t >= 0.30 && t < 0.40){
+      const zp = (t - 0.30) / 0.10;
+      const ze = zp * zp * (3 - 2 * zp);
+      vx = lerp(0, 200, ze);
+      vy = lerp(0, 150, ze);
+      vw = lerp(1100, 500, ze);
+      vh = lerp(600, 272, ze);
+    } else if(t >= 0.40 && t < 0.80){
+      vx=200; vy=150; vw=500; vh=272;
+    } else if(t >= 0.80){
+      const zp = (t - 0.80) / 0.10;
+      const ze = Math.min(1, zp) * Math.min(1, zp) * (3 - 2 * Math.min(1, zp));
+      vx = lerp(200, 0, ze);
+      vy = lerp(150, 0, ze);
+      vw = lerp(500, 1100, ze);
+      vh = lerp(272, 600, ze);
+    }
+    svg.setAttribute('viewBox', `${vx.toFixed(0)} ${vy.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}`);
+
+    // ---- Phase 1: Context, sealed vessel, northward IMF (0 - 0.20) ----
+    if(t < 0.20){
+      const p = t / 0.20;
+      ctxG.setAttribute('opacity', '1');
+      detG.setAttribute('opacity', '0');
+      postG.setAttribute('opacity', '0');
+
+      // Show labels
+      document.getElementById('gate-ctx-label').setAttribute('opacity', clamp(p * 3, 0, 1).toFixed(2));
+      document.getElementById('gate-ctx-label2').setAttribute('opacity', clamp((p - 0.3) * 3, 0, 0.8).toFixed(2));
+
+      // Highlight pulse on nose (starts at p=0.4)
+      if(p > 0.4){
+        const pulse = 0.3 + 0.4 * Math.sin((p - 0.4) * 12 * Math.PI);
+        document.getElementById('gate-highlight').setAttribute('opacity', pulse.toFixed(2));
+      }
+
+      // IMF arrows pointing UP (northward) — parallel to Earth's field
+      for(const a of imfArrows){
+        a.line.setAttribute('y1', '320');
+        a.line.setAttribute('y2', '280');
+        a.head.setAttribute('points', `${a.x-4},${288} ${a.x},${280} ${a.x+4},${288}`);
+        a.line.setAttribute('stroke', '#66ff88');
+        a.head.setAttribute('fill', '#66ff88');
+        a.line.setAttribute('opacity', '0.4');
+        a.head.setAttribute('opacity', '0.4');
+      }
+
+      // Wind particles deflect around full magnetopause boundary
+      for(const wp of windParts){
+        wp.x += wp.vx;
+        wp.y += wp.vy;
+        wp.vy *= 0.98; // friction damps vertical drift
+        const m = insideMP(wp.x, wp.y);
+        if(m.inside){
+          wp.vy += (wp.y < CY ? -1.2 : 1.2);
+          wp.vx = Math.max(wp.vx - 0.3, -0.2);
+        }
+        if(wp.x > 700 || wp.y < 80 || wp.y > 520 || wp.x < -20){
+          wp.x = 10 + Math.random() * 50;
+          wp.y = 120 + Math.random() * 360;
+          wp.vy = 0;
+          wp.vx = 0.6 + Math.random() * 0.4;
+        }
+        wp.el.setAttribute('cx', wp.x.toFixed(0));
+        wp.el.setAttribute('cy', wp.y.toFixed(0));
+      }
+    }
+
+    // ---- Phase 2: Southward turn (0.20 - 0.30) ----
+    else if(t < 0.30){
+      const p = (t - 0.20) / 0.10;
+      ctxG.setAttribute('opacity', '1');
+      detG.setAttribute('opacity', '0');
+      postG.setAttribute('opacity', '0');
+
+      document.getElementById('gate-highlight').setAttribute('opacity', (0.6 + 0.3 * Math.sin(p * 6)).toFixed(2));
+
+      // Rotate IMF arrows from northward (up) to southward (down)
+      const angle = p * Math.PI; // 0 to PI rotation
+      for(const a of imfArrows){
+        const dy = -40 * Math.cos(angle); // starts at -40 (up), ends at +40 (down)
+        const cy = 300;
+        a.line.setAttribute('y1', (cy - dy).toFixed(0));
+        a.line.setAttribute('y2', (cy + dy).toFixed(0));
+        const tipY = cy + dy;
+        const dir = dy > 0 ? 1 : -1;
+        a.head.setAttribute('points', `${a.x-4},${tipY - dir*8} ${a.x},${tipY} ${a.x+4},${tipY - dir*8}`);
+        // Color transition: green → red
+        const r = Math.round(lerp(102, 255, p));
+        const g = Math.round(lerp(255, 68, p));
+        const b = Math.round(lerp(136, 102, p));
+        const col = `rgb(${r},${g},${b})`;
+        a.line.setAttribute('stroke', col);
+        a.head.setAttribute('fill', col);
+        a.line.setAttribute('opacity', (0.4 + p * 0.3).toFixed(2));
+        a.head.setAttribute('opacity', (0.4 + p * 0.3).toFixed(2));
+      }
+
+      // Wind particles still deflecting around boundary
+      for(const wp of windParts){
+        wp.x += wp.vx;
+        wp.y += wp.vy;
+        wp.vy *= 0.98;
+        const m = insideMP(wp.x, wp.y);
+        if(m.inside){
+          wp.vy += (wp.y < CY ? -1.2 : 1.2);
+          wp.vx = Math.max(wp.vx - 0.3, -0.2);
+        }
+        if(wp.x > 700 || wp.y < 80 || wp.y > 520 || wp.x < -20){
+          wp.x = 10 + Math.random() * 50;
+          wp.y = 120 + Math.random() * 360;
+          wp.vy = 0;
+          wp.vx = 0.6 + Math.random() * 0.4;
+        }
+        wp.el.setAttribute('cx', wp.x.toFixed(0));
+        wp.el.setAttribute('cy', wp.y.toFixed(0));
+      }
+    }
+
+    // ---- Phase 2.5: ViewBox zooms toward nose, crossfade begins (0.30 - 0.40) ----
+    else if(t < 0.40){
+      postG.setAttribute('opacity', '0');
+
+      const fade = clamp((t - 0.38) / 0.04, 0, 1);
+      ctxG.setAttribute('opacity', (1 - fade).toFixed(2));
+      detG.setAttribute('opacity', fade.toFixed(2));
+
+      const p25 = (t - 0.30) / 0.10;
+      document.getElementById('gate-highlight').setAttribute('opacity', (0.6 + 0.3 * Math.sin(p25 * 8)).toFixed(2));
+
+      for(const a of imfArrows){
+        a.line.setAttribute('y1', '260');
+        a.line.setAttribute('y2', '340');
+        a.head.setAttribute('points', `${a.x-4},${332} ${a.x},${340} ${a.x+4},${332}`);
+        a.line.setAttribute('stroke', '#ff4466');
+        a.head.setAttribute('fill', '#ff4466');
+        a.line.setAttribute('opacity', '0.7');
+        a.head.setAttribute('opacity', '0.7');
+      }
+
+      for(const wp of windParts){
+        wp.x += wp.vx;
+        wp.y += wp.vy;
+        wp.vy *= 0.98;
+        const m = insideMP(wp.x, wp.y);
+        if(m.inside){
+          wp.vy += (wp.y < CY ? -1.2 : 1.2);
+          wp.vx = Math.max(wp.vx - 0.3, -0.2);
+        }
+        if(wp.x > 700 || wp.y < 80 || wp.y > 520 || wp.x < -20){
+          wp.x = 10 + Math.random() * 50;
+          wp.y = 120 + Math.random() * 360;
+          wp.vy = 0;
+          wp.vx = 0.6 + Math.random() * 0.4;
+        }
+        wp.el.setAttribute('cx', wp.x.toFixed(0));
+        wp.el.setAttribute('cy', wp.y.toFixed(0));
+      }
+    }
+
+    // ---- Phase 3: Detail + reconnection (0.40 - 0.80) ----
+    else if(t < 0.80){
+      const p = (t - 0.40) / 0.40;
+      postG.setAttribute('opacity', '0');
+
+      // Crossfade completes at t=0.42 (started at 0.38 in Phase 2.5)
+      const fade = clamp((t - 0.38) / 0.04, 0, 1);
+      ctxG.setAttribute('opacity', (1 - fade).toFixed(2));
+      detG.setAttribute('opacity', fade.toFixed(2));
+
+      // Reconnection animation (after crossfade)
+      const rt = clamp((p - 0.05) / 0.95, 0, 1);
+
+      document.getElementById('gate-lbl-imf').setAttribute('opacity', clamp(rt * 3, 0, 1).toFixed(2));
+      document.getElementById('gate-lbl-geo').setAttribute('opacity', clamp(rt * 3, 0, 1).toFixed(2));
+
+      const sheetX = 400;
+      const cy = 300;
+
+      for(let i = 0; i < nPairs; i++){
+        const phase = (rt * 0.9 - i * 0.15 + 2) % 1;
+        const yOff = (i - 2) * 55;
+        const lineY = cy + yOff;
+
+        if(phase < 0.35){
+          // Approaching: IMF lines from left, geo lines from right (slow, deliberate)
+          const ap = phase / 0.35;
+          const xL = sheetX - 220 + ap * 170;
+          const xR = sheetX + 220 - ap * 170;
+
+          imfEls[i].setAttribute('d', `M${xL - 100},${lineY} L${xL},${lineY}`);
+          geoEls[i].setAttribute('d', `M${xR},${lineY} L${xR + 100},${lineY}`);
+          imfEls[i].setAttribute('opacity', '0.8');
+          geoEls[i].setAttribute('opacity', '0.8');
+          mergedTopEls[i].setAttribute('opacity', '0');
+          mergedBotEls[i].setAttribute('opacity', '0');
+        } else if(phase < 0.55){
+          // Merge + breakthrough — slower, more dramatic
+          const flashP = (phase - 0.35) / 0.20;
+          imfEls[i].setAttribute('d', `M${sheetX - 50 + flashP*30},${lineY} L${sheetX},${lineY}`);
+          geoEls[i].setAttribute('d', `M${sheetX},${lineY} L${sheetX + 50 - flashP*30},${lineY}`);
+          imfEls[i].setAttribute('opacity', (0.8 * (1 - flashP * 0.6)).toFixed(2));
+          geoEls[i].setAttribute('opacity', (0.8 * (1 - flashP * 0.6)).toFixed(2));
+
+          const xpt = document.getElementById('gate-xpoint');
+          xpt.setAttribute('cy', lineY);
+          xpt.setAttribute('r', (12 * flashP).toFixed(1));
+          xpt.setAttribute('opacity', (1.0 * (1 - flashP * 0.3)).toFixed(2));
+
+          // Flash ring expands outward at moment of breakthrough
+          const flashRing = document.getElementById('gate-flash-ring');
+          flashRing.setAttribute('cx', sheetX);
+          flashRing.setAttribute('cy', lineY);
+          flashRing.setAttribute('r', (30 * flashP).toFixed(0));
+          flashRing.setAttribute('opacity', (0.6 * (1 - flashP)).toFixed(2));
+        } else {
+          // Merged field lines recede (top goes up+right, bottom goes down+right)
+          const mp = (phase - 0.55) / 0.45;
+          const yUp = lineY - mp * 80;
+          const yDn = lineY + mp * 80;
+          const xBend = sheetX + mp * 60;
+
+          imfEls[i].setAttribute('opacity', '0');
+          geoEls[i].setAttribute('opacity', '0');
+          mergedTopEls[i].setAttribute('d',
+            `M${sheetX - 80},${yUp} Q${sheetX},${yUp + 15} ${xBend},${yUp - 10}`);
+          mergedBotEls[i].setAttribute('d',
+            `M${sheetX - 80},${yDn} Q${sheetX},${yDn - 15} ${xBend},${yDn + 10}`);
+          mergedTopEls[i].setAttribute('opacity', (0.7 * (1 - mp * 0.7)).toFixed(2));
+          mergedBotEls[i].setAttribute('opacity', (0.7 * (1 - mp * 0.7)).toFixed(2));
+        }
+      }
+
+      // X-point glow + X-shape topology (persistent after first merge)
+      if(rt > 0.25){
+        const xpt = document.getElementById('gate-xpoint');
+        const glow = 0.4 + 0.3 * Math.sin(rt * Math.PI * 4);
+        xpt.setAttribute('cy', cy);
+        xpt.setAttribute('r', '8');
+        xpt.setAttribute('opacity', glow.toFixed(2));
+        document.getElementById('gate-x-shape').setAttribute('opacity', glow.toFixed(2));
+        document.getElementById('gate-lbl-x').setAttribute('opacity', '1');
+      }
+    }
+
+    // ---- Phase 4: Consequence — zoom back to context with breach (0.80 - 1.0) ----
+    else {
+      const p = (t - 0.80) / 0.20;
+
+      // Crossfade: detail out, post in
+      if(p < 0.2){
+        const fade = p / 0.2;
+        ctxG.setAttribute('opacity', '0');
+        detG.setAttribute('opacity', (1 - fade).toFixed(2));
+        postG.setAttribute('opacity', fade.toFixed(2));
+      } else {
+        detG.setAttribute('opacity', '0');
+        postG.setAttribute('opacity', '1');
+      }
+
+      // Animate energy dots streaming along open field lines
+      for(const dot of energyDots){
+        const dotT = (dot.t + (p - 0.2) * 2) % 1;
+        if(p < 0.2){
+          dot.el.setAttribute('opacity', '0');
+          continue;
+        }
+        // Get position along the open field line path
+        const path = openPaths[dot.pathIdx];
+        // Simple parametric: interpolate from nose to endpoint
+        const startX = noseX;
+        const startY = noseY + (dot.pathIdx >= 3 ? 5 : -5);
+        const endX = CX + (dot.pathIdx % 3) * 40 + 60;
+        const endY = dot.pathIdx >= 3 ? CY + 85 + (dot.pathIdx % 3) * 15 : CY - 85 - (dot.pathIdx % 3) * 15;
+        const dx = lerp(startX, endX, dotT);
+        const dy = lerp(startY, endY, dotT);
+        dot.el.setAttribute('cx', dx.toFixed(0));
+        dot.el.setAttribute('cy', dy.toFixed(0));
+        dot.el.setAttribute('opacity', (0.6 * (1 - dotT * 0.5)).toFixed(2));
+      }
+    }
+
+    if(gateRunning && t < 1.0) requestAnimationFrame(updateGate);
+    else if(t >= 1.0){
+      // Hold final frame — post-reconnection context with energy flowing
+      const postLoop = function(ts2){
+        if(!gateRunning) return;
+        if(window._sceneVis && !window._sceneVis.gate()){ requestAnimationFrame(postLoop); return; }
+        for(const dot of energyDots){
+          const dotT = (dot.t + ((ts2 - gateStart) / DURATION - 0.75) * 1.5) % 1;
+          const startX = noseX;
+          const startY = noseY + (dot.pathIdx >= 3 ? 5 : -5);
+          const endX = CX + (dot.pathIdx % 3) * 40 + 60;
+          const endY = dot.pathIdx >= 3 ? CY + 85 + (dot.pathIdx % 3) * 15 : CY - 85 - (dot.pathIdx % 3) * 15;
+          dot.el.setAttribute('cx', lerp(startX, endX, dotT).toFixed(0));
+          dot.el.setAttribute('cy', lerp(startY, endY, dotT).toFixed(0));
+          dot.el.setAttribute('opacity', (0.6 * (1 - dotT * 0.5)).toFixed(2));
+        }
+        requestAnimationFrame(postLoop);
+      };
+      requestAnimationFrame(postLoop);
+    }
+  }
+
+  function resetGateState(){
+    gateStart = null;
+    svg.setAttribute('viewBox', '0 0 1100 600');
+    ctxG.setAttribute('opacity', '1');
+    detG.setAttribute('opacity', '0');
+    postG.setAttribute('opacity', '0');
+    document.getElementById('gate-xpoint').setAttribute('r', '0');
+    document.getElementById('gate-xpoint').setAttribute('opacity', '0');
+    document.getElementById('gate-lbl-x').setAttribute('opacity', '0');
+    document.getElementById('gate-x-shape').setAttribute('opacity', '0');
+    document.getElementById('gate-flash-ring').setAttribute('opacity', '0');
+    for(const el of imfEls) el.setAttribute('opacity', '0');
+    for(const el of geoEls) el.setAttribute('opacity', '0');
+    for(const el of mergedTopEls) el.setAttribute('opacity', '0');
+    for(const el of mergedBotEls) el.setAttribute('opacity', '0');
+    for(const dot of energyDots) dot.el.setAttribute('opacity', '0');
+  }
+
+  window.toggleGate = function(){
+    gateRunning = !gateRunning;
+    document.getElementById('gate-playbtn').textContent = gateRunning ? 'Pause' : 'Play';
+    if(gateRunning){
+      document.getElementById('gate-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      resetGateState();
+      requestAnimationFrame(updateGate);
+    }
+  };
+
+  window.resetGate = function(){
+    gateRunning = false;
+    document.getElementById('gate-playbtn').textContent = 'Play';
+    resetGateState();
+    svg.setAttribute('viewBox', '0 0 1100 600');
+  };
+})();
+
+
+// ========== THE CIRCUIT ==========
+(function(){
+  const svg = document.getElementById('svg-circuit');
+
+  // Earth center + radius (these change during camera movement)
+  const BASE_EX = 550, BASE_EY = 325, BASE_ER = 55;
+  const MS_SCALE = 3.5; // RE to pixels for magnetopause
+
+  // Build magnetopause + bow shock (static, in wide view coords)
+  const mpPts = boundaryPts(10, 0.5, 50, 35);
+  const bsPts = boundaryPts(14, 0.6, 50);
+  document.getElementById('circuit-mp').setAttribute('d', ptsToPath(mpPts, BASE_EX, BASE_EY, MS_SCALE));
+  document.getElementById('circuit-bs').setAttribute('d', ptsToPath(bsPts, BASE_EX, BASE_EY, MS_SCALE));
+
+  // Continent shapes (simplified, recognizable)
+  const contG = document.getElementById('circuit-continents');
+  // Orthographic projection from real coastline coordinates, centered 10°W 5°N
+  const continentData = [
+    // Africa
+    {d: 'M15,-29.4 L3.1,-27.9 L6.3,-26.7 L9.6,-25.9 L0.8,-25 L-2.5,-21.5 L-5.3,-16.1 L-6.5,-8.6 L-5.7,0 L2.9,1 L6.7,-1 L12.3,0.8 L17.9,4.5 L20.5,9.2 L20.3,13.9 L19.7,20.3 L21.3,29.5 L21.4,34.1 L27.4,33.8 L34,26.3 L38,18.3 L41.2,14.4 L42,7.8 L45.6,0.8 L47.4,-7.2 L43.5,-8.6 L37.3,-17.5 L33.1,-22.6 L31.5,-25.2 L17.3,-26.1 L15,-29.4 Z', fill:'#2d7a2d'},
+    // Europe
+    {d: 'M0.8,-28.3 L3.8,-29.2 L0.7,-33.9 L5.6,-33.9 L5.2,-36.8 L8.3,-37.6 L7.2,-39.6 L8.8,-40.3 L10.5,-41.7 L10.2,-43.5 L6.9,-45.7 L9,-47.3 L9.4,-50.1 L11,-50.6 L13.7,-48 L15.8,-45.5 L15.8,-43.1 L16.1,-39.2 L15.9,-37.1 L14.8,-34.9 L16.6,-33.4 L18.7,-31.1 L24.2,-30.6 L26.1,-33.1 L22.9,-32.1 L19,-30.3 L18.8,-28.7 L12.3,-28.5 L9.2,-33.2 L4.3,-32.3 L4.5,-30.8 L6.1,-29.2 L3.1,-28.3 L0.8,-28.3 Z', fill:'#2d6a2d'},
+    // Italy
+    {d: 'M12.2,-34.8 L14.6,-35.6 L14.8,-34.9 L16.6,-33.4 L18.2,-32.7 L19,-30.3 L18.6,-29.5 L16.9,-30.3 L17.1,-31.9 L16.9,-32.6 L14.4,-34.1 L12.2,-34.8 Z', fill:'#2d6a2d'},
+    // British Isles
+    {d: 'M3.1,-38.9 L6.6,-39.6 L5.7,-40.9 L4.4,-42.2 L2.6,-43.4 L3.6,-43.9 L3.7,-42.8 L3.9,-41.5 L4.1,-40.2 L3.1,-38.9 Z', fill:'#2d6a2d'},
+    // Greenland
+    {d: 'M-15,-45.4 L-12.1,-47.4 L-5.1,-49.5 L-2.3,-52 L-2.6,-53.6 L-6.8,-53.4 L-12,-51.1 L-15.6,-48.2 L-16.9,-45.6 L-15,-45.4 Z', fill:'#dde8e8'},
+    // North America (east coast)
+    {d: 'M-25,-39.8 L-25.6,-37.7 L-30.6,-36.7 L-33.3,-35.4 L-35.4,-34.9 L-37.9,-33.6 L-41.2,-29.8 L-45,-26 L-46.8,-21.7 L-47.7,-21.9 L-46,-26.3 L-46.9,-26.7 L-47.8,-25 L-49.4,-23.8 L-51.6,-18.5 L-51.2,-16 L-50.8,-12.8 L-50.7,-6.9 L-50.1,-5.8 L-48.9,-8.5 L-47.5,-9.2 L-42.7,-6.6 L-41.7,-4.6 L-39.9,-3.4 L-36.6,-2.2 Z', fill:'#2d7a2d'},
+    // South America
+    {d: 'M-47.5,-9.2 L-49.1,-7.5 L-50.1,-5.8 L-50.4,-2.9 L-51.7,1.6 L-51.5,6.4 L-49.7,6.8 L-42.1,5.9 L-30.7,5.9 L-23.2,9.1 L-24.6,13.7 L-25.8,18.2 L-26.2,20.9 L-27.6,25.1 L-30.6,30.6 L-32.9,34.1 L-33.2,37.5 L-32.2,40.6 L-30,43.6 L-28,45.7 L-25.8,46.5 L-29.3,44.7 L-33.1,42.1 L-36.4,38.3 L-39.8,33.3 L-41.7,29.4 L-44.8,21 L-48.1,16.1 L-50.2,11.3 L-51.5,6.4 Z', fill:'#2d7a2d'},
+    // Middle East / Arabian Peninsula
+    {d: 'M32.4,-26.1 L33.1,-24.4 L33.1,-22.6 L35.6,-21 L39.3,-16.8 L42.2,-12.3 L43.9,-9.6 L47.1,-9.1 L48.5,-12.3 L46.6,-18.7 L44.4,-20.2 L42.8,-21.9 L40.4,-25.2 L37.3,-27.5 L31.6,-30.3 L30.9,-29.4 L32.4,-26.1 Z', fill:'#8a7a50'},
+  ];
+  const contEls = [];
+  continentData.forEach(c => {
+    const el = svgEl('path', {
+      d: c.d, fill: c.fill, stroke:'none', opacity:'0.8',
+      transform: `translate(${BASE_EX},${BASE_EY})`
+    }, contG);
+    contEls.push(el);
+  });
+
+  // Cloud layer — semi-transparent white bands at realistic latitudes
+  const cloudData = [
+    // ITCZ (equatorial band)
+    {d: 'M-45,-2 Q-30,-5 -15,-1 Q0,2 15,-2 Q30,-5 45,-1', o:0.15, w:5},
+    // Southern mid-latitude band
+    {d: 'M-40,18 Q-25,15 -10,19 Q5,22 20,17 Q35,14 45,18', o:0.12, w:4},
+    // Northern mid-latitude band
+    {d: 'M-30,-32 Q-15,-35 0,-31 Q15,-28 30,-33', o:0.12, w:4},
+    // Tropical wisps
+    {d: 'M-35,8 Q-22,5 -10,9', o:0.10, w:3},
+    {d: 'M15,-15 Q25,-18 38,-14', o:0.09, w:3},
+    // Polar wisps
+    {d: 'M-15,-44 Q-5,-47 5,-43', o:0.10, w:3},
+    {d: 'M-25,35 Q-15,32 -5,36', o:0.08, w:3},
+  ];
+  cloudData.forEach(c => {
+    svgEl('path', {
+      d: c.d, fill:'none', stroke:'rgba(255,255,255,0.9)',
+      'stroke-width': String(c.w), 'stroke-linecap':'round', opacity: String(c.o),
+      transform: `translate(${BASE_EX},${BASE_EY})`
+    }, contG);
+  });
+
+  // Convection arcs in outer core (r=12 to r=28)
+  const convG = document.getElementById('circuit-core-convection');
+  [{r:16, a:0, s:1.2}, {r:20, a:2.0, s:1.0}, {r:24, a:4.0, s:0.8},
+   {r:18, a:3.2, s:1.4}, {r:22, a:5.5, s:0.9}].forEach(arc => {
+    const x1 = BASE_EX + arc.r * Math.cos(arc.a);
+    const y1 = BASE_EY + arc.r * Math.sin(arc.a);
+    const x2 = BASE_EX + arc.r * Math.cos(arc.a + arc.s);
+    const y2 = BASE_EY + arc.r * Math.sin(arc.a + arc.s);
+    svgEl('path', {
+      d: `M${x1.toFixed(1)},${y1.toFixed(1)} A${arc.r},${arc.r} 0 0,1 ${x2.toFixed(1)},${y2.toFixed(1)}`,
+      fill:'none', stroke:'#ffaa44', 'stroke-width':'0.8', opacity:'0.7', 'stroke-dasharray':'2,2'
+    }, convG);
+  });
+
+  // Dipole field lines (closed, near Earth)
+  const dipoleG = document.getElementById('circuit-dipole');
+  for(const L of [2, 3, 4.5]){
+    const pts = dipoleLine(L, 30);
+    svgEl('path', {
+      d: ptsToPath(pts, BASE_EX, BASE_EY, BASE_ER / 3),
+      fill:'none', stroke:'rgba(102,255,136,0.2)', 'stroke-width':'0.8'
+    }, dipoleG);
+  }
+
+  // Open field lines (from poles curving back tailward — showing where current flows)
+  const openFieldG = document.getElementById('circuit-open-field');
+  const openFieldEls = [];
+  // Dawn side (left of Earth when viewed from above, but in side view: northern/southern open lines)
+  const ofData = [
+    // Northern open lines (from north pole, curving up and tailward)
+    {d: `M${BASE_EX-10},${BASE_EY-BASE_ER+5} Q${BASE_EX-60},${BASE_EY-120} ${BASE_EX-150},${BASE_EY-150}`, side:'n'},
+    {d: `M${BASE_EX},${BASE_EY-BASE_ER+2} Q${BASE_EX-40},${BASE_EY-100} ${BASE_EX-120},${BASE_EY-140}`, side:'n'},
+    {d: `M${BASE_EX+10},${BASE_EY-BASE_ER+5} Q${BASE_EX+20},${BASE_EY-90} ${BASE_EX-80},${BASE_EY-130}`, side:'n'},
+    // Southern open lines
+    {d: `M${BASE_EX-10},${BASE_EY+BASE_ER-5} Q${BASE_EX-60},${BASE_EY+120} ${BASE_EX-150},${BASE_EY+150}`, side:'s'},
+    {d: `M${BASE_EX},${BASE_EY+BASE_ER-2} Q${BASE_EX-40},${BASE_EY+100} ${BASE_EX-120},${BASE_EY+140}`, side:'s'},
+    {d: `M${BASE_EX+10},${BASE_EY+BASE_ER-5} Q${BASE_EX+20},${BASE_EY+90} ${BASE_EX-80},${BASE_EY+130}`, side:'s'}
+  ];
+  ofData.forEach(fd => {
+    openFieldEls.push(svgEl('path', {
+      d: fd.d, fill:'none', stroke:'rgba(255,68,102,0.35)', 'stroke-width':'1.5'
+    }, openFieldG));
+  });
+
+  // Reconnection indicator at nose of magnetopause
+  const reconnG = document.getElementById('circuit-reconn');
+  const noseX = BASE_EX + (-10) * MS_SCALE; // 550 - 35 = 515
+  reconnG.querySelector('circle').setAttribute('cx', noseX);
+  reconnG.querySelector('text').setAttribute('x', noseX);
+
+  // Birkeland current paths (down on dawn side, up on dusk side in this 2D side view)
+  const bkDownG = document.getElementById('circuit-birkeland-down');
+  const bkUpG = document.getElementById('circuit-birkeland-up');
+  const pedPathG = document.getElementById('circuit-pedersen-path');
+
+  // Down: from reconnection site along open field line to north polar ionosphere
+  const bkDownPath = svgEl('path', {
+    fill:'none', stroke:'#ffdd44', 'stroke-width':'2.5', 'stroke-dasharray':'8,5', opacity:'0'
+  }, bkDownG);
+  // Birkeland down path: from high up (reconnection region) curving down to polar ionosphere
+  bkDownPath.setAttribute('d',
+    `M${BASE_EX-80},${BASE_EY-130} Q${BASE_EX-40},${BASE_EY-100} ${BASE_EX-15},${BASE_EY-BASE_ER+8}`);
+
+  // Up: from polar ionosphere back up along field line on other side
+  const bkUpPath = svgEl('path', {
+    fill:'none', stroke:'#ffdd44', 'stroke-width':'2.5', 'stroke-dasharray':'8,5', opacity:'0'
+  }, bkUpG);
+  bkUpPath.setAttribute('d',
+    `M${BASE_EX+15},${BASE_EY-BASE_ER+8} Q${BASE_EX+40},${BASE_EY-100} ${BASE_EX+80},${BASE_EY-130}`);
+
+  // Pedersen current: across the polar ionosphere (along the top of Earth)
+  const pedPath = svgEl('path', {
+    fill:'none', stroke:'#00e5ff', 'stroke-width':'2.5', 'stroke-dasharray':'6,4', opacity:'0'
+  }, pedPathG);
+  pedPath.setAttribute('d',
+    `M${BASE_EX-15},${BASE_EY-BASE_ER+8} A${BASE_ER},${BASE_ER} 0 0,1 ${BASE_EX+15},${BASE_EY-BASE_ER+8}`);
+
+  // Aurora glow spots (along polar ionosphere where current enters)
+  const auroraG = document.getElementById('circuit-aurora');
+  const auroraEls = [];
+  for(let i = 0; i < 8; i++){
+    const angle = -Math.PI/2 - 0.35 + 0.7 * (i / 7);
+    const ax = BASE_EX + (BASE_ER + 4) * Math.cos(angle);
+    const ay = BASE_EY + (BASE_ER + 4) * Math.sin(angle);
+    auroraEls.push(svgEl('circle', {
+      cx: ax, cy: ay, r:'6', fill:'#44ff88', opacity:'0'
+    }, auroraG));
+  }
+
+  // Flow dots along the circuit path
+  const flowDotsG = document.getElementById('circuit-flow-dots');
+  const flowDots = [];
+  // Circuit path waypoints: reconnection → down field line → ionosphere → across → up field line → back
+  const circuitWaypoints = [
+    [BASE_EX-150, BASE_EY-150],           // from reconnection region (high up, dawn)
+    [BASE_EX-80, BASE_EY-130],            // descending
+    [BASE_EX-40, BASE_EY-100],            // approaching ionosphere
+    [BASE_EX-15, BASE_EY-BASE_ER+8],      // entering ionosphere (dawn aurora)
+    [BASE_EX-5, BASE_EY-BASE_ER+2],       // polar cap
+    [BASE_EX+5, BASE_EY-BASE_ER+2],       // polar cap
+    [BASE_EX+15, BASE_EY-BASE_ER+8],      // leaving ionosphere (dusk aurora)
+    [BASE_EX+40, BASE_EY-100],            // ascending field line
+    [BASE_EX+80, BASE_EY-130],            // high up (dusk)
+    [BASE_EX+120, BASE_EY-140],           // back toward tail
+    [BASE_EX+100, BASE_EY-100],           // loop through MS
+    [BASE_EX-20, BASE_EY-120],            // returning via magnetosphere
+    [BASE_EX-150, BASE_EY-150]            // close loop
+  ];
+
+  for(let i = 0; i < 16; i++){
+    flowDots.push({
+      el: svgEl('circle', {r:'3', fill:'#ffdd44', opacity:'0'}, flowDotsG),
+      phase: i / 16
+    });
+  }
+
+  const energyTransferG = svgEl('g', {id:'circuit-energy-transfer'}, svg);
+  const energyDots = [];
+  for(let i = 0; i < 6; i++){
+    energyDots.push({
+      el: svgEl('circle', {r:'4', fill:'#ff8844', opacity:'0', filter:'url(#circuit-soft)'}, energyTransferG),
+      pathIdx: i,
+      phase: i * 0.12
+    });
+  }
+
+  // Solar wind particles (deflect around magnetopause via Shue model)
+  const windG = document.getElementById('circuit-wind');
+  const cWindParts = [];
+  for(let i = 0; i < 25; i++){
+    const el = svgEl('circle', {r:'1.5', fill:'#ffb347', opacity:'0.4'}, windG);
+    cWindParts.push({
+      el: el,
+      x: 20 + Math.random() * 350,
+      y: 100 + Math.random() * 450,
+      vx: 0.6 + Math.random() * 0.4,
+      vy: 0
+    });
+  }
+  function insideCMP(sx, sy){
+    const wx = (sx - BASE_EX) / MS_SCALE;
+    const wy = (BASE_EY - sy) / MS_SCALE;
+    const r = Math.sqrt(wx*wx + wy*wy);
+    const theta = Math.atan2(wy, -wx);
+    const rBound = 10 * Math.pow(2/(1+Math.cos(theta)), 0.5);
+    return r < rBound;
+  }
+
+  // Labels positioned for zoomed-in view
+  document.getElementById('circuit-lbl-bk-down').setAttribute('x', BASE_EX - 110);
+  document.getElementById('circuit-lbl-bk-down').setAttribute('y', BASE_EY - 115);
+  document.getElementById('circuit-lbl-bk-up').setAttribute('x', BASE_EX + 50);
+  document.getElementById('circuit-lbl-bk-up').setAttribute('y', BASE_EY - 115);
+  document.getElementById('circuit-lbl-ped').setAttribute('x', BASE_EX - 10);
+  document.getElementById('circuit-lbl-ped').setAttribute('y', BASE_EY - BASE_ER - 15);
+  document.getElementById('circuit-lbl-wind').setAttribute('x', 60);
+  document.getElementById('circuit-lbl-wind').setAttribute('y', BASE_EY + 10);
+
+  // Camera keyframes: [time_frac, vb_x, vb_y, vb_w, vb_h]
+  // Wide → slow zoom to Earth cutaway → long hold → pull back → zoom to circuit
+  const CKF = [
+    [0.00,    0,    0, 1100, 650],   // full wide view
+    [0.06,    0,    0, 1100, 650],   // hold wide
+    [0.12,  200,  100,  700, 415],   // intermediate zoom toward Earth
+    [0.22,  430,  265,  220, 130],   // cutaway fills view
+    [0.42,  430,  265,  220, 130],   // long hold (dynamo visible, labels)
+    [0.52,  200,   50,  700, 415],   // pull back — field lines emerge
+    [0.62,  350,  100,  500, 296],   // circuit zoom
+    [0.80,  350,  100,  500, 296],   // hold circuit
+    [0.92,  350,  100,  500, 296],   // continue hold
+    [1.00,  200,   50,  700, 415]    // pull back
+  ];
+
+  function interpCKF(t){
+    for(let i = 0; i < CKF.length - 1; i++){
+      if(t >= CKF[i][0] && t <= CKF[i+1][0]){
+        const frac = (t - CKF[i][0]) / (CKF[i+1][0] - CKF[i][0]);
+        const e = ease(frac);
+        return [
+          lerp(CKF[i][1], CKF[i+1][1], e),
+          lerp(CKF[i][2], CKF[i+1][2], e),
+          lerp(CKF[i][3], CKF[i+1][3], e),
+          lerp(CKF[i][4], CKF[i+1][4], e)
+        ];
+      }
+    }
+    const last = CKF[CKF.length - 1];
+    return [last[1], last[2], last[3], last[4]];
+  }
+
+  const C_DURATION = 36000;
+  let circuitStart = null, circuitRunning = false;
+
+  function updateCircuit(ts){
+    if(window._sceneVis && !window._sceneVis.circuit()){ requestAnimationFrame(updateCircuit); return; }
+    if(!circuitStart) circuitStart = ts;
+    const elapsed = ts - circuitStart;
+    const loopT = elapsed / C_DURATION;
+
+    // Camera movement (first pass plays through, then holds zoom and loops circuit animation)
+    const camT = clamp(loopT, 0, 1);
+    const [vx, vy, vw, vh] = interpCKF(camT);
+    svg.setAttribute('viewBox', `${vx.toFixed(0)} ${vy.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}`);
+
+    // Zoom level determines label/circuit visibility
+    const zoom = 1100 / vw;
+
+    // Cutaway visible when zoomed close to Earth (vw < 400)
+    const cutawayOp = clamp((400 - vw) / 150, 0, 1);
+    document.getElementById('circuit-cutaway').setAttribute('opacity', cutawayOp.toFixed(2));
+    document.getElementById('cutaway-labels').setAttribute('opacity', clamp((350 - vw) / 100, 0, 1).toFixed(2));
+    document.getElementById('cutaway-dynamo-label').setAttribute('opacity', clamp((300 - vw) / 50, 0, 1).toFixed(2));
+
+    // Convection rotation in outer core
+    const convRot = (elapsed * 0.012) % 360;
+    document.getElementById('circuit-core-convection').setAttribute('transform',
+      `rotate(${convRot.toFixed(1)}, ${BASE_EX}, ${BASE_EY})`);
+
+    // Continents: static position, fade during cutaway
+    const contOp = clamp(0.7 * (1 - cutawayOp * 0.5), 0.2, 0.7);
+    contEls.forEach((el, i) => {
+      el.setAttribute('opacity', contOp.toFixed(2));
+    });
+
+    // Solar wind particles — deflect around magnetopause (Shue model)
+    for(const wp of cWindParts){
+      wp.x += wp.vx;
+      wp.y += wp.vy;
+      wp.vy *= 0.97;
+      if(insideCMP(wp.x, wp.y)){
+        wp.vy += (wp.y < BASE_EY ? -1.0 : 1.0);
+        wp.vx = Math.max(wp.vx - 0.2, -0.1);
+      }
+      if(wp.x > 1100 || wp.y < 50 || wp.y > 600 || wp.x < -20){
+        wp.x = 10 + Math.random() * 60;
+        wp.y = 100 + Math.random() * 450;
+        wp.vy = 0;
+        wp.vx = 0.6 + Math.random() * 0.4;
+      }
+      wp.el.setAttribute('cx', wp.x.toFixed(0));
+      wp.el.setAttribute('cy', wp.y.toFixed(0));
+    }
+
+    // Suppress circuit elements during cutaway phase
+    const notCutaway = 1 - cutawayOp;
+
+    // Show reconnection site when zoomed enough (but not during cutaway)
+    reconnG.setAttribute('opacity', (clamp((zoom - 1.2) / 0.5, 0, 0.7) * notCutaway).toFixed(2));
+
+    // Circuit elements fade in as camera zooms (but not during cutaway)
+    const circuitOpacity = clamp((zoom - 1.3) / 0.4, 0, 1) * notCutaway;
+
+    bkDownPath.setAttribute('opacity', (circuitOpacity * 0.8).toFixed(2));
+    bkUpPath.setAttribute('opacity', (circuitOpacity * 0.8).toFixed(2));
+    pedPath.setAttribute('opacity', (circuitOpacity * 0.8).toFixed(2));
+    document.getElementById('circuit-labels').setAttribute('opacity', circuitOpacity.toFixed(2));
+
+    // Dash animation for current paths
+    const dashOff = -elapsed * 0.025;
+    bkDownPath.setAttribute('stroke-dashoffset', dashOff.toFixed(0));
+    bkUpPath.setAttribute('stroke-dashoffset', dashOff.toFixed(0));
+    pedPath.setAttribute('stroke-dashoffset', (-dashOff).toFixed(0));
+
+    // Aurora pulse
+    const aPulse = circuitOpacity * (0.25 + 0.25 * Math.sin(elapsed * 0.003));
+    auroraEls.forEach(el => el.setAttribute('opacity', aPulse.toFixed(2)));
+
+    // Flow dots along circuit (Catmull-Rom)
+    const flowT = (elapsed % 6000) / 6000;
+    for(const dot of flowDots){
+      const dotT = (dot.phase + flowT) % 1;
+      const [dx, dy] = catmullRom(circuitWaypoints, dotT);
+      dot.el.setAttribute('cx', dx.toFixed(0));
+      dot.el.setAttribute('cy', dy.toFixed(0));
+      dot.el.setAttribute('opacity', (circuitOpacity * 0.8).toFixed(2));
+    }
+
+    // Energy transfer particles: nose → open field lines → Birkeland entry
+    const etOp = clamp((zoom - 1.2) / 0.3, 0, 1) * notCutaway;
+    const etT = (elapsed % 4000) / 4000;
+    for(const ed of energyDots){
+      const dt = (ed.phase + etT) % 1;
+      const north = ed.pathIdx < 3;
+      const idx = ed.pathIdx % 3;
+      const endX = [BASE_EX-150, BASE_EX-120, BASE_EX-80][idx];
+      const endY = north ? [BASE_EY-150, BASE_EY-140, BASE_EY-130][idx] : [BASE_EY+150, BASE_EY+140, BASE_EY+130][idx];
+      const midX = [BASE_EX-60, BASE_EX-40, BASE_EX][idx];
+      const midY = north ? [BASE_EY-120, BASE_EY-100, BASE_EY-45][idx] : [BASE_EY+120, BASE_EY+100, BASE_EY+45][idx];
+      const t2 = dt * dt * (3 - 2 * dt);
+      const px = dt < 0.5 ? lerp(noseX, midX, t2*2) : lerp(midX, endX, (t2-0.5)*2);
+      const py = dt < 0.5 ? lerp(BASE_EY + (north?-5:5), midY, t2*2) : lerp(midY, endY, (t2-0.5)*2);
+      ed.el.setAttribute('cx', px.toFixed(0));
+      ed.el.setAttribute('cy', py.toFixed(0));
+      ed.el.setAttribute('opacity', (etOp * 0.7 * (1 - dt*0.4)).toFixed(2));
+    }
+
+    // Open field lines fade in (suppressed during cutaway)
+    openFieldEls.forEach(el => {
+      el.setAttribute('opacity', (clamp((zoom - 1.1) / 0.3, 0, 0.35) * notCutaway).toFixed(2));
+    });
+
+    if(circuitRunning) requestAnimationFrame(updateCircuit);
+  }
+
+  window.toggleCircuit = function(){
+    circuitRunning = !circuitRunning;
+    document.getElementById('circuit-playbtn').textContent = circuitRunning ? 'Pause' : 'Play';
+    if(circuitRunning){
+      document.getElementById('circuit-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      circuitStart = null;
+      requestAnimationFrame(updateCircuit);
+    }
+  };
+
+  window.resetCircuit = function(){
+    circuitRunning = false;
+    circuitStart = null;
+    document.getElementById('circuit-playbtn').textContent = 'Play';
+    svg.setAttribute('viewBox', '0 0 1100 650');
+    document.getElementById('circuit-cutaway').setAttribute('opacity', '0');
+    document.getElementById('cutaway-labels').setAttribute('opacity', '0');
+    document.getElementById('cutaway-dynamo-label').setAttribute('opacity', '0');
+    reconnG.setAttribute('opacity', '0');
+    bkDownPath.setAttribute('opacity', '0');
+    bkUpPath.setAttribute('opacity', '0');
+    pedPath.setAttribute('opacity', '0');
+    document.getElementById('circuit-labels').setAttribute('opacity', '0');
+    auroraEls.forEach(el => el.setAttribute('opacity', '0'));
+    flowDots.forEach(dot => dot.el.setAttribute('opacity', '0'));
+    energyDots.forEach(d => d.el.setAttribute('opacity', '0'));
+  };
+})();
+
+// ========== VISIBILITY OBSERVER (pause offscreen animations) ==========
+(function(){
+  let openVis = true, gateVis = true, circuitVis = true;
+  window._sceneVis = { open: () => openVis, gate: () => gateVis, circuit: () => circuitVis };
+  const obs = new IntersectionObserver((entries) => {
+    for(const e of entries){
+      if(e.target.id === 'opening-wrap') openVis = e.isIntersecting;
+      else if(e.target.id === 'gate-container') gateVis = e.isIntersecting;
+      else if(e.target.id === 'circuit-container') circuitVis = e.isIntersecting;
+    }
+  }, { threshold: 0.05 });
+  const ow = document.getElementById('opening-wrap');
+  const gc = document.getElementById('gate-container');
+  const cc = document.getElementById('circuit-container');
+  if(ow) obs.observe(ow);
+  if(gc) obs.observe(gc);
+  if(cc) obs.observe(cc);
+})();
+
+// ========== MOBILE: switch to meet (no cropping) ==========
+if(window.matchMedia('(max-width: 768px)').matches){
+  document.querySelectorAll('.scene-full svg').forEach(svg => {
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  });
+}
+
+// Section nav scroll-spy
+(function(){
+  const nav = document.getElementById('section-nav');
+  if(!nav) return;
+  const links = nav.querySelectorAll('a');
+  const ids = ['opening-wrap','circuit-container','gate-container'];
+
+  links.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      const idx = ids.indexOf(e.target.id);
+      if(idx >= 0 && e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        links[idx].classList.add('active');
+      }
+    });
+  }, {threshold: 0.3});
+
+  ids.forEach(id => { const el = document.getElementById(id); if(el) spy.observe(el); });
+})();
+</script>
+</body>
+</html>
