@@ -385,7 +385,22 @@ details .accordion-body {
  letter-spacing: 0.05em;
  color: var(--muted);
  margin-bottom: 0.75rem;
+ display: flex;
+ justify-content: space-between;
+ align-items: baseline;
 }
+.toc-toggle {
+ font-size: 0.75rem;
+ font-weight: 400;
+ text-transform: none;
+ letter-spacing: 0;
+ color: var(--accent);
+ cursor: pointer;
+ background: none;
+ border: none;
+ font-family: inherit;
+}
+.toc-toggle:hover { text-decoration: underline; }
 
 .toc ol {
  list-style: decimal;
@@ -533,45 +548,16 @@ summary .anchor-link {
   <p>You can replicate the whole thing or take whichever parts solve your problems. Every component is explained well enough to rebuild from scratch. Start with what hurts most.</p>
 
   <nav class="toc" aria-label="Table of contents">
-   <p class="toc-title">Contents</p>
+   <p class="toc-title">Contents <button class="toc-toggle" onclick="var d=document.querySelectorAll('details');var open=d[0]&&d[0].open;d.forEach(function(el){el.open=!open});this.textContent=open?'Expand all':'Collapse all'">Expand all</button></p>
    <ol>
-    <li><a href="#shift-1">Shift 1: Tool &rarr; System</a>
-     <ul>
-      <li><a href="#failure-matrix">The failure cross-matrix</a></li>
-      <li><a href="#boundary-conditions">Boundary conditions in practice</a></li>
-     </ul>
-    </li>
-    <li><a href="#shift-2">Shift 2: Spending &rarr; Investing</a>
-     <ul>
-      <li><a href="#memory-file-example">A real memory file</a></li>
-      <li><a href="#memory-directory">Roll your own memory directory</a></li>
-      <li><a href="#health-monitoring">Health monitoring</a></li>
-     </ul>
-    </li>
-    <li><a href="#shift-3">Shift 3: Worker &rarr; Judge</a>
-     <ul>
-      <li><a href="#dignity-net">Dignity Net v1.2 specification</a></li>
-      <li><a href="#triad-setup">Roll your own Triad</a></li>
-     </ul>
-    </li>
-    <li><a href="#opsec">The Compartmentalization Problem</a>
-     <ul>
-      <li><a href="#compartmentalization">Domain tags and view filtering</a></li>
-     </ul>
-    </li>
-    <li><a href="#portfolio">Portfolio: Three Artifacts</a>
-     <ul>
-      <li><a href="#tutorial-catalog">Tutorial catalog (13 tutorials)</a></li>
-     </ul>
-    </li>
+    <li><a href="#shift-1">Shift 1: Tool &rarr; System</a></li>
+    <li><a href="#shift-2">Shift 2: Spending &rarr; Investing</a></li>
+    <li><a href="#shift-3">Shift 3: Worker &rarr; Judge</a></li>
+    <li><a href="#opsec">The Compartmentalization Problem</a></li>
+    <li><a href="#portfolio">Portfolio: Three Artifacts</a></li>
     <li><a href="#competition">The Competition</a></li>
     <li><a href="#honest-costs">Honest Costs</a></li>
-    <li><a href="#build-it">Build It This Weekend</a>
-     <ul>
-      <li><a href="#directory-structure">Directory structure</a></li>
-      <li><a href="#memory-format">Memory file format</a></li>
-     </ul>
-    </li>
+    <li><a href="#build-it">Build It This Weekend</a></li>
     <li><a href="#references">References &amp; Architecture Notes</a></li>
    </ol>
   </nav>
@@ -582,6 +568,9 @@ summary .anchor-link {
   <!-- SHIFT 1: Tool → System                         -->
   <section id="shift-1">
   <h2>Shift 1: Tool &rarr; System <a class="anchor-link" href="#shift-1" aria-hidden="true">#</a></h2>
+  <details id="shift-1-content">
+    <summary>Three boundary conditions — and what fails without each one <a class="anchor-link" href="#shift-1-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
+    <div class="accordion-body">
 
   <div class="puzzle">
    <span class="puzzle-label">Puzzle</span>
@@ -725,6 +714,8 @@ summary .anchor-link {
     <p>As the file grows, organize it into sections: behavioral rules, response style, domain constraints, tool-use patterns. Keep it under 200 lines &mdash; this file loads into every session, so brevity matters. Detailed knowledge belongs in memory files (see the memory accordion below), not here.</p>
    </div>
   </details>
+    </div>
+  </details>
   </section>
 
   <hr class="section-divider">
@@ -732,6 +723,9 @@ summary .anchor-link {
   <!-- SHIFT 2: Spending → Investing                   -->
   <section id="shift-2">
   <h2>Shift 2: Spending &rarr; Investing <a class="anchor-link" href="#shift-2" aria-hidden="true">#</a></h2>
+  <details id="shift-2-content">
+    <summary>Four components that turn token-spending into compound investment <a class="anchor-link" href="#shift-2-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
+    <div class="accordion-body">
 
   <div class="puzzle">
    <span class="puzzle-label">Puzzle</span>
@@ -926,6 +920,8 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
     <p>Health snapshots can be stored as rows in your database with a timestamp, or as a simple table in a flat file updated each session. The key is <em>regularity</em> &mdash; check the metrics at the start of maintenance sessions (every 5-10 working sessions), not constantly. When a threshold is crossed, the repair action is specific and bounded. You don't redesign the system; you perform the named operation and re-check.</p>
    </div>
   </details>
+    </div>
+  </details>
   </section>
 
   <hr class="section-divider">
@@ -933,6 +929,9 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
   <!-- SHIFT 3: Worker → Judge                         -->
   <section id="shift-3">
   <h2>Shift 3: Worker &rarr; Judge <a class="anchor-link" href="#shift-3" aria-hidden="true">#</a></h2>
+  <details id="shift-3-content">
+    <summary>The Triad, Dignity Net, and why your AI agrees when it shouldn't <a class="anchor-link" href="#shift-3-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
+    <div class="accordion-body">
 
   <div class="puzzle">
    <span class="puzzle-label">Puzzle</span>
@@ -1251,11 +1250,16 @@ Report: "[completion format]"</div>
     <p>Add role separation after you have working memory (Shift 2). It builds on memory because the Auditor needs access to past decisions, correction rules, and project context to write good plans. Without memory, the Auditor is planning blind.</p>
    </div>
   </details>
+    </div>
+  </details>
   </section>
 
   <hr class="section-divider">
   <section id="opsec">
   <h2>The Compartmentalization Problem <a class="anchor-link" href="#opsec" aria-hidden="true">#</a></h2>
+  <details id="opsec-content">
+    <summary>How to make cross-contamination structurally impossible <a class="anchor-link" href="#opsec-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
+    <div class="accordion-body">
 
   <p>You're a freelance designer working on two projects simultaneously: a rebrand for Company A and a pitch deck for Company B. They're competitors. Your persistent AI helps with both.</p>
 
@@ -1387,11 +1391,16 @@ WHERE memory_fts MATCH ?
     <p>When you switch projects, the active domain changes. All queries run against the new domain's data. Previous domain's sensitive data is not available, not suppressed, not filtered at display time &mdash; it's simply not in the result set. The protection is architectural. No judgment calls needed. No willpower. No hoping the AI "knows better."</p>
    </div>
   </details>
+    </div>
+  </details>
   </section>
 
   <hr class="section-divider">
   <section id="portfolio">
   <h2>Portfolio: Three Artifacts <a class="anchor-link" href="#portfolio" aria-hidden="true">#</a></h2>
+  <details id="portfolio-content">
+    <summary>Two production tutorials and one document, all from this system <a class="anchor-link" href="#portfolio-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
+    <div class="accordion-body">
 
   <p>Three portfolio pieces. This document is the first. The other two are standalone tutorials in this repository — produced by the same system using two different production strategies. The contrast between them matters.</p>
 
@@ -1466,11 +1475,16 @@ modes with dry compassion.</div>
     <p>Note the production strategies: some tutorials use JavaScript-driven animation (particle systems, interactive controls), some use SMIL (declarative, lightweight), and some use static diagrams. The system learned which approach works best for which content type through accumulated experience. Physics simulations need JS. Structural diagrams work with SMIL. Reference material works static. That adaptive judgment is itself a product of persistent memory.</p>
    </div>
   </details>
+    </div>
+  </details>
   </section>
 
   <hr class="section-divider">
   <section id="competition">
   <h2>The Competition (With Respect) <a class="anchor-link" href="#competition" aria-hidden="true">#</a></h2>
+  <details id="competition-content">
+    <summary>ChatGPT Memory, Mem0, MemoryGPT — and what they don't solve <a class="anchor-link" href="#competition-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
+    <div class="accordion-body">
 
   <p>You're not the first person to notice this problem. Here's what's out there — and all of these are genuinely useful tools solving real problems.</p>
 
@@ -1524,11 +1538,16 @@ modes with dry compassion.</div>
   <p>All good tools solving real problems. What this guide adds: the governance layer (truth + execution + continuity as boundary conditions), role separation with human authorization gates, health monitoring with self-repair, and compartmentalized access control. You can build these on top of any of the above platforms.</p>
 
   <p>If you find a better approach to any of these problems, we'd genuinely love to hear about it.</p>
+    </div>
+  </details>
   </section>
 
   <hr class="section-divider">
   <section id="honest-costs">
   <h2>Honest Costs <a class="anchor-link" href="#honest-costs" aria-hidden="true">#</a></h2>
+  <details id="costs-content">
+    <summary>What this costs, who it's for, and who should probably skip it <a class="anchor-link" href="#costs-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
+    <div class="accordion-body">
 
   <h3>The obvious question</h3>
 
@@ -1584,11 +1603,16 @@ modes with dry compassion.</div>
    <li>Self-audit catches most errors but not all. Human review remains necessary for high-stakes work.</li>
    <li>This is architecture, not sentience. It works because it&rsquo;s structurally constrained to, not because it &ldquo;understands.&rdquo;</li>
   </ul>
+    </div>
+  </details>
   </section>
 
   <hr class="section-divider">
   <section id="build-it">
   <h2>Build It This Weekend <a class="anchor-link" href="#build-it" aria-hidden="true">#</a></h2>
+  <details id="build-content">
+    <summary>15 minutes to one month — the full replication path <a class="anchor-link" href="#build-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
+    <div class="accordion-body">
 
   <p>The replication guide. Take whichever pieces solve your problems. Each tier addresses a pain you've already felt.</p>
 
@@ -1746,6 +1770,8 @@ domain: [optional — project/domain tag for compartmentalization]
     <h3>How many memories to start with</h3>
     <p>Five is enough: one user profile, three feedback corrections, one project status. Write more as mistakes happen. A mature system might have 30-50 memories; resist the urge to front-load. Each memory should exist because something actually happened, not because you anticipate it might. Memories written from experience are precise. Memories written speculatively are vague, and vague memories create vague behavior.</p>
    </div>
+  </details>
+    </div>
   </details>
   </section>
 
@@ -1912,7 +1938,10 @@ domain: [optional — project/domain tag for compartmentalization]
   if (!el) return;
   if (el.tagName === 'DETAILS') el.setAttribute('open', '');
   var parent = el.closest('details');
-  if (parent) parent.setAttribute('open', '');
+  while (parent) {
+   parent.setAttribute('open', '');
+   parent = parent.parentElement ? parent.parentElement.closest('details') : null;
+  }
   setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
  }
  window.addEventListener('hashchange', openHashTarget);
