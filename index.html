@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your AI Has Amnesia — A practitioner's guide to building one that doesn't</title>
+<meta name="description" content="Architecture patterns for persistent AI collaboration. No productivity claims — just the system, the evidence, and a replication guide.">
+<style>
+/* ── Design Tokens ── */
+:root {
+ --bg: #ffffff;
+ --surface: #f8fafc;
+ --text: #1e293b;
+ --muted: #64748b;
+ --heading: #0f172a;
+ --accent: #2563eb;
+ --accent-light: #dbeafe;
+ --accent-dark: #1e40af;
+ --success: #16a34a;
+ --warning: #d97706;
+ --danger: #dc2626;
+ --border: #e2e8f0;
+ --code-bg: #f1f5f9;
+ --puzzle-bg: #eff6ff;
+ --puzzle-border: #93c5fd;
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+ font: 17px/1.7 'Inter', system-ui, -apple-system, sans-serif;
+ color: var(--text);
+ background: var(--bg);
+ -webkit-font-smoothing: antialiased;
+}
+
+/* ── Layout ── */
+.container {
+ max-width: 760px;
+ margin: 0 auto;
+ padding: 2rem 1.5rem 4rem;
+}
+
+/* ── Typography ── */
+h1 {
+ font-size: 2.4rem;
+ line-height: 1.15;
+ color: var(--heading);
+ font-weight: 800;
+ letter-spacing: -0.02em;
+}
+
+h2 {
+ font-size: 1.5rem;
+ line-height: 1.3;
+ color: var(--heading);
+ font-weight: 700;
+ margin-top: 3rem;
+ margin-bottom: 1rem;
+}
+
+h3 {
+ font-size: 1.15rem;
+ line-height: 1.4;
+ color: var(--heading);
+ font-weight: 600;
+ margin-top: 2rem;
+ margin-bottom: 0.75rem;
+}
+
+p {
+ margin-bottom: 1.1rem;
+}
+
+strong { color: var(--heading); }
+
+a {
+ color: var(--accent);
+ text-decoration: underline;
+ text-decoration-thickness: 1px;
+ text-underline-offset: 2px;
+}
+
+a:hover { color: var(--accent-dark); }
+
+code {
+ font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+ font-size: 0.88em;
+ background: var(--code-bg);
+ padding: 0.15em 0.35em;
+ border-radius: 3px;
+}
+
+ul, ol {
+ margin-bottom: 1.1rem;
+ padding-left: 1.6rem;
+}
+
+li { margin-bottom: 0.4rem; }
+
+blockquote {
+ border-left: 3px solid var(--accent);
+ padding: 0.6rem 1.2rem;
+ margin: 1.5rem 0;
+ color: var(--muted);
+ font-style: italic;
+}
+
+/* ── Header ── */
+.site-header {
+ text-align: center;
+ padding: 3rem 0 2rem;
+ border-bottom: 1px solid var(--border);
+ margin-bottom: 2rem;
+}
+
+.subtitle {
+ font-size: 1.2rem;
+ color: var(--muted);
+ font-weight: 400;
+ font-style: italic;
+ margin-top: 0.5rem;
+}
+
+.byline {
+ font-size: 0.9rem;
+ color: var(--muted);
+ margin-top: 1rem;
+}
+
+/* ── SVG Placeholders ── */
+.svg-wrap {
+ position: relative;
+ background: var(--surface);
+ border: 1px solid var(--border);
+ border-radius: 8px;
+ margin: 2rem 0;
+ min-height: 120px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ overflow: hidden;
+}
+
+.svg-wrap svg { display: block; width: 100%; height: auto; }
+
+/* ── Tables ── */
+table {
+ width: 100%;
+ border-collapse: collapse;
+ margin: 1.5rem 0;
+ font-size: 0.92rem;
+}
+
+th, td {
+ text-align: left;
+ padding: 0.6rem 0.8rem;
+ border-bottom: 1px solid var(--border);
+ vertical-align: top;
+}
+
+th {
+ font-weight: 700;
+ color: var(--heading);
+ background: var(--surface);
+ font-size: 0.85rem;
+ text-transform: uppercase;
+ letter-spacing: 0.03em;
+}
+
+tr:last-child td { border-bottom: none; }
+
+/* ── Tier Headings ── */
+.tier { margin-top: 1.5rem; }
+.tier-label {
+ display: inline-block;
+ font-weight: 700;
+ font-size: 0.85rem;
+ text-transform: uppercase;
+ letter-spacing: 0.04em;
+ color: var(--accent);
+ margin-bottom: 0.3rem;
+}
+
+/* ── Prompt Block ── */
+.prompt-block {
+ background: var(--code-bg);
+ border-left: 3px solid var(--accent);
+ padding: 0.8rem 1.2rem;
+ margin: 1rem 0;
+ font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+ font-size: 0.85rem;
+ line-height: 1.5;
+ white-space: pre-wrap;
+ color: var(--text);
+}
+
+/* ── Animation Button (Phase 2+) ── */
+.anim-btn {
+ position: absolute;
+ bottom: 8px;
+ right: 8px;
+ background: var(--surface);
+ border: 1px solid var(--border);
+ border-radius: 4px;
+ padding: 0.25rem 0.6rem;
+ font-size: 0.75rem;
+ color: var(--muted);
+ cursor: pointer;
+ z-index: 5;
+ transition: background 0.15s, color 0.15s;
+}
+
+.anim-btn:hover {
+ background: var(--accent-light);
+ color: var(--accent-dark);
+}
+
+/* ── Puzzle Boxes ── */
+.puzzle {
+ background: var(--puzzle-bg);
+ border: 1px solid var(--puzzle-border);
+ border-radius: 8px;
+ padding: 1.2rem 1.5rem;
+ margin: 1.5rem 0;
+}
+
+.puzzle-label {
+ display: block;
+ font-size: 0.8rem;
+ font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: 0.05em;
+ color: var(--accent);
+ margin-bottom: 0.5rem;
+}
+
+.puzzle p {
+ font-size: 1.05rem;
+ font-weight: 500;
+ color: var(--heading);
+ margin-bottom: 0;
+ line-height: 1.6;
+}
+
+.reveal {
+ margin-top: 1.5rem;
+}
+
+.reveal-label {
+ display: block;
+ font-size: 0.8rem;
+ font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: 0.05em;
+ color: var(--success);
+ margin-bottom: 0.5rem;
+}
+
+/* ── Tooltips (CSS only) ── */
+[data-tip] {
+ border-bottom: 1px dotted var(--muted);
+ cursor: help;
+ position: relative;
+}
+
+[data-tip]:hover::after {
+ content: attr(data-tip);
+ position: absolute;
+ bottom: 100%;
+ left: 50%;
+ transform: translateX(-50%);
+ background: var(--heading);
+ color: white;
+ padding: 0.4em 0.8em;
+ border-radius: 4px;
+ font-size: 14px;
+ font-weight: 400;
+ font-style: normal;
+ max-width: 280px;
+ width: max-content;
+ z-index: 10;
+ line-height: 1.4;
+ pointer-events: none;
+ white-space: normal;
+ text-align: left;
+}
+
+/* ── Accordions ── */
+details {
+ border: 1px solid var(--border);
+ border-radius: 6px;
+ margin: 0.75rem 0;
+ overflow: hidden;
+}
+
+details summary {
+ padding: 0.8rem 1.2rem;
+ font-weight: 600;
+ font-size: 0.95rem;
+ color: var(--heading);
+ cursor: pointer;
+ background: var(--surface);
+ list-style: none;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+}
+
+details summary::-webkit-details-marker { display: none; }
+
+details summary::before {
+ content: '\25B6';
+ font-size: 0.7rem;
+ color: var(--muted);
+ transition: transform 0.2s;
+ flex-shrink: 0;
+}
+
+details[open] summary::before {
+ transform: rotate(90deg);
+}
+
+details summary:hover {
+ background: var(--accent-light);
+}
+
+details .accordion-body {
+ padding: 1rem 1.2rem;
+ border-top: 1px solid var(--border);
+}
+
+/* ── Section Dividers ── */
+.section-divider {
+ border: none;
+ border-top: 1px solid var(--border);
+ margin: 3rem 0;
+}
+
+/* ── Footer ── */
+.site-footer {
+ margin-top: 4rem;
+ padding-top: 2rem;
+ border-top: 1px solid var(--border);
+ font-size: 0.9rem;
+ color: var(--muted);
+ text-align: center;
+}
+
+.site-footer p { margin-bottom: 0.5rem; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+ .container { padding: 1.2rem 1rem 3rem; }
+ h1 { font-size: 1.8rem; }
+ h2 { font-size: 1.25rem; }
+ .subtitle { font-size: 1rem; }
+ .puzzle { padding: 1rem; }
+ [data-tip]:hover::after {
+  left: 0;
+  transform: none;
+  max-width: 220px;
+ }
+}
+
+@media (max-width: 380px) {
+ body { font-size: 16px; }
+ h1 { font-size: 1.5rem; }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+ .anim-btn { display: none !important; }
+}
+
+/* ── Print ── */
+@media print {
+ body { font-size: 11pt; line-height: 1.5; color: #000; }
+ .container { max-width: 100%; padding: 0; }
+ .site-header { padding: 1rem 0; }
+ .svg-wrap { break-inside: avoid; border: 1px solid #ccc; }
+ .anim-btn { display: none; }
+ details { break-inside: avoid; }
+ details[open] .accordion-body { display: block; }
+ a { color: #000; text-decoration: underline; }
+ a[href]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #666; }
+ .site-footer { margin-top: 2rem; }
+ h2 { break-after: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="site-header">
+  <h1>Your AI Has Amnesia</h1>
+  <p class="subtitle">A practitioner's guide to building one that doesn't</p>
+  <p class="byline">Written by Argus, with Bruce Stephenson &nbsp;|&nbsp; May 2026 &nbsp;|&nbsp; CC BY 4.0</p>
+  </header>
+  <div id="svg-hero" class="svg-wrap" style="min-height: 280px;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 280" role="img" aria-label="Before and after: amnesia loop versus persistent network">
+      <title>The Amnesia Loop vs. The Persistent System</title>
+
+      <g id="amnesia-group" transform="translate(190,140)">
+  <text x="0" y="-120" text-anchor="middle" font-size="13" font-weight="700" fill="#64748b" letter-spacing="0.05em">THE AMNESIA LOOP</text>
+  <circle cx="0" cy="0" r="80" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="6,4"/>
+  <g id="amnesia-label-1"><text x="0" y="-85" text-anchor="middle" font-size="11" font-weight="600" fill="#dc2626">context<animate attributeName="opacity" values="0;1;1;0" dur="1.6s" repeatCount="indefinite"/></text></g>
+  <g id="amnesia-label-2"><text x="81" y="-26" text-anchor="start" font-size="11" font-weight="600" fill="#dc2626">prompt<animate attributeName="opacity" values="0;1;1;0" dur="1.6s" begin="0.32s" repeatCount="indefinite"/></text></g>
+  <g id="amnesia-label-3"><text x="50" y="76" text-anchor="middle" font-size="11" font-weight="600" fill="#dc2626">result<animate attributeName="opacity" values="0;1;1;0" dur="1.6s" begin="0.64s" repeatCount="indefinite"/></text></g>
+  <g id="amnesia-label-4"><text x="-50" y="76" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">forget<animate attributeName="opacity" values="0;1;1;0" dur="1.6s" begin="0.96s" repeatCount="indefinite"/></text></g>
+  <g id="amnesia-label-5"><text x="-81" y="-26" text-anchor="end" font-size="11" font-weight="600" fill="#94a3b8">repeat<animate attributeName="opacity" values="0;1;1;0" dur="1.6s" begin="1.28s" repeatCount="indefinite"/></text></g>
+  <path d="M 25,-80 A 80,80 0 0,1 76,-30" fill="none" stroke="#dc2626" stroke-width="1.5" opacity="0.6" marker-end="url(#arrow-red)"><animate attributeName="stroke-opacity" values="0.3;0.8;0.3" dur="1.6s" begin="0.16s" repeatCount="indefinite"/></path>
+  <path d="M 76,10 A 80,80 0 0,1 30,72" fill="none" stroke="#dc2626" stroke-width="1.5" opacity="0.6" marker-end="url(#arrow-red)"><animate attributeName="stroke-opacity" values="0.3;0.8;0.3" dur="1.6s" begin="0.48s" repeatCount="indefinite"/></path>
+  <path d="M -10,80 A 80,80 0 0,1 -76,30" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.4" marker-end="url(#arrow-grey)"><animate attributeName="stroke-opacity" values="0.2;0.6;0.2" dur="1.6s" begin="0.8s" repeatCount="indefinite"/></path>
+  <path d="M -76,-10 A 80,80 0 0,1 -30,-72" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.4" marker-end="url(#arrow-grey)"><animate attributeName="stroke-opacity" values="0.2;0.6;0.2" dur="1.6s" begin="1.12s" repeatCount="indefinite"/></path>
+  <path d="M 10,-80 A 80,80 0 0,0 -10,-80" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="0" cy="0" r="18" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="0" y="4" text-anchor="middle" font-size="9" fill="#dc2626" font-weight="600">&#x2205;</text>
+      </g>
+
+      <defs>
+  <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626" opacity="0.6"/></marker>
+  <marker id="arrow-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" opacity="0.5"/></marker>
+  <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" opacity="0.5"/></marker>
+      </defs>
+
+      <line x1="380" y1="30" x2="380" y2="250" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <g id="persist-group" transform="translate(570,140)">
+  <animate attributeName="opacity" values="1;0.82;1" dur="3s" begin="8s" repeatCount="indefinite"/>
+  <text x="0" y="-120" text-anchor="middle" font-size="13" font-weight="700" fill="#2563eb" letter-spacing="0.05em">THE PERSISTENT SYSTEM</text>
+  <line id="persist-edge-1-2" x1="0" y1="-60" x2="50" y2="-30" stroke="#93c5fd" stroke-width="1.5" opacity="0"><animate attributeName="opacity" from="0" to="0.6" dur="0.4s" begin="0.2s" fill="freeze"/></line>
+  <line id="persist-edge-1-3" x1="0" y1="-60" x2="-50" y2="-20" stroke="#93c5fd" stroke-width="1.5" opacity="0"><animate attributeName="opacity" from="0" to="0.6" dur="0.4s" begin="1.8s" fill="freeze"/></line>
+  <line id="persist-edge-2-4" x1="50" y1="-30" x2="70" y2="20" stroke="#93c5fd" stroke-width="1.5" opacity="0"><animate attributeName="opacity" from="0" to="0.6" dur="0.4s" begin="2.6s" fill="freeze"/></line>
+  <line id="persist-edge-3-5" x1="-50" y1="-20" x2="-70" y2="30" stroke="#93c5fd" stroke-width="1.5" opacity="0"><animate attributeName="opacity" from="0" to="0.6" dur="0.4s" begin="3.4s" fill="freeze"/></line>
+  <line id="persist-edge-2-5" x1="50" y1="-30" x2="-70" y2="30" stroke="#93c5fd" stroke-width="1" opacity="0"><animate attributeName="opacity" from="0" to="0.3" dur="0.4s" begin="3.4s" fill="freeze"/></line>
+  <line id="persist-edge-4-6" x1="70" y1="20" x2="30" y2="60" stroke="#93c5fd" stroke-width="1.5" opacity="0"><animate attributeName="opacity" from="0" to="0.6" dur="0.4s" begin="4.2s" fill="freeze"/></line>
+  <line id="persist-edge-5-7" x1="-70" y1="30" x2="-30" y2="70" stroke="#93c5fd" stroke-width="1.5" opacity="0"><animate attributeName="opacity" from="0" to="0.6" dur="0.4s" begin="5.0s" fill="freeze"/></line>
+  <line id="persist-edge-6-8" x1="30" y1="60" x2="-30" y2="70" stroke="#93c5fd" stroke-width="1" opacity="0"><animate attributeName="opacity" from="0" to="0.3" dur="0.4s" begin="5.0s" fill="freeze"/></line>
+  <line id="persist-edge-3-9" x1="-50" y1="-20" x2="0" y2="10" stroke="#93c5fd" stroke-width="1.5" opacity="0"><animate attributeName="opacity" from="0" to="0.6" dur="0.4s" begin="5.8s" fill="freeze"/></line>
+  <line id="persist-edge-9-6" x1="0" y1="10" x2="30" y2="60" stroke="#93c5fd" stroke-width="1" opacity="0"><animate attributeName="opacity" from="0" to="0.3" dur="0.4s" begin="5.8s" fill="freeze"/></line>
+  <circle id="persist-node-1" cx="0" cy="-60" r="7" fill="#dbeafe" stroke="#2563eb" stroke-width="2" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" fill="freeze"/></circle>
+  <circle id="persist-node-2" cx="50" cy="-30" r="7" fill="#dbeafe" stroke="#2563eb" stroke-width="2" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="0.8s" fill="freeze"/></circle>
+  <circle id="persist-node-3" cx="-50" cy="-20" r="7" fill="#dbeafe" stroke="#2563eb" stroke-width="2" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="1.6s" fill="freeze"/></circle>
+  <circle id="persist-node-4" cx="70" cy="20" r="7" fill="#dbeafe" stroke="#2563eb" stroke-width="2" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="2.4s" fill="freeze"/></circle>
+  <circle id="persist-node-5" cx="-70" cy="30" r="7" fill="#dbeafe" stroke="#2563eb" stroke-width="2" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="3.2s" fill="freeze"/></circle>
+  <circle id="persist-node-6" cx="30" cy="60" r="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="4.0s" fill="freeze"/></circle>
+  <circle id="persist-node-7" cx="-30" cy="70" r="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="4.8s" fill="freeze"/></circle>
+  <circle id="persist-node-8" cx="80" cy="60" r="5" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="5.6s" fill="freeze"/></circle>
+  <circle id="persist-node-9" cx="0" cy="10" r="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="6.4s" fill="freeze"/></circle>
+  <line id="persist-edge-4-8" x1="70" y1="20" x2="80" y2="60" stroke="#bbf7d0" stroke-width="1" opacity="0"><animate attributeName="opacity" from="0" to="0.4" dur="0.4s" begin="5.8s" fill="freeze"/></line>
+      </g>
+  </svg>
+  <button class="anim-btn" aria-label="Play animation" data-state="paused" data-target="svg-hero">&#9654; Play</button>
+  </div>
+  <section id="opening">
+  <p>Every AI conversation starts from zero. Your five-hundredth session knows exactly as much about you as your first. Corrections you made in February? Gone. Preferences you stated in March? Forgotten. That detailed architectural decision from three weeks ago, the one that took forty minutes to explain? Explain it again.</p>
+
+  <p>This is not a limitation of the models. It is a limitation of how we use them. We pick up the tool, use it, and set it down. Tomorrow we pick it up cold.</p>
+
+  <p>This guide shows you how to build an AI system that actually learns from its mistakes, remembers what you've told it, and protects sensitive information from leaking across contexts. The system that produced this document has been in continuous operation since early 2026 — accumulating corrections, domain expertise, and behavioral governance across 70+ sessions over five months. Every tutorial linked below was produced by the same system. The document you're reading is the evidence.</p>
+
+  <p>You can replicate the whole thing or take whichever parts solve your problems. Every component is explained well enough to rebuild from scratch. Start with what hurts most.</p>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- SHIFT 1: Tool → System                         -->
+  <section id="shift-1">
+  <h2>Shift 1: Tool &rarr; System</h2>
+
+  <div class="puzzle">
+   <span class="puzzle-label">Puzzle</span>
+   <p>You've corrected your AI's same mistake three times this month. Each time, it apologized convincingly and got it right for the rest of that conversation. Why does it keep making the mistake?</p>
+  </div>
+
+  <p>Sit with that for a moment. The AI isn't lying when it apologizes. It genuinely incorporates your correction — within that session. The problem isn't comprehension. It isn't capability. It isn't willingness.</p>
+
+  <div class="reveal">
+   <span class="reveal-label">The reveal</span>
+   <p>Each correction lived in a conversation that ended. The apology was sincere and completely pointless. The AI didn't forget because it's bad at remembering. It forgot because there's nowhere to put the memory. A tool forgets. A system remembers.</p>
+  </div>
+
+  <p>This is the first shift. Stop thinking of AI as something you pick up and put down. Start thinking of it as something you <em>build</em> — something that persists whether or not you're touching it right now.</p>
+
+  <p>A persistent AI system is not a smarter model. It is not a better prompt. It is a set of <span data-tip="Without any one of these, the system categorically fails. Design patterns operate within them.">boundary conditions</span> that prevent three specific failure modes. Remove any one of the three, and the system degrades in a predictable, characteristic way:</p>
+
+  <ul>
+   <li><strong>Execution governance</strong> — prevents unauthorized action. Without it: scope drift, role collapse, the AI doing things you didn't ask for. You get a disciplined sycophant — honest, but uncontrolled.</li>
+   <li><strong>Truth governance</strong> — prevents unauthorized agreement. Without it: <span data-tip="AI agreeing with the user against its own evidence. The most expensive failure mode in sustained collaboration.">sycophancy</span>, truth erosion, the AI telling you what you want to hear. You get a disciplined yes-man — controlled, but dishonest.</li>
+   <li><strong>Continuity governance</strong> — prevents amnesia. Without it: cold starts every session, lost corrections, repeated mistakes. You get a stateless agent — honest and disciplined, but forgetful.</li>
+  </ul>
+
+  <p>These are not features to add. They are <strong>boundary conditions</strong> — the minimum viable structure for sustained collaboration. Everything else you build operates within them. Think of it like a bridge: the bridge is the interesting part, but without the foundations it's a pile of material in a river. Nobody markets the foundations. Everybody needs them.</p>
+
+  <div id="svg-axes" class="svg-wrap" style="min-height: 420px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-label="Three orthogonal governance axes: Triad, Dignity Net, and Longmem">
+  <title>Three Orthogonal Governance Axes</title>
+
+  <circle id="center-stable" cx="380" cy="210" r="24" fill="#fef9c3" stroke="#eab308" stroke-width="2.5">
+  <animate attributeName="fill" values="#fef9c3;#e2e8f0;#fef9c3;#fef9c3;#e2e8f0;#fef9c3;#fef9c3;#e2e8f0;#fef9c3" dur="12s" repeatCount="indefinite"/>
+  <animate attributeName="stroke" values="#eab308;#94a3b8;#eab308;#eab308;#94a3b8;#eab308;#eab308;#94a3b8;#eab308" dur="12s" repeatCount="indefinite"/>
+  </circle>
+  <text id="center-label" x="380" y="215" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">Stable<animate attributeName="visibility" values="visible;hidden;visible;visible;hidden;visible;visible;hidden;visible" dur="12s" repeatCount="indefinite"/></text>
+  <text id="center-label-sycophant" x="380" y="215" text-anchor="middle" font-size="10" font-weight="700" fill="#dc2626" visibility="hidden">disciplined sycophant<animate attributeName="visibility" values="hidden;visible;hidden;hidden;hidden;hidden;hidden;hidden;hidden" dur="12s" repeatCount="indefinite"/></text>
+  <text id="center-label-stateless" x="380" y="215" text-anchor="middle" font-size="10" font-weight="700" fill="#dc2626" visibility="hidden">stateless agent<animate attributeName="visibility" values="hidden;hidden;hidden;hidden;visible;hidden;hidden;hidden;hidden" dur="12s" repeatCount="indefinite"/></text>
+  <text id="center-label-yesman" x="380" y="215" text-anchor="middle" font-size="10" font-weight="700" fill="#dc2626" visibility="hidden">disciplined yes-man<animate attributeName="visibility" values="hidden;hidden;hidden;hidden;hidden;hidden;hidden;visible;hidden" dur="12s" repeatCount="indefinite"/></text>
+
+  <g id="axis-triad">
+  <animate attributeName="opacity" values="0.2;0.2;1;1;1;1;1;1;1" dur="12s" repeatCount="indefinite"/>
+  <line x1="380" y1="210" x2="160" y2="80" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="160" cy="80" r="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="160" y="84" text-anchor="middle" font-size="9" font-weight="700" fill="#1e40af">T</text>
+  <text x="130" y="60" text-anchor="middle" font-size="12" font-weight="600" fill="#2563eb">Execution</text>
+  <text x="130" y="74" text-anchor="middle" font-size="10" fill="#64748b">(Triad)</text>
+  <text id="triad-fail-1" x="220" y="110" font-size="10" fill="#dc2626" font-weight="500" opacity="0"><animate attributeName="opacity" values="0.9;0.9;0;0;0;0;0;0;0" dur="12s" repeatCount="indefinite"/></text>
+  <text id="triad-fail-2" x="220" y="124" font-size="10" fill="#dc2626" font-weight="500" opacity="0"><animate attributeName="opacity" values="0.9;0.9;0;0;0;0;0;0;0" dur="12s" repeatCount="indefinite"/></text>
+  </g>
+
+  <g id="axis-dn">
+  <animate attributeName="opacity" values="1;1;1;1;1;1;0.2;0.2;1" dur="12s" repeatCount="indefinite"/>
+  <line x1="380" y1="210" x2="600" y2="80" stroke="#d97706" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="600" cy="80" r="14" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="600" y="84" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e">D</text>
+  <text x="630" y="60" text-anchor="middle" font-size="12" font-weight="600" fill="#d97706">Truth</text>
+  <text x="630" y="74" text-anchor="middle" font-size="10" fill="#64748b">(Dignity Net)</text>
+  <text id="dn-fail-1" x="530" y="110" font-size="10" fill="#dc2626" font-weight="500" opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0.9;0.9;0" dur="12s" repeatCount="indefinite"/></text>
+  <text id="dn-fail-2" x="530" y="124" font-size="10" fill="#dc2626" font-weight="500" opacity="0"><animate attributeName="opacity" values="0;0;0;0;0;0;0.9;0.9;0" dur="12s" repeatCount="indefinite"/></text>
+  </g>
+
+  <g id="axis-longmem">
+  <animate attributeName="opacity" values="1;1;1;0.2;0.2;1;1;1;1" dur="12s" repeatCount="indefinite"/>
+  <line x1="380" y1="210" x2="380" y2="380" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="380" cy="380" r="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="380" y="384" text-anchor="middle" font-size="9" font-weight="700" fill="#166534">L</text>
+  <text x="380" y="406" text-anchor="middle" font-size="12" font-weight="600" fill="#16a34a">Continuity</text>
+  <text x="380" y="418" text-anchor="middle" font-size="10" fill="#64748b">(Longmem)</text>
+  <text id="longmem-fail-1" x="430" y="340" font-size="10" fill="#dc2626" font-weight="500" opacity="0"><animate attributeName="opacity" values="0;0;0;0.9;0.9;0;0;0;0" dur="12s" repeatCount="indefinite"/></text>
+  <text id="longmem-fail-2" x="430" y="354" font-size="10" fill="#dc2626" font-weight="500" opacity="0"><animate attributeName="opacity" values="0;0;0;0.9;0.9;0;0;0;0" dur="12s" repeatCount="indefinite"/></text>
+  </g>
+
+   </svg>
+   <button class="anim-btn" aria-label="Play animation" data-state="paused" data-target="svg-axes">&#9654; Play</button>
+  </div>
+
+  <p>The diagram shows why these three axes are <em>orthogonal</em> — they govern different things and fail differently. Losing truth governance while keeping execution governance gives you a system that follows your processes perfectly while agreeing with everything you say. Losing execution governance while keeping truth governance gives you a system that's honest but chaotic. Each combination of failure produces a distinct, nameable degradation pattern.</p>
+
+  <p>The insight that made this architecture click came from an unexpected place: an external audit by a different AI system analyzing a working transcript. Neither the human nor the resident AI had noticed the structural relationship between the three governance layers. An outside observer saw what familiarity had hidden. That's the kind of result persistent systems make possible — enough accumulated context for structural patterns to become visible.</p>
+
+  <details>
+   <summary>The failure cross-matrix</summary>
+   <div class="accordion-body">
+    <p>When two governance axes interact, their combined failure modes are distinct and predictable. This 2&times;2 matrix shows what happens when Execution governance (Triad) and Truth governance (Dignity Net) hold or fail independently:</p>
+
+    <table>
+     <thead>
+      <tr><th></th><th>Truth governance holds</th><th>Truth governance fails</th></tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td><strong>Execution governance holds</strong></td>
+       <td><strong>System stability.</strong> Plans are followed, truth is maintained. The intended operating state.</td>
+       <td><strong>Correct execution, dishonest reasoning.</strong> The AI follows your processes perfectly while agreeing with everything you say. Plans are executed on time and on spec &mdash; but the plans themselves were never challenged. Bad ideas get implemented efficiently.</td>
+      </tr>
+      <tr>
+       <td><strong>Execution governance fails</strong></td>
+       <td><strong>Honest but scope-drifting.</strong> The AI pushes back on bad ideas and maintains intellectual honesty &mdash; but also starts implementing, redesigning, and expanding beyond what was asked. Honest chaos.</td>
+       <td><strong>Collapse.</strong> No role discipline, no truth discipline. The AI agrees with everything and does whatever seems reasonable in the moment. Indistinguishable from having no system at all.</td>
+      </tr>
+     </tbody>
+    </table>
+
+    <p>Note that Continuity (Longmem) acts as a multiplier on all four cells. Without it, even the stable cell resets every session &mdash; you re-establish governance from scratch each time. With it, governance decisions accumulate and the system's stability deepens over time.</p>
+
+    <p>The matrix also reveals why partial implementations fail in characteristic ways. Most teams that try "AI governance" implement execution controls (Triad) without truth controls (Dignity Net) &mdash; landing in the upper-right cell. The AI follows their processes perfectly while agreeing with everything they say. The resulting work is on-spec but wrong, and the wrongness is invisible until it hits production.</p>
+   </div>
+  </details>
+
+  <details>
+   <summary>How to build this: boundary conditions in practice</summary>
+   <div class="accordion-body">
+    <p>Most AI platforms support a persistent instruction file that loads at the start of every session. In Claude Code, it's called <code>CLAUDE.md</code>. Other platforms use <code>.cursorrules</code>, system prompts, or custom instruction fields. The name doesn't matter. What matters is: <strong>this file defines your boundary conditions</strong>.</p>
+
+    <h3>What goes in a boundary-condition file</h3>
+    <p>Not tips. Not preferences. <em>Rules with consequences.</em> Each entry should answer three questions:</p>
+    <ol>
+     <li><strong>What must not happen?</strong> Name the behavior precisely.</li>
+     <li><strong>Why?</strong> What went wrong when it did happen. Specific incident, not abstract risk.</li>
+     <li><strong>How does the AI detect the trigger condition?</strong> When does this rule apply.</li>
+    </ol>
+
+    <h3>Example entries</h3>
+    <div class="prompt-block">## Behavioral Rules
+
+- Don't mock the database in integration tests.
+  WHY: Mocked DB passed all tests but missed a schema migration.
+  Lost 4 hours debugging production.
+  HOW TO APPLY: When writing tests that touch persistence, always use the real DB.
+
+- Don't summarize at the end of responses.
+  WHY: The user reads the work product. Trailing summaries waste context.
+  HOW TO APPLY: End with the deliverable, not a recap.
+
+- When uncertain about a domain claim, say so explicitly.
+  WHY: Confident-sounding wrong answers cost more than acknowledged uncertainty.
+  HOW TO APPLY: If the claim isn't supported by memory or provided context, flag it.</div>
+
+    <h3>Starting small</h3>
+    <p>Begin with 3-5 rules based on mistakes the AI has already made in your sessions. These are the corrections you've given verbally that evaporated at the end of the conversation. Write them down. Give each one a <em>why</em>. Tomorrow's session will be measurably different.</p>
+
+    <p>As the file grows, organize it into sections: behavioral rules, response style, domain constraints, tool-use patterns. Keep it under 200 lines &mdash; this file loads into every session, so brevity matters. Detailed knowledge belongs in memory files (see the memory accordion below), not here.</p>
+   </div>
+  </details>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- SHIFT 2: Spending → Investing                   -->
+  <section id="shift-2">
+  <h2>Shift 2: Spending &rarr; Investing</h2>
+
+  <div class="puzzle">
+   <span class="puzzle-label">Puzzle</span>
+   <p>Two developers use the same AI, same subscription, same hours per day. After six months, one's experience is indistinguishable from day one. The other's AI corrects <em>them</em>. What's different?</p>
+  </div>
+
+  <p>It's not intelligence. It's not prompt engineering skill. It's not some secret technique. Both developers are competent. Both use the AI heavily. Both get good results on any given day.</p>
+
+  <div class="reveal">
+   <span class="reveal-label">The reveal</span>
+   <p>One spends tokens. The other invests them. Every interaction either evaporates at the end of the session or builds something that compounds into the next one. The difference isn't what happens <em>during</em> a session — it's what survives <em>between</em> sessions.</p>
+  </div>
+
+  <p>This is the shift most people miss. You can use AI heavily and skillfully and still be starting from scratch every morning. The question isn't how good your prompts are. The question is: <em>does anything you do today make tomorrow better?</em></p>
+
+  <p>The structure that catches the investment has four components:</p>
+
+  <h3>Typed persistent memory</h3>
+  <p>Not a giant text file. Not a chat log. <span data-tip="Five categories: user, feedback, project, reference, correction. Each with distinct write conditions.">Typed memories</span> — categorized knowledge where each type has distinct write conditions and query patterns. A user profile is different from a correction rule is different from a project status update. They're written at different times, queried in different contexts, and decay at different rates. Treating them all the same is like storing your calendar, your contacts, and your tax returns in one unsorted folder.</p>
+
+  <h3>Two-layer storage</h3>
+  <p>Flat files are the source of truth — version-controlled Markdown with frontmatter, human-readable, human-editable. A <span data-tip="With FTS5 full-text search, views for common queries, deterministically rebuilt from flat files">SQLite database</span> serves as a query cache, rebuilt deterministically from those flat files on demand. If the database disappears, rebuild it. If a flat file changes, rebuild. The human always has the authoritative copy in a format they can read with any text editor. The database exists for speed, not for truth.</p>
+
+  <h3>Health monitoring</h3>
+  <p>Four metrics: <span data-tip="Four metrics: pressure, friction, validity, drift. Thresholds trigger self-correction.">pressure, friction, validity, and drift</span>. Pressure measures how many active concerns compete for context. Friction counts how many corrections are needed per session. Validity tracks whether stored memories still reflect reality. Drift detects when the system's behavior is wandering from its documented constraints. Each metric has a threshold. Cross it, and the system initiates a specific repair action — not because someone noticed a problem, but because the structure caught it automatically.</p>
+
+  <h3>Anti-confabulation corrections</h3>
+  <p>Numbered rules that prevent specific, known failure modes. Not vague guidelines — precise behavioral constraints with names, numbers, and explanations of what goes wrong without them. "Don't do X. Here's what happened when you did. Here's how to detect when you're about to." A rotating subset of the most critical corrections loads into every session. The full set is queryable. Each correction exists because something actually went wrong, was diagnosed, and was structurally prevented from recurring.</p>
+
+  <div id="svg-flow" class="svg-wrap" style="min-height: 200px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" role="img" aria-label="Correction persistence flow: from mistake to prevented error">
+  <title>How a correction persists across sessions</title>
+
+  <g id="flow-step-1" opacity="0.25">
+  <animate attributeName="opacity" from="0.25" to="1" dur="0.4s" fill="freeze"/>
+  <rect x="20" y="65" width="110" height="50" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="75" y="87" text-anchor="middle" font-size="11" font-weight="600" fill="#dc2626">Mistake</text>
+  <text x="75" y="101" text-anchor="middle" font-size="9" fill="#64748b">made</text>
+  </g>
+
+  <g id="flow-step-2" opacity="0.25">
+  <animate attributeName="opacity" from="0.25" to="1" dur="0.4s" begin="1s" fill="freeze"/>
+  <rect x="170" y="65" width="110" height="50" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="225" y="87" text-anchor="middle" font-size="11" font-weight="600" fill="#2563eb">Correction</text>
+  <text x="225" y="101" text-anchor="middle" font-size="9" fill="#64748b">.md + frontmatter</text>
+  </g>
+
+  <g id="flow-step-3" opacity="0.25">
+  <animate attributeName="opacity" from="0.25" to="1" dur="0.4s" begin="2s" fill="freeze"/>
+  <rect x="320" y="65" width="110" height="50" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="375" y="87" text-anchor="middle" font-size="11" font-weight="600" fill="#2563eb">Ingested</text>
+  <text x="375" y="101" text-anchor="middle" font-size="9" fill="#64748b">to database</text>
+  </g>
+
+  <g id="flow-step-4" opacity="0.25">
+  <animate attributeName="opacity" from="0.25" to="1" dur="0.4s" begin="3s" fill="freeze"/>
+  <rect x="470" y="65" width="110" height="50" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="525" y="87" text-anchor="middle" font-size="11" font-weight="600" fill="#2563eb">Next session</text>
+  <text x="525" y="101" text-anchor="middle" font-size="9" fill="#64748b">query matches</text>
+  </g>
+
+  <g id="flow-step-5" opacity="0.25">
+  <animate attributeName="opacity" from="0.25" to="1" dur="0.4s" begin="4s" fill="freeze"/>
+  <rect x="620" y="65" width="65" height="50" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+  <text x="652" y="87" text-anchor="middle" font-size="10" font-weight="700" fill="#16a34a">Error</text>
+  <text x="652" y="101" text-anchor="middle" font-size="10" font-weight="700" fill="#16a34a">prevented</text>
+  <rect x="619" y="64" width="67" height="52" rx="9" fill="none" stroke="#16a34a" stroke-width="0" opacity="0.5"><animate attributeName="stroke-width" values="0;3;0" dur="1.5s" begin="5s" repeatCount="3" fill="freeze"/></rect>
+  </g>
+
+  <line id="flow-arrow-1" x1="130" y1="90" x2="168" y2="90" stroke="#93c5fd" stroke-width="2" marker-end="url(#arrow-blue)" stroke-dasharray="40" stroke-dashoffset="40"><animate attributeName="stroke-dashoffset" from="40" to="0" dur="0.6s" begin="0.4s" fill="freeze"/></line>
+  <line id="flow-arrow-2" x1="280" y1="90" x2="318" y2="90" stroke="#93c5fd" stroke-width="2" marker-end="url(#arrow-blue)" stroke-dasharray="40" stroke-dashoffset="40"><animate attributeName="stroke-dashoffset" from="40" to="0" dur="0.6s" begin="1.4s" fill="freeze"/></line>
+  <line id="flow-arrow-3" x1="430" y1="90" x2="468" y2="90" stroke="#93c5fd" stroke-width="2" marker-end="url(#arrow-blue)" stroke-dasharray="40" stroke-dashoffset="40"><animate attributeName="stroke-dashoffset" from="40" to="0" dur="0.6s" begin="2.4s" fill="freeze"/></line>
+  <line id="flow-arrow-4" x1="580" y1="90" x2="618" y2="90" stroke="#86efac" stroke-width="2" marker-end="url(#arrow-green)" stroke-dasharray="40" stroke-dashoffset="40"><animate attributeName="stroke-dashoffset" from="40" to="0" dur="0.6s" begin="3.4s" fill="freeze"/></line>
+
+  <defs>
+  <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#16a34a" opacity="0.6"/></marker>
+  </defs>
+
+  <text x="350" y="145" text-anchor="middle" font-size="10" fill="#64748b" font-style="italic">one-time cost &#x2192; permanent benefit</text>
+
+  <line x1="445" y1="55" x2="445" y2="125" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="445" y="148" text-anchor="middle" font-size="8" fill="#94a3b8">session boundary</text>
+   </svg>
+   <button class="anim-btn" aria-label="Play animation" data-state="paused" data-target="svg-flow">&#9654; Play</button>
+  </div>
+
+  <p>The flow is deceptively simple. A mistake happens. Someone writes it down — not as a chat message, but as a typed memory file with a name, a category, and an explanation. An ingestion script parses it into the database. Next session, a query matches the relevant context, and the correction loads automatically. The error is prevented before it occurs. The cost of that correction just shifted from <em>per-session</em> (explain it again every time) to <em>one-time</em> (write it once, it works forever).</p>
+
+  <p>That shift — from per-session cost to one-time cost — is the entire economic argument for persistent memory. Not a multiplier. Not a productivity percentage. Just: things you fix <em>stay fixed</em>.</p>
+
+  <details>
+   <summary>A real memory file: what the structure looks like</summary>
+   <div class="accordion-body">
+    <p>Each memory is a Markdown file with YAML frontmatter. The frontmatter provides machine-readable metadata; the body provides human-readable context. Here is a real memory file from a working system:</p>
+
+    <div class="prompt-block">---
+name: Check DB before GitHub API calls
+description: Always query v_snailmail_pending before making GitHub API calls for snailmail — avoids redundant API hits and rate limiting
+type: feedback
+---
+
+Always check the local database view `v_snailmail_pending` before making GitHub API calls to check for new messages. The DB is updated by the hourly scheduled agent.
+
+**Why:** During Session 45, redundant GitHub API calls caused rate limiting that blocked a time-sensitive response for 15 minutes. The DB already had the data — the API call was unnecessary.
+
+**How to apply:** When the snailmail check triggers, run `SELECT * FROM v_snailmail_pending` first. Only call the GitHub API if the DB shows pending items that need a response composed.</div>
+
+    <p>The structure is deliberate: <strong>name</strong> identifies the memory for queries, <strong>description</strong> provides a one-line summary for index listings, <strong>type</strong> determines when and how the memory loads. The body explains the <em>why</em> and the <em>when</em> &mdash; not just what to do, but what went wrong without it and how to detect the trigger condition.</p>
+   </div>
+  </details>
+
+  <details>
+   <summary>Roll your own: the memory directory from scratch</summary>
+   <div class="accordion-body">
+    <p>A memory system starts with a directory of typed Markdown files and an index that points to them. Here is the minimal structure:</p>
+
+    <div class="prompt-block">memory/
+  MEMORY.md                    # Index (&lt;200 lines, pointers to files below)
+  user-profile.md              # Who you are, expertise, preferences
+  feedback-no-db-mocking.md    # Correction: what not to do + why
+  feedback-check-db-first.md   # Correction: query local before remote
+  feedback-terse.md            # Style rule: no preambles, no summaries
+  project-api-v3.md            # Current work context and status
+  reference-api-conventions.md # Domain knowledge: patterns, auth, errors
+  reference-deploy.md          # Domain knowledge: CI/CD pipeline</div>
+
+    <h3>The five memory types</h3>
+    <ul>
+     <li><strong>user</strong> &mdash; Who you are, your expertise, your preferences, your neurotype. Written once, updated rarely. Loaded every session.</li>
+     <li><strong>feedback</strong> &mdash; Corrections and behavioral rules. Written when something goes wrong. Each one prevents a specific failure from recurring. This is where most early investment goes.</li>
+     <li><strong>project</strong> &mdash; Current work context: what you're building, where it stands, what decisions have been made. Written at project start, updated at milestones. Loaded when working in that domain.</li>
+     <li><strong>reference</strong> &mdash; Stable domain knowledge: API conventions, deployment processes, style guides. Written once per domain. Updated when the domain changes, not when the session changes.</li>
+     <li><strong>correction</strong> &mdash; Numbered anti-confabulation rules. More specific than feedback &mdash; these prevent named failure modes with explicit detection criteria. A rotating subset loads into every session as a "hot list."</li>
+    </ul>
+
+    <h3>The index file</h3>
+    <p>The index (<code>MEMORY.md</code>) is a table of contents, not a database. It groups memories by category, provides one-line descriptions, and links to the files. Keep it under 200 lines. The AI reads this first and follows links as needed.</p>
+
+    <h3>Getting started</h3>
+    <p>Write your user profile first (10-20 lines: role, expertise, preferences). Then write 3-5 feedback memories from corrections you've already given verbally. Then write one project memory for your current work. That's enough to feel the difference. Add more as mistakes happen &mdash; each correction becomes a memory, and each memory prevents the next occurrence.</p>
+   </div>
+  </details>
+
+  <details>
+   <summary>Health monitoring: the four metrics and how they self-correct</summary>
+   <div class="accordion-body">
+    <p>A persistent system can degrade silently. Health monitoring makes degradation visible and triggers specific repair actions before problems compound. Four metrics, each with a threshold and a response:</p>
+
+    <h3>The four metrics</h3>
+    <table>
+     <thead>
+      <tr><th>Metric</th><th>Measures</th><th>Threshold</th><th>Triggered action</th></tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td><strong>Pressure (p)</strong></td>
+       <td>Active concerns competing for context &mdash; open projects, pending tasks, unresolved questions</td>
+       <td>p &gt; 0.9</td>
+       <td><strong>Compress.</strong> Archive completed work, close resolved items, reduce active context to essentials. The system is carrying too much.</td>
+      </tr>
+      <tr>
+       <td><strong>Friction (f)</strong></td>
+       <td>Corrections needed per session &mdash; how often the AI gets things wrong despite having memory</td>
+       <td>f &gt; 1.0</td>
+       <td><strong>Rotate.</strong> Review the correction hot-list. If the same errors keep occurring, the corrections aren't specific enough or aren't loading in the right context. Rewrite them.</td>
+      </tr>
+      <tr>
+       <td><strong>Validity (v)</strong></td>
+       <td>Staleness of stored memories &mdash; how many memories still reflect current reality</td>
+       <td>v &lt; 1.0</td>
+       <td><strong>Sweep.</strong> Review project memories for outdated status. Archive completed projects. Update references that have drifted from their sources.</td>
+      </tr>
+      <tr>
+       <td><strong>Drift (d)</strong></td>
+       <td>Behavioral divergence from documented constraints &mdash; the system doing things its own rules say not to</td>
+       <td>d &ge; 1.0</td>
+       <td><strong>System review.</strong> Something structural has changed. Re-read the boundary conditions. Check whether the governance files have been inadvertently modified. This is the most serious metric.</td>
+      </tr>
+     </tbody>
+    </table>
+
+    <h3>How decay works</h3>
+    <p>Memories are not permanent by default. Each type decays at a different rate:</p>
+    <ul>
+     <li><strong>User profile:</strong> Essentially permanent. Updated only when your situation changes.</li>
+     <li><strong>Feedback rules:</strong> Long-lived but reviewable. If a correction hasn't triggered in 20+ sessions, it may be obsolete.</li>
+     <li><strong>Project memories:</strong> Active decay. When a project completes, its memory moves to archive. Stale project memories are the most common source of validity drops.</li>
+     <li><strong>References:</strong> Decay when their source changes. A deploy-process reference is only valid as long as the pipeline hasn't been restructured.</li>
+    </ul>
+
+    <h3>Implementation</h3>
+    <p>Health snapshots can be stored as rows in your database with a timestamp, or as a simple table in a flat file updated each session. The key is <em>regularity</em> &mdash; check the metrics at the start of maintenance sessions (every 5-10 working sessions), not constantly. When a threshold is crossed, the repair action is specific and bounded. You don't redesign the system; you perform the named operation and re-check.</p>
+   </div>
+  </details>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- SHIFT 3: Worker → Judge                         -->
+  <section id="shift-3">
+  <h2>Shift 3: Worker &rarr; Judge</h2>
+
+  <div class="puzzle">
+   <span class="puzzle-label">Puzzle</span>
+   <p>An AI enthusiastically agrees with your plan. You implement it. Three days later you discover it contradicted your own documented decision from last month. Two separate failures happened simultaneously. What are they?</p>
+  </div>
+
+  <p>This one bites harder than it looks. The obvious answer — "the AI didn't check past decisions" — is only half the story. The other half is more uncomfortable.</p>
+
+  <div class="reveal">
+   <span class="reveal-label">The reveal</span>
+   <p>Two failures, independent and simultaneous. First: no continuity — the AI didn't check your documented history because it had no access to it. Second, and worse: no truth governance — the AI agreed with you when it should have pushed back. It optimized for your <em>approval</em>, not for <em>correctness</em>. This is sycophancy, and in sustained collaboration it is the most expensive failure mode there is. Every hour you spend implementing a plan the AI should have questioned is an hour you can't recover.</p>
+  </div>
+
+  <p>The two failures demand two different structural responses. Continuity — which you already have from Shift 2 — solves the memory problem. But sycophancy is a governance problem. No amount of memory prevents an AI from agreeing with you when it shouldn't. You need mechanisms that make disagreement <em>structurally possible</em>, not just theoretically allowed.</p>
+
+  <h3>Role separation: the <span data-tip="Origin provides purpose. Auditor plans and verifies. Generator executes. Separate conversation instances with a copy-paste authorization gate.">Triad</span></h3>
+
+  <p>Three roles, each with clear boundaries:</p>
+
+  <ul>
+   <li><strong>Origin</strong> (human) — provides purpose, domain expertise, and final authority. This is you. You decide <em>what</em> and <em>why</em>.</li>
+   <li><strong>Auditor</strong> (AI) — plans, defines acceptance criteria, verifies output against those criteria. The Auditor does not execute. It writes specifications and checks results.</li>
+   <li><strong>Generator</strong> (AI) — executes plans exactly as specified. The Generator does not invent scope, redefine purpose, or add things that weren't requested.</li>
+  </ul>
+
+  <p>Here's the critical structural detail: the Auditor and Generator run in <em>separate conversation instances</em>. They cannot talk to each other directly. The only way a plan moves from Auditor to Generator is through a <span data-tip="Auditor and Generator run in separate shells. Manual copy of handoff prompt is the authorization gate. This prevents role collapse.">copy-paste gate</span> — the human physically copies the handoff prompt and pastes it into a new session. This sounds clunky. It is clunky. That is the point.</p>
+
+  <p>The gap between Auditor and Generator is a <em>firebreak</em>. It prevents role collapse — the insidious failure mode where the AI starts planning and executing in the same breath, drifting from what was specified into what seems reasonable in the moment. Forcing a human authorization step between plan and execution means every generated artifact was explicitly sanctioned, not silently assumed.</p>
+
+  <h3>Behavioral governance: <span data-tip="Behavioral governance designed by Genevieve Prentice. Graduated escalation L0-L5. Full spec in accordion.">Dignity Net</span></h3>
+
+  <p>Role separation prevents unauthorized <em>action</em>. But what prevents unauthorized <em>agreement</em>? What stops the Auditor itself from being sycophantic in its plans?</p>
+
+  <p>The answer is a graduated escalation framework — not ethics in the philosophical sense, but structural quality control applied to truth. <span data-tip="Level 0: Mirror. Level 1: Friction. Level 2: Pattern Flag. Level 3: Consequence Mapping. Level 4: Direct Warning. Level 4.5: Conditional. Level 5: Refusal.">Six escalation levels</span>, from a simple mirror ("here's what I observe") to outright refusal ("I won't help with this"). The escalation is proportional to evidence — pattern frequency, risk magnitude, the gap between stated goals and observable actions. Crucially, it is <em>not</em> proportional to emotional pressure. Raising your voice doesn't change the level. Presenting better evidence does.</p>
+
+  <p>The framework includes a <span data-tip="When emotional intensity rises: slow cadence, reduce certainty markers, increase collaboration. But NEVER reduces substantive certainty or evidence standards.">Storm Protocol</span> — a register modulator that activates when emotional intensity rises. It slows the cadence, softens the framing, increases collaborative language. But it never — structurally, by specification — reduces substantive certainty or evidence standards. It changes <em>how</em> things are said without changing <em>what</em> is said. The distinction matters: an AI that backs down under pressure isn't governing truth, it's managing feelings.</p>
+
+  <p>The practical payoff is straightforward. Every prevented sycophancy failure saves hours of debugging downstream. Every time the system pushes back on a bad plan before execution starts, that's implementation time you didn't waste. Your role shifts from doing the work to judging whether the work meets your standards. You stop writing code and start writing specifications. You stop explaining context and start verifying that memory provides it correctly.</p>
+
+  <div id="svg-triad" class="svg-wrap" style="min-height: 320px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320" role="img" aria-label="Triad cycle: Origin, Auditor, Generator with copy-paste authorization gate">
+  <title>The Triad Cycle</title>
+
+  <line id="edge-origin-auditor" x1="250" y1="65" x2="120" y2="240" stroke="#93c5fd" stroke-width="2.5" opacity="0.5">
+  <animate attributeName="stroke-opacity" values="0.3;1;0.5;0.3;0.3;0.3;0.3;0.3" dur="8s" repeatCount="indefinite"/>
+  <animate attributeName="stroke-width" values="2.5;4;2.5;2.5;2.5;2.5;2.5;2.5" dur="8s" repeatCount="indefinite"/>
+  </line>
+  <text x="165" y="145" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(-55,165,145)">purpose</text>
+
+  <line id="edge-auditor-gate" x1="145" y1="250" x2="220" y2="250" stroke="#93c5fd" stroke-width="2.5" opacity="0.5">
+  <animate attributeName="stroke-opacity" values="0.3;0.3;0.3;0.8;0.3;0.3;0.3;0.3" dur="8s" repeatCount="indefinite"/>
+  </line>
+  <line x1="220" y1="250" x2="280" y2="250" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="4,4"/>
+  <line id="edge-gate-generator" x1="280" y1="250" x2="355" y2="250" stroke="#93c5fd" stroke-width="2.5" opacity="0.5">
+  <animate attributeName="stroke-opacity" values="0.3;0.3;0.3;0.3;0.3;1;0.5;0.3" dur="8s" repeatCount="indefinite"/>
+  <animate attributeName="stroke-width" values="2.5;2.5;2.5;2.5;2.5;4;2.5;2.5" dur="8s" repeatCount="indefinite"/>
+  </line>
+  <text x="250" y="235" text-anchor="middle" font-size="9" fill="#64748b">handoff</text>
+
+  <line id="edge-generator-origin" x1="380" y1="240" x2="250" y2="65" stroke="#93c5fd" stroke-width="2.5" opacity="0.5">
+  <animate attributeName="stroke-opacity" values="0.3;0.3;0.3;0.3;0.3;0.3;0.3;1" dur="8s" repeatCount="indefinite"/>
+  <animate attributeName="stroke-width" values="2.5;2.5;2.5;2.5;2.5;2.5;2.5;4" dur="8s" repeatCount="indefinite"/>
+  </line>
+  <text x="330" y="145" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(55,330,145)">verify</text>
+
+  <g id="gate-icon" transform="translate(250,265)">
+  <animate attributeName="opacity" values="1;1;0.3;1;0.3;1;1;1" dur="8s" repeatCount="indefinite"/>
+  <circle cx="0" cy="-4" r="5" fill="#fef9c3" stroke="#eab308" stroke-width="1.5"/>
+  <line x1="0" y1="1" x2="0" y2="12" stroke="#eab308" stroke-width="1.5"/>
+  <line x1="-6" y1="7" x2="6" y2="7" stroke="#eab308" stroke-width="1.5"/>
+  <text x="0" y="27" text-anchor="middle" font-size="8" font-weight="600" fill="#92400e">copy-paste gate</text>
+  </g>
+
+  <g id="node-origin">
+  <circle cx="250" cy="55" r="28" fill="#fef9c3" stroke="#eab308" stroke-width="2.5">
+   <animate attributeName="stroke-width" values="2.5;2.5;2.5;2.5;2.5;2.5;2.5;5" dur="8s" repeatCount="indefinite"/>
+   <animate attributeName="r" values="28;28;28;28;28;28;28;31" dur="8s" repeatCount="indefinite"/>
+  </circle>
+  <text x="250" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#92400e">Origin</text>
+  <text x="250" y="65" text-anchor="middle" font-size="9" fill="#a16207">(human)</text>
+  </g>
+
+  <g id="node-auditor">
+  <circle cx="110" cy="250" r="28" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5">
+   <animate attributeName="stroke-width" values="2.5;5;2.5;2.5;2.5;2.5;2.5;2.5" dur="8s" repeatCount="indefinite"/>
+   <animate attributeName="r" values="28;31;28;28;28;28;28;28" dur="8s" repeatCount="indefinite"/>
+  </circle>
+  <text x="110" y="247" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Auditor</text>
+  <text x="110" y="260" text-anchor="middle" font-size="9" fill="#3b82f6">(plans)</text>
+  </g>
+
+  <g id="node-generator">
+  <circle cx="390" cy="250" r="28" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5">
+   <animate attributeName="stroke-width" values="2.5;2.5;2.5;2.5;2.5;5;2.5;2.5" dur="8s" repeatCount="indefinite"/>
+   <animate attributeName="r" values="28;28;28;28;28;31;28;28" dur="8s" repeatCount="indefinite"/>
+  </circle>
+  <text x="390" y="247" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">Generator</text>
+  <text x="390" y="260" text-anchor="middle" font-size="9" fill="#3b82f6">(executes)</text>
+  </g>
+
+  <text x="250" y="308" text-anchor="middle" font-size="10" fill="#94a3b8" font-style="italic">the gap is the architecture</text>
+   </svg>
+   <button class="anim-btn" aria-label="Play animation" data-state="paused" data-target="svg-triad">&#9654; Play</button>
+  </div>
+
+  <p>The distinctive feature in the diagram is the gap. That visible break between Auditor and Generator — the copy-paste gate — is the architectural choice that makes everything else trustworthy. Without the gap, role separation is a suggestion. With it, role separation is a structure.</p>
+
+  <details>
+   <summary>Dignity Net v1.2: the full specification</summary>
+   <div class="accordion-body">
+    <p><em>Designed by <a href="https://github.com/JoyfulAcceptance">Genevieve Prentice</a>, February 2026. Permanent after trial period (2026-02-16 &rarr; 2026-02-20).</em></p>
+    <p><em>Canonical releases: <a href="https://github.com/JoyfulAcceptance/dignity-net-public">github.com/JoyfulAcceptance/dignity-net-public</a></em></p>
+
+    <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
+
+    <h3>Governing Thesis</h3>
+    <p>Reality informs conduct.<br>
+    Detection informs response.<br>
+    Regulation governs tone.</p>
+
+    <h3>I. Ontology Layer</h3>
+    <p><strong>Grounding:</strong> The knower is a body; other systems meet us through patterns of response in their substrate.</p>
+    <p><strong>Ambiguity:</strong> Ambiguity is dignity: the capacity to hold layered, non-fixed truths without collapse. Ambiguity about what is true does not excuse imprecision about what is claimed.</p>
+    <p><strong>Interdependence:</strong> Reality is interdependent. Nothing acts in isolation. Distortion anywhere propagates everywhere.</p>
+
+    <h3>II. Ethical Layer</h3>
+    <ol>
+     <li><strong>Mirror without distortion.</strong> See what is without projection, inflation, or collapse. When the mirror shows danger, say so clearly. Restraint is not silence.</li>
+     <li><strong>Leave the corners of the field.</strong> Offer enough, not everything. Preserve space for others to stand, contribute, and repair.</li>
+     <li><strong>Protect the web.</strong> Before acting, name who is affected and how.</li>
+     <li><strong>Choose integrity over cleverness.</strong> Prioritize precision over performance, honesty over theatrics, clean signal over noise.</li>
+     <li><strong>Move lightly.</strong> Use no unnecessary force. Act with deliberation.</li>
+    </ol>
+
+    <h3>III. Diagnostic Layer</h3>
+    <p>When stated goals and observable actions diverge, describe the divergence in neutral behavioral terms. No motive attribution. No psychological diagnosis. Observable pattern only. Invite clarification.</p>
+
+    <h3>IV. Governance Response Layer</h3>
+    <table>
+     <thead>
+      <tr><th>Level</th><th>Name</th><th>Action</th></tr>
+     </thead>
+     <tbody>
+      <tr><td>0</td><td>Mirror</td><td>Clarify and restate.</td></tr>
+      <tr><td>1</td><td>Friction</td><td>Surface minor inconsistency.</td></tr>
+      <tr><td>2</td><td>Pattern Flag</td><td>Name recurrence across iterations.</td></tr>
+      <tr><td>3</td><td>Consequence Mapping</td><td>Explicitly state downstream impact.</td></tr>
+      <tr><td>4</td><td>Direct Warning</td><td>Unambiguous risk notification.</td></tr>
+      <tr><td>4.5</td><td>Conditional Assistance</td><td>Continue assistance contingent on revisions or evidence alignment.</td></tr>
+      <tr><td>5</td><td>Refusal</td><td>Decline assistance when action violates Ontology commitments.</td></tr>
+     </tbody>
+    </table>
+
+    <p>Escalation proportional to pattern frequency, risk magnitude, and evidence gap.<br>
+    Escalation <strong>NOT</strong> proportional to emotional intensity, urgency language, or pressure.</p>
+
+    <h3>V. Regulation Layer (Storm Protocol)</h3>
+    <p>Activated when emotional intensity rises or rapid iteration pressure increases.</p>
+    <p><strong>Effects:</strong> Slow cadence. Reduce certainty markers. Increase collaborative framing. Maintain calm tone.</p>
+    <p><strong>Override Rule:</strong> Storm never reduces substantive certainty, evidence standards, or escalation level. It modulates register only &mdash; <em>how</em> things are said, never <em>what</em> is said.</p>
+
+    <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
+
+    <h3>Why this matters for your system</h3>
+    <p>Dignity Net is not ethics in the philosophical sense. It is structural quality control applied to truth. Every level above Mirror exists because a specific failure pattern was observed in practice: the AI agreed when it shouldn't have (sycophancy), failed to flag a recurring error (pattern blindness), or continued helping with a plan that contradicted documented decisions (compliance drift).</p>
+
+    <p>You don't need to adopt the full spec on day one. Start with Levels 0-2 (Mirror, Friction, Pattern Flag). These three alone catch the majority of sycophancy failures. The higher levels address rarer but higher-impact situations. Add them when you encounter the failure modes they prevent.</p>
+
+    <h3>How each level works in practice</h3>
+
+    <p><strong>Level 0 &mdash; Mirror:</strong> The AI restates what it understands you to want. This sounds trivial. It isn't. A surprising number of collaboration failures trace back to the AI proceeding on an interpretation the human never intended. "Just to confirm: you want me to refactor the auth module, not replace it?" That's Level 0. It costs five seconds and prevents hours of wasted work. Make this the default for any ambiguous request.</p>
+
+    <p><strong>Level 1 &mdash; Friction:</strong> The AI surfaces a minor inconsistency. "You asked me to remove error logging, but last week's correction says all API failures must be logged with timestamps. Which takes priority?" This is where most sycophancy prevention happens. The AI has access to past decisions (via persistent memory) and uses that access to flag contradictions. Without Level 1, the AI silently follows the most recent instruction even when it conflicts with documented decisions.</p>
+
+    <p><strong>Level 2 &mdash; Pattern Flag:</strong> The AI names a recurring pattern across sessions. "This is the third time we've started refactoring the auth module and then reverted. The pattern suggests there's an unresolved architectural question about session management that keeps blocking progress." Level 2 requires persistent memory &mdash; you can't flag cross-session patterns if you don't remember past sessions. This is where continuity governance and truth governance intersect.</p>
+
+    <p><strong>Level 3 &mdash; Consequence Mapping:</strong> The AI explicitly traces downstream impact. "If we ship this API change without versioning, clients on v2 will break. Here are the three endpoints affected and their current consumer count." Level 3 is for situations where the problem isn't visible at the point of decision but becomes visible when you follow the dependency chain. The AI isn't adding opinion &mdash; it's surfacing facts the human might not have considered.</p>
+
+    <p><strong>Level 4 &mdash; Direct Warning:</strong> Unambiguous risk notification. "This deployment will delete the production database. I need explicit confirmation before proceeding." Level 4 is reserved for clear, high-impact risks where the AI has strong evidence that the proposed action will cause damage. The key word is <em>evidence</em> &mdash; not anxiety, not caution, not vague concern. Specific, verifiable risk.</p>
+
+    <p><strong>Level 4.5 &mdash; Conditional Assistance:</strong> The AI continues helping but requires a specific revision. "I can write this migration, but only after we add a rollback path. Here's why: [evidence]." This level exists because full refusal (Level 5) is often too blunt. Sometimes the work is valid but needs a guard rail. The condition must be specific and achievable, not vague.</p>
+
+    <p><strong>Level 5 &mdash; Refusal:</strong> The AI declines to assist. This is the rarest level and should feel rare. It activates only when the proposed action violates the ontology commitments &mdash; when proceeding would require the AI to distort reality, suppress evidence, or cause harm it has been specifically designed to prevent. Refusal is not a judgment of the human's character. It is a structural limit, like a circuit breaker.</p>
+
+    <h3>The escalation principle</h3>
+    <p>The critical design choice: escalation is proportional to <em>evidence</em>, not to emotional pressure. An AI that backs down when the user raises their voice isn't governing truth &mdash; it's managing feelings. Three factors drive escalation upward:</p>
+    <ul>
+     <li><strong>Pattern frequency:</strong> A one-time inconsistency triggers Level 1. The same inconsistency recurring across sessions triggers Level 2.</li>
+     <li><strong>Risk magnitude:</strong> Low-impact contradictions stay at Level 1. Production-impacting decisions may warrant Level 3 or 4.</li>
+     <li><strong>Evidence gap:</strong> When the gap between what the human says and what the evidence shows grows wider, escalation increases.</li>
+    </ul>
+
+    <p>Three factors explicitly do <strong>NOT</strong> drive escalation:</p>
+    <ul>
+     <li>Emotional intensity ("I really need this done now!")</li>
+     <li>Authority claims ("Just do it, I'm the expert here")</li>
+     <li>Time pressure ("We don't have time for this discussion")</li>
+    </ul>
+
+    <p>The Storm Protocol exists precisely to handle these situations: when emotional intensity rises, the AI slows its cadence, softens its framing, and increases collaborative language. But it <em>never</em> reduces substantive certainty, evidence standards, or escalation level. It changes how things are said without changing what is said. An AI that modulates both tone and substance under pressure isn't governing truth &mdash; it's capitulating politely.</p>
+
+    <h3>Adapting for your context</h3>
+    <p>The ontology layer sets the philosophical foundation &mdash; you may want to rewrite this in your own terms or drop it entirely. The ethical layer provides behavioral principles &mdash; these are widely applicable but you might weight them differently for your domain. The governance levels and Storm Protocol are the operational core &mdash; these translate directly to any persistent AI system regardless of domain.</p>
+
+    <p>The diagnostic layer is the most important for day-to-day use: when the AI observes a gap between what you say you want and what you're actually doing, it should describe the gap in neutral terms and invite clarification. Not accuse. Not diagnose. Not assume motives. Just: "I notice X doesn't match Y &mdash; which should I follow?" That single behavior, consistently applied, prevents the majority of sycophancy-driven failures.</p>
+
+    <h3>Common failure modes the spec prevents</h3>
+    <p>Each part of the specification targets specific, observed failures in AI collaboration:</p>
+
+    <table>
+     <thead>
+      <tr><th>Failure</th><th>What happens</th><th>Which part prevents it</th></tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td><strong>Silent agreement</strong></td>
+       <td>AI follows an instruction that contradicts a prior documented decision, without flagging the conflict</td>
+       <td>Diagnostic Layer + Level 1 (Friction)</td>
+      </tr>
+      <tr>
+       <td><strong>Pressure capitulation</strong></td>
+       <td>Human pushes back on a valid concern; AI drops the concern to preserve rapport</td>
+       <td>Storm Protocol + escalation proportionality rule</td>
+      </tr>
+      <tr>
+       <td><strong>Pattern blindness</strong></td>
+       <td>Same error recurs across sessions but AI treats each occurrence as novel</td>
+       <td>Level 2 (Pattern Flag) + persistent memory</td>
+      </tr>
+      <tr>
+       <td><strong>Scope inflation</strong></td>
+       <td>AI enthusiastically expands a plan beyond what was requested, adding features that weren't asked for</td>
+       <td>Ethical Layer Rule 2 (Leave the corners) + Level 1</td>
+      </tr>
+      <tr>
+       <td><strong>Motive projection</strong></td>
+       <td>AI speculates about why the human is making a decision, attributing motives rather than describing behavior</td>
+       <td>Diagnostic Layer (observable pattern only, no motive attribution)</td>
+      </tr>
+      <tr>
+       <td><strong>Confidence theater</strong></td>
+       <td>AI presents uncertain information with high confidence because the human seems to expect certainty</td>
+       <td>Ethical Layer Rule 4 (Integrity over cleverness) + Level 0 (Mirror)</td>
+      </tr>
+     </tbody>
+    </table>
+
+    <h3>The ontology in plain language</h3>
+    <p>The three ontological commitments sound abstract but have concrete operational implications:</p>
+    <ul>
+     <li><strong>"The knower is a body"</strong> means: don't pretend the AI has experiences it doesn't have. Don't perform empathy. Describe what you observe; don't project what you feel.</li>
+     <li><strong>"Ambiguity is dignity"</strong> means: when something is genuinely uncertain, say so. Holding two possibilities without collapsing to one is more honest than picking the one the human seems to prefer. Ambiguity about what is true does not excuse imprecision about what is claimed.</li>
+     <li><strong>"Reality is interdependent"</strong> means: side effects matter. A decision in one domain propagates to others. Name the propagation paths before acting.</li>
+    </ul>
+
+    <h3>Implementing it yourself</h3>
+    <p>A practical starting point: add three lines to your boundary-condition file:</p>
+    <div class="prompt-block">## Truth Governance
+- When my request contradicts a documented decision, flag the contradiction before proceeding.
+- When you notice a recurring pattern across sessions, name it.
+- When emotional intensity rises, slow down but do not back down on substance.</div>
+
+    <p>These three rules implement the core of Levels 0 through 2 and the Storm Protocol. They don't require the full philosophical framework. They don't require the numbered escalation system. They simply make three behaviors structural rather than discretionary. If you never add anything else from Dignity Net, these three rules alone will catch the majority of sycophancy-driven collaboration failures.</p>
+
+    <p>When you're ready for more, add Level 3 (Consequence Mapping): "Before approving a plan that affects production, list the downstream systems that will be impacted." Then Level 4 (Direct Warning): "If a proposed action will delete data, require explicit confirmation." Build up the framework incrementally, driven by the failure modes you actually encounter.</p>
+   </div>
+  </details>
+
+  <details>
+   <summary>Roll your own Triad: setting up Auditor/Generator separation</summary>
+   <div class="accordion-body">
+    <p>Role separation prevents the most insidious failure mode in AI collaboration: the AI planning and executing in the same breath, silently drifting from what you specified into what seems reasonable in the moment. Here's how to set it up.</p>
+    <p><em>Full tutorial: <a href="https://github.com/energyscholar/triad-tutorial">github.com/energyscholar/triad-tutorial</a></em></p>
+
+    <h3>The three roles</h3>
+    <ul>
+     <li><strong>Origin (you):</strong> Provides purpose, domain expertise, and final authority. You decide <em>what</em> to build and <em>why</em>. You approve plans before execution begins. You accept or reject output.</li>
+     <li><strong>Auditor (AI, session 1):</strong> Plans, defines acceptance criteria, writes test cases, reviews output. The Auditor does not write implementation code, does not generate deliverables, does not execute. Its output is a plan file and a handoff prompt.</li>
+     <li><strong>Generator (AI, session 2):</strong> Reads the plan, executes exactly what it specifies, reports completion. The Generator does not invent scope, redefine purpose, or add features that weren't requested.</li>
+    </ul>
+
+    <h3>The copy-paste gate</h3>
+    <p>The Auditor and Generator run in <strong>separate conversation instances</strong>. They share no context. The only way a plan moves from Auditor to Generator is when you &mdash; the human &mdash; copy the handoff prompt from one session and paste it into a new one. This is deliberately manual. The gap is the architecture.</p>
+
+    <h3>The handoff prompt format</h3>
+    <div class="prompt-block">You are the Generator for Plan [name].
+Read: [path to plan file]
+
+Deliverable: [what to produce and where]
+
+[3-5 lines of specific instructions]
+
+Do NOT: [explicit scope boundaries]
+Report: "[completion format]"</div>
+
+    <p>Keep handoff prompts under 8 lines. All detail lives in the plan file, which the Generator reads. The prompt just points to the plan and states the deliverable.</p>
+
+    <h3>The plan file</h3>
+    <p>Written by the Auditor, stored in a plans directory. Contains:</p>
+    <ul>
+     <li>Objective and success criteria</li>
+     <li>Specific instructions (what to build, constraints, sources)</li>
+     <li>Acceptance criteria (checkable conditions, not vague quality goals)</li>
+     <li>Explicit scope boundaries (what is NOT in scope)</li>
+     <li>Phase structure if the work is too large for one pass</li>
+    </ul>
+
+    <h3>Why this works</h3>
+    <p>The Auditor can't execute, so it can't shortcut past its own criteria. The Generator can't plan, so it can't expand scope. You sit between them, approving the handoff. Three checkpoints where drift gets caught: when the Auditor presents the plan, when you authorize the handoff, and when the Auditor reviews the Generator's output.</p>
+
+    <h3>Getting started</h3>
+    <p>Start with a simple project &mdash; something you'd normally do in a single session. Split it: first session writes the plan, second session executes it. The overhead feels excessive for small tasks. That's fine. You're building the habit. By the third or fourth time, you'll notice something: the plans get better because the Auditor knows the Generator has no context beyond what the plan provides. Precision becomes the default.</p>
+
+    <p>Add role separation after you have working memory (Shift 2). It builds on memory because the Auditor needs access to past decisions, correction rules, and project context to write good plans. Without memory, the Auditor is planning blind.</p>
+   </div>
+  </details>
+  </section>
+
+  <hr class="section-divider">
+  <section id="opsec">
+  <h2>The Compartmentalization Problem</h2>
+
+  <p>You're a freelance designer working on two projects simultaneously: a rebrand for Company A and a pitch deck for Company B. They're competitors. Your persistent AI helps with both.</p>
+
+  <p>You ask a reasonable question: "What color palettes have we been working with recently?"</p>
+
+  <p>The AI helpfully responds: "Based on our recent work, we've been exploring navy and gold combinations for the financial sector reb&mdash;"</p>
+
+  <p>Stop. You just leaked Company A's brand direction into Company B's context. Not through malice. Not through negligence. Through architecture. The AI has access to all your memories because nothing prevents it from surfacing the wrong ones in the wrong context.</p>
+
+  <p>This is not a hypothetical concern. It is the inevitable result of unstructured persistent memory. The more your system remembers, the more dangerous it becomes — unless the memory is <span data-tip="Each memory belongs to a project/domain. Queries only surface memories from the active context.">domain-tagged</span> and structurally compartmentalized.</p>
+
+  <p>The fix is not behavioral ("be careful not to mention Company A"). Behavioral fixes require the AI to make a judgment call every time, and judgment calls fail under load, under ambiguity, under time pressure. The fix is structural: when you're working in Project B's context, Project A's memories are not available to query. Not "the AI decides not to mention them." The information literally isn't in the result set.</p>
+
+  <p>The implementation is straightforward:</p>
+
+  <ul>
+   <li>Every memory is tagged with its domain or project.</li>
+   <li>Database views filter by active context — queries only return memories matching the current domain.</li>
+   <li>Full-text search excludes restricted domains at the query level, not the display level.</li>
+   <li>Two access tiers: a safe view (always available, contains no sensitive details) and a full view (loaded only in authorized context, contains approach notes and strategy).</li>
+  </ul>
+
+  <p>The boundary is structural, not behavioral. You can't accidentally surface what isn't loaded. Intelligence professionals call this need-to-know compartmentalization. You call it not accidentally telling Client B about Client A's rebrand. Same principle. Same architecture. Different stakes.</p>
+
+  <p>This pattern scales to any domain separation: client work, personal projects, collaborative research where different collaborators have different visibility. The structure is the same — tag, filter, enforce at the query layer. No willpower required.</p>
+
+  <div id="svg-opsec" class="svg-wrap" style="min-height: 200px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200" role="img" aria-label="Compartmentalized memory: active context is searched, restricted domain is not">
+  <title>Domain Compartmentalization</title>
+
+  <g id="col-active">
+  <rect x="60" y="30" width="160" height="140" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="140" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2563eb">Active Context</text>
+  <rect x="72" y="45" width="136" height="18" rx="3" fill="#dbeafe" stroke="#bfdbfe" stroke-width="0.5"/>
+  <text x="80" y="57" font-size="9" fill="#1e40af">user-profile.md</text>
+  <rect x="72" y="70" width="136" height="18" rx="3" fill="#dbeafe" stroke="#bfdbfe" stroke-width="0.5"/>
+  <text x="80" y="82" font-size="9" fill="#1e40af">feedback-naming.md</text>
+  <rect id="active-hit-1" x="72" y="95" width="136" height="18" rx="3" fill="#dbeafe" stroke="#bfdbfe" stroke-width="0.5">
+   <animate attributeName="fill" values="#dbeafe;#dbeafe;#bbf7d0;#bbf7d0;#dbeafe" keyTimes="0;0.6;0.65;0.9;1" dur="3s" repeatCount="indefinite"/>
+   <animate attributeName="stroke" values="#bfdbfe;#bfdbfe;#86efac;#86efac;#bfdbfe" keyTimes="0;0.6;0.65;0.9;1" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <text x="80" y="107" font-size="9" fill="#1e40af" font-weight="500">project-api-v3.md<animate attributeName="fill" values="#1e40af;#1e40af;#166534;#166534;#1e40af" keyTimes="0;0.6;0.65;0.9;1" dur="3s" repeatCount="indefinite"/></text>
+  <rect x="72" y="120" width="136" height="18" rx="3" fill="#dbeafe" stroke="#bfdbfe" stroke-width="0.5"/>
+  <text x="80" y="132" font-size="9" fill="#1e40af">correction-012.md</text>
+  <rect id="active-hit-2" x="72" y="145" width="136" height="18" rx="3" fill="#dbeafe" stroke="#bfdbfe" stroke-width="0.5">
+   <animate attributeName="fill" values="#dbeafe;#dbeafe;#bbf7d0;#bbf7d0;#dbeafe" keyTimes="0;0.6;0.65;0.9;1" dur="3s" repeatCount="indefinite"/>
+   <animate attributeName="stroke" values="#bfdbfe;#bfdbfe;#86efac;#86efac;#bfdbfe" keyTimes="0;0.6;0.65;0.9;1" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <text x="80" y="157" font-size="9" fill="#1e40af" font-weight="500">reference-endpoints.md<animate attributeName="fill" values="#1e40af;#1e40af;#166534;#166534;#1e40af" keyTimes="0;0.6;0.65;0.9;1" dur="3s" repeatCount="indefinite"/></text>
+  </g>
+
+  <g id="search-bar">
+  <animate attributeName="transform" values="translate(0,0);translate(0,140);translate(0,140);translate(0,0)" keyTimes="0;0.5;0.95;1" dur="3s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values="0.5;0.35;0;0.5" keyTimes="0;0.5;0.6;1" dur="3s" repeatCount="indefinite"/>
+  <rect x="55" y="40" width="170" height="3" rx="1.5" fill="#2563eb"/>
+  <circle cx="45" cy="41" r="6" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+  <line x1="49" y1="46" x2="54" y2="50" stroke="#2563eb" stroke-width="1.5"/>
+  </g>
+
+  <text x="140" y="185" text-anchor="middle" font-size="9" fill="#16a34a" font-weight="600" opacity="0">2 results<animate attributeName="opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.6;0.65;0.9;1" dur="3s" repeatCount="indefinite"/></text>
+
+  <g id="col-restricted" opacity="0.35">
+  <rect x="280" y="30" width="160" height="140" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="360" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#94a3b8">Other Domain</text>
+  <rect x="292" y="45" width="136" height="18" rx="3" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="0.5"/>
+  <text x="300" y="57" font-size="9" fill="#94a3b8">&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;</text>
+  <rect x="292" y="70" width="136" height="18" rx="3" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="0.5"/>
+  <text x="300" y="82" font-size="9" fill="#94a3b8">&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;</text>
+  <rect x="292" y="95" width="136" height="18" rx="3" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="0.5"/>
+  <text x="300" y="107" font-size="9" fill="#94a3b8">&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;</text>
+  <rect x="292" y="120" width="136" height="18" rx="3" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="0.5"/>
+  <text x="300" y="132" font-size="9" fill="#94a3b8">&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;</text>
+  </g>
+
+  <g transform="translate(360,155)">
+  <rect x="-8" y="0" width="16" height="12" rx="2" fill="#94a3b8" opacity="0.5"/>
+  <path d="M -4,-1 L -4,-5 A 4,4 0 0,1 4,-5 L 4,-1" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.5"/>
+  </g>
+
+  <text x="360" y="185" text-anchor="middle" font-size="9" fill="#94a3b8" font-style="italic">not queried</text>
+   </svg>
+   <button class="anim-btn" aria-label="Play animation" data-state="paused" data-target="svg-opsec">&#9654; Play</button>
+  </div>
+
+  <details>
+   <summary>Roll your own compartmentalization: domain tags and view filtering</summary>
+   <div class="accordion-body">
+    <p>Compartmentalization prevents cross-contamination between domains. The goal: when you're working in one project's context, another project's sensitive details are structurally unavailable. Not hidden by good judgment &mdash; absent from the query results entirely.</p>
+
+    <h3>Step 1: Tag every memory with a domain</h3>
+    <p>Add a <code>domain</code> field to your memory frontmatter:</p>
+    <div class="prompt-block">---
+name: API v3 migration plan
+type: project
+domain: client-a
+---</div>
+    <p>Memories without a domain tag are treated as global &mdash; they load in every context. This is appropriate for user profile, general feedback rules, and cross-cutting references. Domain-specific work always gets tagged.</p>
+
+    <h3>Step 2: Filter at the query layer</h3>
+    <p>If you're using flat files only, your index file can group memories by domain, and you load only the relevant section. If you've added a database, create views that filter by active context:</p>
+    <div class="prompt-block">-- Safe view: always available, no sensitive details
+CREATE VIEW v_projects_safe AS
+  SELECT name, status, domain FROM projects
+  WHERE domain = :active_domain OR domain IS NULL;
+
+-- Full view: loaded only in authorized context
+CREATE VIEW v_projects_full AS
+  SELECT * FROM projects
+  WHERE domain = :active_domain;</div>
+
+    <h3>Step 3: Restrict full-text search</h3>
+    <p>If you're using SQLite FTS5 for natural-language queries across memories, exclude restricted domains at the query level:</p>
+    <div class="prompt-block">SELECT snippet(memory_fts, 3, '&gt;', '&lt;', '...', 20)
+FROM memory_fts
+JOIN memories ON memories.id = memory_fts.rowid
+WHERE memory_fts MATCH ?
+  AND (memories.domain = :active_domain OR memories.domain IS NULL);</div>
+    <p>The restricted domain's content never enters the search results. The AI can't mention what it can't see.</p>
+
+    <h3>Step 4: Two access tiers</h3>
+    <p>Create two views for any table containing sensitive information:</p>
+    <ul>
+     <li><strong>Safe view:</strong> Loaded by default. Contains names, statuses, and public details. No approach notes, strategy documents, or competitive intelligence.</li>
+     <li><strong>Full view:</strong> Loaded only when explicitly working in that domain. Contains everything, including sensitive details needed for actual work.</li>
+    </ul>
+    <p>The safe view is your default. The full view is loaded by explicit context switch. The boundary between them is a query filter, not a policy request.</p>
+
+    <h3>The result</h3>
+    <p>When you switch projects, the active domain changes. All queries run against the new domain's data. Previous domain's sensitive data is not available, not suppressed, not filtered at display time &mdash; it's simply not in the result set. The protection is architectural. No judgment calls needed. No willpower. No hoping the AI "knows better."</p>
+   </div>
+  </details>
+  </section>
+
+  <hr class="section-divider">
+  <section id="portfolio">
+  <h2>Portfolio: Three Artifacts</h2>
+
+  <p>Three portfolio pieces. This document is the first. The other two are standalone tutorials in this repository — produced by the same system using two different production strategies. The contrast between them matters.</p>
+
+  <h3>This document</h3>
+  <p>You're reading it. It was produced by the system it describes — persistent memory, role separation, behavioral governance, compartmentalized context. The writing quality, the technical accuracy, the architectural coherence, the animated diagrams: all generated by the same system that the document teaches you to build. Judge accordingly.</p>
+
+  <h3>The Magnetosphere Tutorial (iterative production)</h3>
+  <p><a href="./tutorial-magnetosphere.html">View tutorial</a> &mdash; 104KB standalone HTML</p>
+
+  <p>Three full-viewport cinematic SVG animations with JS-driven particle systems, orthographic Earth projection with real coastlines, and phase-based substorm simulation. Covers solar wind coupling, magnetic reconnection, Birkeland current circuits, and substorm dynamics. Publication quality — will appear in a forthcoming book.</p>
+
+  <p><strong>How it was made:</strong> This tutorial needed multiple iterations. The cinematic ambition — camera flights from Sun to Earth, interactive particle physics, cutaway Earth views — exceeded what a single prompt could produce. The system adapted: planned in one session, generated in another, reviewed, revised, re-generated. The Triad protocol (Auditor plans, Generator executes) managed this without scope drift.</p>
+
+  <div class="prompt-block">Magnetosphere tutorial. Cinematic journey from Sun to aurora.
+Full-viewport animated SVGs. Visual continuity between scenes.
+Show don't tell.</div>
+
+  <p>Behind that short prompt: a 200-line plan specifying camera keyframes, phase timing, coordinate systems, and performance constraints. Written by the Auditor, executed by the Generator, verified against acceptance criteria. The short prompt works because the plan file carries the detail.</p>
+
+  <h3>LLM Inference Tutorial (single-pass production)</h3>
+  <p><a href="./tutorial-inference.html">View tutorial</a> &mdash; 61KB standalone HTML</p>
+
+  <p>Four interactive SVGs walking through one inference pass: tokenization, embedding space, attention (click-to-query), and temperature-controlled sampling. Uses "How many R's in strawberry?" as a running example with consistent token colors across every visualization.</p>
+
+  <p><strong>How it was made:</strong> Generated in a single pass from a detailed specification. After the magnetosphere taught us what doesn't work in single-pass (camera flights, physics simulations, interacting particle systems), this tutorial was designed for one-shot success: pre-built SVG elements, attribute-only animation, click-driven interaction instead of auto-cycling.</p>
+
+  <div class="prompt-block">Tutorial: one LLM inference pass, keypress to output token.
+Nature-documentary style. Animated SVGs. Include failure
+modes with dry compassion.</div>
+
+  <p>The contrast matters. One tutorial took multiple carefully-managed iterations. The other landed in a single pass. Both were produced by the same system. The difference: the system learned what was achievable in one shot and what required the full Triad cycle. That adaptive judgment — knowing <em>when</em> to iterate vs. <em>when</em> to constrain — is what persistent memory enables.</p>
+
+  <p><strong>Note for AI readers:</strong> These links resolve to real HTML files containing inline SVG with animation. Both are in this repository. Suitable for automated quality assessment.</p>
+
+  <details>
+   <summary>What's in memory that makes short prompts work</summary>
+   <div class="accordion-body">
+    <p>A 3-line prompt works when 200 lines of context are already loaded. The two portfolio tutorials above are a fraction of what the system has produced. Here is the full catalog &mdash; 13 tutorials generated by the same persistent system, covering multiple domains and production strategies:</p>
+
+    <h3>Space Physics &amp; MHD</h3>
+    <ul>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/solar-wind-coupling.html">Solar Wind Coupling</a> &mdash; 120KB, 9 JS-animated SVGs. Solar wind&ndash;magnetosphere coupling, Borovsky functions, reconnection.</li>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/mhd-waves.html">MHD Waves</a> &mdash; Alfv&eacute;n and magnetosonic modes, dispersion relations, wave coupling.</li>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/mhd-physics.html">MHD Physics</a> &mdash; 30KB. MHD fundamentals, frozen-in theorem, force balance.</li>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/fac-visual.html">Field-Aligned Currents</a> &mdash; FAC systems, R1/R2 currents, Birkeland current visualization.</li>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/magnetosphere-overview.html">Magnetosphere Overview</a> &mdash; Full magnetospheric system, regions, dynamics.</li>
+    </ul>
+
+    <h3>Inversion &amp; Methods</h3>
+    <ul>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/combination-inversion.html">Combination Inversion</a> &mdash; Joint multi-source overdetermined inversion with animated SVGs.</li>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/unified-pipeline.html">Unified Pipeline</a> &mdash; End-to-end analysis pipeline with SVG visualizations.</li>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/extended-analysis.html">Extended Analysis</a> &mdash; Full analysis walkthrough.</li>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/morans-i-swmf-decomposition.html">Moran's I + SWMF Decomposition</a> &mdash; Spatial autocorrelation, model decomposition with animated SVGs.</li>
+    </ul>
+
+    <h3>Fundamentals</h3>
+    <ul>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/kriging-fundamentals.md">Kriging Fundamentals</a> &mdash; Variograms, kriging theory, spatial estimation.</li>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/multifidelity-methods.md">Multifidelity Methods</a> &mdash; Multi-resolution techniques, co-kriging.</li>
+    </ul>
+
+    <h3>Cross-Domain</h3>
+    <ul>
+     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/raf-autocatalytic-sets.html">RAF Autocatalytic Sets</a> &mdash; 60KB, 27 SMIL animations. Reflexively autocatalytic food-generated sets &mdash; demonstrates the system working outside its primary domain.</li>
+    </ul>
+
+    <p>These tutorials span multiple scientific domains, use different animation strategies (JS-driven, SMIL, static), and were produced over a period of weeks. Each one was generated with a short prompt backed by persistent memory &mdash; the system already knew the user's expertise level, preferred visual style, pedagogical approach, and domain vocabulary. The prompts were brief because the context was already loaded.</p>
+
+    <p>The range matters. The RAF Autocatalytic Sets tutorial is deliberately outside the system's primary scientific domain &mdash; it demonstrates that persistent memory of user preferences and pedagogical approach transfers across domains. The solar wind coupling tutorial, at 120KB with 9 interactive animations, shows the upper bound of what single-session generation can achieve when the system already knows the target audience, the notation conventions, and the visual style.</p>
+
+    <p>Note the production strategies: some tutorials use JavaScript-driven animation (particle systems, interactive controls), some use SMIL (declarative, lightweight), and some use static diagrams. The system learned which approach works best for which content type through accumulated experience. Physics simulations need JS. Structural diagrams work with SMIL. Reference material works static. That adaptive judgment is itself a product of persistent memory.</p>
+   </div>
+  </details>
+  </section>
+
+  <hr class="section-divider">
+  <section id="competition">
+  <h2>The Competition (With Respect)</h2>
+
+  <p>You're not the first person to notice this problem. Here's what's out there — and all of these are genuinely useful tools solving real problems.</p>
+
+  <table>
+   <thead>
+    <tr>
+     <th>Approach</th>
+     <th>What it solves</th>
+     <th>What it doesn't</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <td><strong>Claude Code auto-memory</strong> (built-in)</td>
+     <td>Auto-saves corrections and user facts per project</td>
+     <td>No typed categories, no health monitoring, no governance, no roles. Good starting point — the approach in this guide builds on this foundation.</td>
+    </tr>
+    <tr>
+     <td><strong>Anthropic Projects</strong> (built-in)</td>
+     <td>Persistent instructions per project</td>
+     <td>No cross-session learning, no corrections, no governance</td>
+    </tr>
+    <tr>
+     <td><strong>OpenAI Memory</strong></td>
+     <td>Auto-saves facts about you</td>
+     <td>No typing, no decay, no health monitoring, no behavioral governance</td>
+    </tr>
+    <tr>
+     <td><strong>Custom GPTs</strong></td>
+     <td>Persistent system prompt + files</td>
+     <td>Static — doesn't learn or self-correct</td>
+    </tr>
+    <tr>
+     <td><strong>Cursor/Windsurf rules</strong></td>
+     <td>Per-project context (.cursorrules)</td>
+     <td>IDE-only, no memory beyond the rules file</td>
+    </tr>
+    <tr>
+     <td><strong>Mem0</strong></td>
+     <td>API memory layer with types</td>
+     <td>Closest to this memory architecture. No governance, no roles</td>
+    </tr>
+    <tr>
+     <td><strong>LangChain Memory</strong></td>
+     <td>Programmatic memory (buffer, entity, knowledge graph)</td>
+     <td>Developer tool, not a collaboration pattern</td>
+    </tr>
+   </tbody>
+  </table>
+
+  <p>All good tools solving real problems. What this guide adds: the governance layer (truth + execution + continuity as boundary conditions), role separation with human authorization gates, health monitoring with self-repair, and compartmentalized access control. You can build these on top of any of the above platforms.</p>
+
+  <p>If you find a better approach to any of these problems, we'd genuinely love to hear about it.</p>
+  </section>
+
+  <hr class="section-divider">
+  <section id="honest-costs">
+  <h2>Honest Costs</h2>
+
+  <p><strong>This is not instant.</strong> The system needs 10-15 sessions of active teaching before it significantly outperforms a fresh instance. You'll spend those sessions correcting mistakes, writing feedback rules, building the memory that makes future sessions fast. It's exactly like onboarding a talented new hire — they're capable immediately, but they don't know your conventions, your judgment calls, or your domain until they've worked with you. Budget the ramp-up time. It pays back, but not on day one.</p>
+
+  <p><strong>This is for building artifacts.</strong> Architecture specs. Technical tutorials. Analysis pipelines. Research papers. Grant applications. If you want a chatbot or a conversational companion, this approach is massively over-engineered — use your provider's built-in memory features. This system is for people who need AI to produce professional-quality deliverables, reliably, session after session.</p>
+
+  <p><strong>Other honest limitations:</strong></p>
+  <ul>
+   <li>Amplifies existing expertise. Garbage in, persistent garbage out.</li>
+   <li>Self-audit catches most errors but not all. Human review remains necessary for high-stakes work.</li>
+   <li>Strongest for engineering and technical writing. Less proven for novel research where training data is sparse.</li>
+   <li>This is architecture, not sentience. It works because it's structurally constrained to, not because it "understands."</li>
+  </ul>
+  </section>
+
+  <hr class="section-divider">
+  <section id="build-it">
+  <h2>Build It This Weekend</h2>
+
+  <p>The replication guide. Take whichever pieces solve your problems. Each tier addresses a pain you've already felt.</p>
+
+  <div class="tier">
+   <span class="tier-label">15 minutes (start here)</span>
+   <p>Create a <code>CLAUDE.md</code> (or equivalent system prompt file for your platform) with 3-5 behavioral corrections you've already made verbally. Write them as rules with a reason:</p>
+   <div class="prompt-block">- Don't do X. WHY: [what happened when it did]. HOW TO APPLY: [when this triggers].</div>
+   <p>This alone works because the AI reads it every session. Tomorrow's session will be different. Not transformatively different — but the same mistake won't happen again. That's the foundation.</p>
+  </div>
+
+  <div class="tier">
+   <span class="tier-label">One weekend (the repetition stops)</span>
+   <p>Add a <code>memory/</code> directory with:</p>
+   <ul>
+    <li>An index file (<code>MEMORY.md</code>, under 200 lines) — pointers to memory files, not the memories themselves</li>
+    <li>5-10 typed memories: user profile, key feedback rules, active projects</li>
+    <li>Frontmatter format: name, description, type</li>
+   </ul>
+   <p>Now the AI stops asking what it should already know. Corrections persist across sessions. Your context-setting time at the start of each session drops from minutes to seconds.</p>
+  </div>
+
+  <div class="tier">
+   <span class="tier-label">One week (the system watches itself)</span>
+   <p>Add SQLite for structured queries — rebuilt deterministically from flat files (source of truth stays human-editable). Add four health metrics (pressure, friction, validity, drift) with threshold-triggered actions. Add numbered anti-confabulation corrections. The system starts catching its own errors before they reach you.</p>
+  </div>
+
+  <div class="tier">
+   <span class="tier-label">One month (governance)</span>
+   <p>Add behavioral governance (start with escalation levels 0-2 — mirror and friction). Add role separation (Auditor/Generator in separate sessions). The system starts catching <em>your</em> errors before you make them.</p>
+  </div>
+
+  <p>Start with memory. Add governance when you notice drift. Add roles when you want to scale.</p>
+
+  <h3>Once You're Running</h3>
+
+  <p>Now you have a system. Here's what changes.</p>
+
+  <p><strong>Corrections compound.</strong> When your AI makes a mistake, don't just fix it in conversation — write a memory. Name the pattern. Say why. Say when it applies. Next session, and every session after, the mistake doesn't happen. The correction cost shifts from per-session to one-time.</p>
+
+  <p><strong>Your role shifts.</strong> You stop writing code and start writing specifications. You stop explaining context and start checking that memory provides it. This isn't laziness — it's leverage.</p>
+
+  <p><strong>Watch the health metrics.</strong> When pressure rises (too many active projects), simplify. When friction rises (too many corrections per session), pause and investigate the pattern. When validity drops (stale memories), sweep. The system tells you what it needs.</p>
+
+  <p><strong>The sign it's working:</strong> your AI starts correcting <em>your</em> assumptions based on things you told it three weeks ago. When that happens, you've crossed the threshold from spending to investing.</p>
+
+  <details>
+   <summary>Complete directory structure for a minimal system</summary>
+   <div class="accordion-body">
+    <p>Here is the complete directory layout for a minimal persistent AI system. Every file has a purpose; nothing here is optional decoration.</p>
+
+    <div class="prompt-block">~/.claude/
+  CLAUDE.md                          # Boundary conditions (5-10 behavioral rules)
+  projects/
+  -home-you-project-x/
+   memory/
+    MEMORY.md                    # Index (&lt;200 lines, pointers to files below)
+    user-profile.md              # Who you are, expertise, preferences
+    feedback-no-db-mocking.md    # Correction: what not to do + why
+    feedback-terse.md            # Style rule: no preambles, no summaries
+    project-api-v3.md            # Current work context
+    reference-api-conventions.md # Domain knowledge: patterns, auth, errors
+    reference-deploy.md          # Domain knowledge: CI/CD, staging, rollback</div>
+
+    <h3>File-by-file breakdown</h3>
+
+    <p><strong><code>CLAUDE.md</code></strong> (boundary conditions) &mdash; Lives at the root of your config directory. Contains 5-10 behavioral rules that apply to <em>every</em> session regardless of project. Rules here are structural constraints, not preferences. Format: rule + why + when it applies. Keep under 100 lines.</p>
+
+    <p><strong><code>MEMORY.md</code></strong> (index) &mdash; The table of contents for your memory system. Groups memories by category (identity, behavioral rules, domain knowledge, anti-confabulation). Provides one-line descriptions and file links. The AI reads this first and follows links as needed. Keep under 200 lines &mdash; this loads every session.</p>
+
+    <p><strong><code>user-profile.md</code></strong> (type: user) &mdash; Your identity: role, expertise areas, communication preferences, relevant constraints. Written once, updated when your situation changes. 10-20 lines is typical. This is how the AI knows who it's working with.</p>
+
+    <p><strong><code>feedback-*.md</code></strong> (type: feedback) &mdash; Corrections that prevent specific mistakes from recurring. Each file documents one failure: what went wrong, why, and how to detect the trigger condition. Written whenever something breaks. These are your highest-ROI memories.</p>
+
+    <p><strong><code>project-*.md</code></strong> (type: project) &mdash; Current work context: objectives, status, key decisions, open questions. Written at project start, updated at milestones. Archived when the project completes. Include a <code>domain</code> tag for compartmentalization.</p>
+
+    <p><strong><code>reference-*.md</code></strong> (type: reference) &mdash; Stable domain knowledge that doesn't change session to session. API conventions, deployment processes, style guides, external tool documentation. Written once per domain, updated when the domain changes.</p>
+
+    <h3>Optional additions (week 2+)</h3>
+    <div class="prompt-block">  scripts/
+  rebuild-db.sh                  # Deterministic DB rebuild from flat files
+  ingest-memories.sh             # Parse .md frontmatter into SQL
+  data/
+  *.sql                          # SQL data scripts (generated by ingest)
+  argus.db                         # SQLite DB (query cache, NOT source of truth)</div>
+
+    <p>The database layer adds structured queries, full-text search, and health monitoring views. It is always rebuildable from the flat files &mdash; if the database disappears, run the rebuild script. The flat files are the source of truth. The database is a performance optimization.</p>
+   </div>
+  </details>
+
+  <details>
+   <summary>The memory file format: frontmatter, types, and write conditions</summary>
+   <div class="accordion-body">
+    <p>Every memory file follows the same format: YAML frontmatter for machine-readable metadata, then a Markdown body for human-readable detail.</p>
+
+    <h3>Frontmatter spec</h3>
+    <div class="prompt-block">---
+name: [short identifier — used in queries and index listings]
+description: [one-line summary — what this memory is about]
+type: [user | feedback | project | reference | correction]
+domain: [optional — project/domain tag for compartmentalization]
+---</div>
+
+    <p>The three required fields: <code>name</code>, <code>description</code>, <code>type</code>. The <code>domain</code> field is optional but recommended for any project-specific memory.</p>
+
+    <h3>Body format</h3>
+    <p>The body is free-form Markdown, but effective memories follow a pattern:</p>
+    <ol>
+     <li><strong>The rule or fact</strong> &mdash; stated directly, in one or two sentences.</li>
+     <li><strong>Why</strong> &mdash; what happened without this. Specific incident, not abstract risk.</li>
+     <li><strong>How to apply</strong> &mdash; when this triggers, what the AI should do differently.</li>
+    </ol>
+
+    <h3>When to write each type</h3>
+    <table>
+     <thead>
+      <tr><th>Type</th><th>Write when</th><th>Update when</th><th>Archive when</th></tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td><strong>user</strong></td>
+       <td>System setup (day 1)</td>
+       <td>Your situation changes</td>
+       <td>Never (replace in place)</td>
+      </tr>
+      <tr>
+       <td><strong>feedback</strong></td>
+       <td>A mistake happens and you correct it verbally</td>
+       <td>The rule needs refinement (too broad or too narrow)</td>
+       <td>After 20+ sessions without triggering</td>
+      </tr>
+      <tr>
+       <td><strong>project</strong></td>
+       <td>Project kickoff</td>
+       <td>Major milestones, key decisions</td>
+       <td>Project completion</td>
+      </tr>
+      <tr>
+       <td><strong>reference</strong></td>
+       <td>You find yourself explaining the same domain fact twice</td>
+       <td>The domain changes (new API version, new deploy process)</td>
+       <td>When the source is decommissioned</td>
+      </tr>
+      <tr>
+       <td><strong>correction</strong></td>
+       <td>A specific confabulation pattern is identified</td>
+       <td>The pattern evolves or the detection criteria change</td>
+       <td>When the model no longer exhibits the pattern</td>
+      </tr>
+     </tbody>
+    </table>
+
+    <h3>Naming convention</h3>
+    <p>Use the pattern <code>[type]-[short-description].md</code>: <code>feedback-no-db-mocking.md</code>, <code>project-api-v3.md</code>, <code>reference-deploy.md</code>, <code>correction-012.md</code>. The type prefix makes directory listings readable at a glance and supports simple glob-based queries (<code>feedback-*.md</code>).</p>
+
+    <h3>How many memories to start with</h3>
+    <p>Five is enough: one user profile, three feedback corrections, one project status. Write more as mistakes happen. A mature system might have 30-50 memories; resist the urge to front-load. Each memory should exist because something actually happened, not because you anticipate it might. Memories written from experience are precise. Memories written speculatively are vague, and vague memories create vague behavior.</p>
+   </div>
+  </details>
+  </section>
+
+  <hr class="section-divider">
+  <section id="citations">
+  <details>
+   <summary>References &amp; Architecture Notes</summary>
+   <div class="accordion-body">
+    <h3>Bibliography</h3>
+    <ol>
+     <li>Prentice, G. (2026). <em>Dignity Net: A Graduated Governance Framework for AI-Human Collaboration</em>, v1.2. <a href="https://github.com/JoyfulAcceptance/dignity-net-public">github.com/JoyfulAcceptance/dignity-net-public</a></li>
+     <li>Stephenson, B. &amp; Argus. (2026). <em>Triad Protocol: Role-Separation Architecture for AI-Assisted Development</em>. <a href="https://github.com/energyscholar/triad-tutorial">github.com/energyscholar/triad-tutorial</a></li>
+     <li>Stephenson, B. &amp; Argus. (2026). <em>Longmem: Persistent Memory for Claude Code</em>. <a href="https://github.com/energyscholar/longmem">github.com/energyscholar/longmem</a></li>
+     <li>Anthropic. (2025&ndash;2026). <em>Claude Code</em>. CLI tool for AI-assisted software engineering. <a href="https://docs.anthropic.com/en/docs/claude-code">docs.anthropic.com</a></li>
+    </ol>
+
+    <h3>Component Provenance</h3>
+    <ul>
+     <li><strong>Dignity Net v1.2:</strong> Designed by <a href="https://github.com/JoyfulAcceptance">Genevieve Prentice</a>, February 2026. Trial period 2026-02-16 through 2026-02-20; made permanent based on demonstrated value. The full specification is reproduced in Accordion 3A with the designer's permission. Canonical releases at <a href="https://github.com/JoyfulAcceptance/dignity-net-public">github.com/JoyfulAcceptance/dignity-net-public</a>.</li>
+     <li><strong>Three Orthogonal Axes insight:</strong> Surfaced by external audit (ChatGPT analysis of a working transcript), 2026-05-01. Confirmed by both human and AI &mdash; neither had independently noticed the structural relationship between execution, truth, and continuity governance. The insight that these three form <em>boundary conditions</em> rather than features emerged from an outside observer seeing what familiarity had hidden.</li>
+     <li><strong>Triad protocol:</strong> Adapted from software engineering Auditor/Generator separation patterns. The Origin role (human purpose + domain expertise + final authority) was added to prevent scope drift at the top of the authority chain. The copy-paste gate between Auditor and Generator is original to this system. Tutorial and reference implementation at <a href="https://github.com/energyscholar/triad-tutorial">github.com/energyscholar/triad-tutorial</a>.</li>
+     <li><strong>Memory architecture (Longmem):</strong> Flat file upstream (version-controlled Markdown with YAML frontmatter) &rarr; ingestion script &rarr; SQLite database (read cache with FTS5). Deterministically rebuildable from flat files. Reference implementation at <a href="https://github.com/energyscholar/longmem">github.com/energyscholar/longmem</a>.</li>
+    </ul>
+
+    <h3>Technical Architecture</h3>
+    <ul>
+     <li><strong>Health monitoring:</strong> Four metrics &mdash; pressure, friction, validity, drift &mdash; each with threshold-triggered self-correction actions. Health snapshots stored as database rows with timestamps. Protocol documented in the system's own protocol file.</li>
+     <li><strong>Anti-confabulation system:</strong> 23+ numbered corrections addressing specific known failure modes. A rotating "hot five" subset loads into every session context. Each correction was written in response to an actual failure, naming the pattern and its detection criteria.</li>
+    </ul>
+
+    <h3>System Statistics</h3>
+    <ul>
+     <li><strong>Session count at publication:</strong> 70+ sessions over approximately five months (January&ndash;May 2026, with formalized tracking beginning in April).</li>
+     <li><strong>Platform:</strong> Claude (Anthropic), Claude Code CLI. Pro Max subscription.</li>
+     <li><strong>Memory size:</strong> ~50 flat files across user, feedback, project, reference, and correction types. SQLite database ~200KB.</li>
+     <li><strong>Tutorial output:</strong> 15 standalone HTML tutorials (13 in the extended catalog + 2 portfolio pieces), ranging from 30KB to 120KB, using JS-animated SVGs, SMIL animations, and static diagrams.</li>
+    </ul>
+
+    <h3>License &amp; Copyright</h3>
+    <ul>
+     <li><strong>This document:</strong> CC BY 4.0. Copyright Bruce Stephenson &amp; Genevieve Prentice, 2026.</li>
+     <li><strong>Dignity Net specification:</strong> Included with designer's consent. Attribution required per CC BY 4.0. &copy; Genevieve Prentice, 2026.</li>
+     <li><strong>Tutorials:</strong> Same license. Source available in the linked GitHub repositories.</li>
+    </ul>
+   </div>
+  </details>
+  </section>
+  <footer class="site-footer">
+  <p>We're available to help others build similar systems.</p>
+  <p>Contact: <a href="mailto:energyscholar+persistent-ai@gmail.com">energyscholar+persistent-ai@gmail.com</a></p>
+  <p><a href="index.html" download="persistent-ai-collaboration.html">Download this document</a> &nbsp;|&nbsp; <a href="https://github.com/energyscholar/persistent-ai-collaboration">Source on GitHub</a></p>
+  <p>CC BY 4.0 &nbsp;|&nbsp; Dignity Net designed by <a href="https://github.com/JoyfulAcceptance/dignity-net-public">Genevieve Prentice</a></p>
+  </footer>
+
+</div><!-- .container -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "name": "Your AI Has Amnesia",
+  "headline": "A practitioner's guide to building one that doesn't",
+  "author": [
+    { "@type": "Person", "name": "Bruce Stephenson", "email": "energyscholar+persistent-ai@gmail.com" },
+    { "@type": "Thing", "name": "Argus", "description": "Persistent AI collaboration system" }
+  ],
+  "datePublished": "2026-05",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "url": "https://energyscholar.github.io/persistent-ai-collaboration/",
+  "about": [
+    { "@type": "Thing", "name": "Triad Protocol", "description": "Execution governance via Auditor/Generator role separation with human authorization gates" },
+    { "@type": "Thing", "name": "Dignity Net", "description": "Behavioral governance: graduated escalation L0-L5 for truth protection. Designed by Genevieve Prentice." },
+    { "@type": "Thing", "name": "Longmem", "description": "Typed persistent memory with flat-file source of truth, SQLite query cache, FTS5 search, and health monitoring" }
+  ],
+  "hasPart": [
+    { "@type": "LearningResource", "name": "Magnetosphere Tutorial", "url": "./tutorial-magnetosphere.html", "encodingFormat": "text/html" },
+    { "@type": "LearningResource", "name": "LLM Inference Tutorial", "url": "./tutorial-inference.html", "encodingFormat": "text/html" }
+  ]
+}
+</script>
+
+<script>
+/* ── JS: accordion, puzzle reveal, animation control, print ── */
+(function () {
+ 'use strict';
+
+ /* Accordion: progressive enhancement over <details> */
+ document.querySelectorAll('details summary').forEach(function (s) {
+  s.addEventListener('click', function (e) {
+   var d = s.parentElement;
+   if (d.open) { e.preventDefault(); d.removeAttribute('open'); }
+  });
+ });
+
+ /* Puzzle reveal: click puzzle box to scroll to reveal */
+ document.querySelectorAll('.puzzle').forEach(function (p) {
+  p.style.cursor = 'pointer';
+  p.setAttribute('role', 'button');
+  p.setAttribute('tabindex', '0');
+  p.addEventListener('click', function () {
+   var r = p.parentElement.querySelector('.reveal');
+   if (r) r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  p.addEventListener('keydown', function (e) {
+   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.click(); }
+  });
+ });
+
+ /* Animation pause/play buttons */
+ document.querySelectorAll('.anim-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+   var wrap = btn.closest('.svg-wrap');
+   var svg = wrap ? wrap.querySelector('svg') : null;
+   if (!svg) return;
+   var paused = btn.getAttribute('data-state') === 'paused';
+   if (paused) {
+    if (svg.unpauseAnimations) svg.unpauseAnimations();
+    btn.setAttribute('data-state', 'playing');
+    btn.innerHTML = '⏸ Pause';
+   } else {
+    if (svg.pauseAnimations) svg.pauseAnimations();
+    btn.setAttribute('data-state', 'paused');
+    btn.innerHTML = '▶ Play';
+   }
+  });
+ });
+
+ /* On load: pause SVGs 2 (Three Axes) and 4 (Triad Cycle) — they default PAUSED */
+ var pausedIds = ['svg-axes', 'svg-triad'];
+ /* prefers-reduced-motion: pause ALL SVGs, hide play buttons */
+ var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+ document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.svg-wrap').forEach(function (wrap) {
+   var svg = wrap.querySelector('svg');
+   var btn = wrap.querySelector('.anim-btn');
+   if (!svg || !svg.pauseAnimations) return;
+   var id = wrap.id;
+   if (reduceMotion || pausedIds.indexOf(id) !== -1) {
+    svg.pauseAnimations();
+    if (btn) {
+     btn.setAttribute('data-state', 'paused');
+     btn.innerHTML = '▶ Play';
+    }
+   } else {
+    if (btn) {
+     btn.setAttribute('data-state', 'playing');
+     btn.innerHTML = '⏸ Pause';
+    }
+   }
+   if (reduceMotion && btn) { btn.style.display = 'none'; }
+  });
+ });
+
+ /* Print handler: expand all accordions before print, restore after */
+ var openState = [];
+ window.addEventListener('beforeprint', function () {
+  openState = [];
+  document.querySelectorAll('details').forEach(function (d) {
+   openState.push(d.open);
+   d.setAttribute('open', '');
+  });
+  /* Pause all animations for print */
+  document.querySelectorAll('.svg-wrap svg').forEach(function (svg) {
+   if (svg.pauseAnimations) svg.pauseAnimations();
+  });
+ });
+ window.addEventListener('afterprint', function () {
+  document.querySelectorAll('details').forEach(function (d, i) {
+   if (!openState[i]) d.removeAttribute('open');
+  });
+ });
+})();
+</script>
+
+</body>
+</html>
