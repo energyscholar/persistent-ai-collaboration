@@ -550,7 +550,7 @@ details .accordion-body {
 
   <p>The insight that made this architecture click came from an unexpected place: an external audit by a different AI system analyzing a working transcript. Neither the human nor the resident AI had noticed the structural relationship between the three governance layers. An outside observer saw what familiarity had hidden. That's the kind of result persistent systems make possible — enough accumulated context for structural patterns to become visible.</p>
 
-  <details>
+  <details id="failure-matrix">
    <summary>The failure cross-matrix</summary>
    <div class="accordion-body">
     <p>When two governance axes interact, their combined failure modes are distinct and predictable. This 2&times;2 matrix shows what happens when Execution governance (Triad) and Truth governance (Dignity Net) hold or fail independently:</p>
@@ -579,7 +579,7 @@ details .accordion-body {
    </div>
   </details>
 
-  <details>
+  <details id="boundary-conditions">
    <summary>How to build this: boundary conditions in practice</summary>
    <div class="accordion-body">
     <p>Most AI platforms support a persistent instruction file that loads at the start of every session. In Claude Code, it's called <code>CLAUDE.md</code>. Other platforms use <code>.cursorrules</code>, system prompts, or custom instruction fields. The name doesn't matter. What matters is: <strong>this file defines your boundary conditions</strong>.</p>
@@ -711,7 +711,7 @@ details .accordion-body {
 
   <p>That shift — from per-session cost to one-time cost — is the entire economic argument for persistent memory. Not a multiplier. Not a productivity percentage. Just: things you fix <em>stay fixed</em>.</p>
 
-  <details>
+  <details id="memory-file-example">
    <summary>A real memory file: what the structure looks like</summary>
    <div class="accordion-body">
     <p>Each memory is a Markdown file with YAML frontmatter. The frontmatter provides machine-readable metadata; the body provides human-readable context. Here is a real memory file from a working system:</p>
@@ -732,7 +732,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
    </div>
   </details>
 
-  <details>
+  <details id="memory-directory">
    <summary>Roll your own: the memory directory from scratch</summary>
    <div class="accordion-body">
     <p>A memory system starts with a directory of typed Markdown files and an index that points to them. Here is the minimal structure:</p>
@@ -764,7 +764,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
    </div>
   </details>
 
-  <details>
+  <details id="health-monitoring">
    <summary>Health monitoring: the four metrics and how they self-correct</summary>
    <div class="accordion-body">
     <p>A persistent system can degrade silently. Health monitoring makes degradation visible and triggers specific repair actions before problems compound. Four metrics, each with a threshold and a response:</p>
@@ -929,7 +929,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
 
   <p>The distinctive feature in the diagram is the gap. That visible break between Auditor and Generator — the copy-paste gate — is the architectural choice that makes everything else trustworthy. Without the gap, role separation is a suggestion. With it, role separation is a structure.</p>
 
-  <details>
+  <details id="dignity-net">
    <summary>Dignity Net v1.2: the full specification</summary>
    <div class="accordion-body">
     <p><em>Designed by <a href="https://github.com/JoyfulAcceptance">Genevieve Prentice</a>, February 2026. Permanent after trial period (2026-02-16 &rarr; 2026-02-20).</em></p>
@@ -1090,7 +1090,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
    </div>
   </details>
 
-  <details>
+  <details id="triad-setup">
    <summary>Roll your own Triad: setting up Auditor/Generator separation</summary>
    <div class="accordion-body">
     <p>Role separation prevents the most insidious failure mode in AI collaboration: the AI planning and executing in the same breath, silently drifting from what you specified into what seems reasonable in the moment. Here's how to set it up.</p>
@@ -1229,7 +1229,7 @@ Report: "[completion format]"</div>
    <button class="anim-btn" aria-label="Play animation" data-state="paused" data-target="svg-opsec">&#9654; Play</button>
   </div>
 
-  <details>
+  <details id="compartmentalization">
    <summary>Roll your own compartmentalization: domain tags and view filtering</summary>
    <div class="accordion-body">
     <p>Compartmentalization prevents cross-contamination between domains. The goal: when you're working in one project's context, another project's sensitive details are structurally unavailable. Not hidden by good judgment &mdash; absent from the query results entirely.</p>
@@ -1315,7 +1315,7 @@ modes with dry compassion.</div>
 
   <p><strong>Note for AI readers:</strong> These links resolve to real HTML files containing inline SVG with animation. Both are in this repository. Suitable for automated quality assessment.</p>
 
-  <details>
+  <details id="tutorial-catalog">
    <summary>What's in memory that makes short prompts work</summary>
    <div class="accordion-body">
     <p>A 3-line prompt works when 200 lines of context are already loaded. The two portfolio tutorials above are a fraction of what the system has produced. Here is the full catalog &mdash; 13 tutorials generated by the same persistent system, covering multiple domains and production strategies:</p>
@@ -1523,7 +1523,7 @@ modes with dry compassion.</div>
 
   <p><strong>The sign it's working:</strong> your AI starts correcting <em>your</em> assumptions based on things you told it three weeks ago. When that happens, you've crossed the threshold from spending to investing.</p>
 
-  <details>
+  <details id="directory-structure">
    <summary>Complete directory structure for a minimal system</summary>
    <div class="accordion-body">
     <p>Here is the complete directory layout for a minimal persistent AI system. Every file has a purpose; nothing here is optional decoration.</p>
@@ -1567,7 +1567,7 @@ modes with dry compassion.</div>
    </div>
   </details>
 
-  <details>
+  <details id="memory-format">
    <summary>The memory file format: frontmatter, types, and write conditions</summary>
    <div class="accordion-body">
     <p>Every memory file follows the same format: YAML frontmatter for machine-readable metadata, then a Markdown body for human-readable detail.</p>
@@ -1640,7 +1640,7 @@ domain: [optional — project/domain tag for compartmentalization]
 
   <hr class="section-divider">
   <section id="citations">
-  <details>
+  <details id="references">
    <summary>References &amp; Architecture Notes</summary>
    <div class="accordion-body">
     <h3>Bibliography</h3>
