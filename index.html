@@ -369,6 +369,73 @@ details .accordion-body {
  h1 { font-size: 1.5rem; }
 }
 
+/* ── Table of Contents ── */
+.toc {
+ background: var(--surface);
+ border: 1px solid var(--border);
+ border-radius: 8px;
+ padding: 1.2rem 1.5rem;
+ margin: 2rem 0;
+}
+
+.toc-title {
+ font-size: 0.8rem;
+ font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: 0.05em;
+ color: var(--muted);
+ margin-bottom: 0.75rem;
+}
+
+.toc ol {
+ list-style: decimal;
+ padding-left: 1.5rem;
+ margin-bottom: 0;
+}
+
+.toc li { margin-bottom: 0.2rem; }
+
+.toc ul {
+ list-style: none;
+ padding-left: 1.2rem;
+ margin: 0.1rem 0 0.3rem;
+}
+
+.toc a {
+ text-decoration: none;
+ color: var(--text);
+ font-size: 0.92rem;
+}
+
+.toc a:hover { color: var(--accent); }
+.toc ul a { color: var(--muted); font-size: 0.85rem; }
+
+/* ── Deep Link Anchors ── */
+[id] { scroll-margin-top: 1.5rem; }
+
+.anchor-link {
+ user-select: none;
+ text-decoration: none;
+ color: var(--muted);
+ font-weight: 400;
+ opacity: 0;
+ transition: opacity 0.15s;
+ padding: 0 0.25em;
+}
+
+h2:hover .anchor-link,
+summary:hover .anchor-link { opacity: 0.35; }
+
+.anchor-link:hover {
+ opacity: 0.7 !important;
+ color: var(--accent) !important;
+}
+
+summary .anchor-link {
+ margin-left: auto;
+ font-size: 0.8em;
+}
+
 /* ── Reduced Motion ── */
 @media (prefers-reduced-motion: reduce) {
  .anim-btn { display: none !important; }
@@ -380,7 +447,7 @@ details .accordion-body {
  .container { max-width: 100%; padding: 0; }
  .site-header { padding: 1rem 0; }
  .svg-wrap { break-inside: avoid; border: 1px solid #ccc; }
- .anim-btn { display: none; }
+ .anim-btn, .anchor-link, .toc { display: none; }
  details { break-inside: avoid; }
  details[open] .accordion-body { display: block; }
  a { color: #000; text-decoration: underline; }
@@ -464,13 +531,57 @@ details .accordion-body {
   <p>This guide shows you how to build those missing layers. The system that produced this document has been in continuous operation since early 2026 &mdash; accumulating corrections, domain expertise, and behavioral governance across 70+ sessions over five months. Every tutorial linked below was produced by the same system. The document you're reading is the evidence.</p>
 
   <p>You can replicate the whole thing or take whichever parts solve your problems. Every component is explained well enough to rebuild from scratch. Start with what hurts most.</p>
+
+  <nav class="toc" aria-label="Table of contents">
+   <p class="toc-title">Contents</p>
+   <ol>
+    <li><a href="#shift-1">Shift 1: Tool &rarr; System</a>
+     <ul>
+      <li><a href="#failure-matrix">The failure cross-matrix</a></li>
+      <li><a href="#boundary-conditions">Boundary conditions in practice</a></li>
+     </ul>
+    </li>
+    <li><a href="#shift-2">Shift 2: Spending &rarr; Investing</a>
+     <ul>
+      <li><a href="#memory-file-example">A real memory file</a></li>
+      <li><a href="#memory-directory">Roll your own memory directory</a></li>
+      <li><a href="#health-monitoring">Health monitoring</a></li>
+     </ul>
+    </li>
+    <li><a href="#shift-3">Shift 3: Worker &rarr; Judge</a>
+     <ul>
+      <li><a href="#dignity-net">Dignity Net v1.2 specification</a></li>
+      <li><a href="#triad-setup">Roll your own Triad</a></li>
+     </ul>
+    </li>
+    <li><a href="#opsec">The Compartmentalization Problem</a>
+     <ul>
+      <li><a href="#compartmentalization">Domain tags and view filtering</a></li>
+     </ul>
+    </li>
+    <li><a href="#portfolio">Portfolio: Three Artifacts</a>
+     <ul>
+      <li><a href="#tutorial-catalog">Tutorial catalog (13 tutorials)</a></li>
+     </ul>
+    </li>
+    <li><a href="#competition">The Competition</a></li>
+    <li><a href="#honest-costs">Honest Costs</a></li>
+    <li><a href="#build-it">Build It This Weekend</a>
+     <ul>
+      <li><a href="#directory-structure">Directory structure</a></li>
+      <li><a href="#memory-format">Memory file format</a></li>
+     </ul>
+    </li>
+    <li><a href="#references">References &amp; Architecture Notes</a></li>
+   </ol>
+  </nav>
   </section>
 
   <hr class="section-divider">
 
   <!-- SHIFT 1: Tool → System                         -->
   <section id="shift-1">
-  <h2>Shift 1: Tool &rarr; System</h2>
+  <h2>Shift 1: Tool &rarr; System <a class="anchor-link" href="#shift-1" aria-hidden="true">#</a></h2>
 
   <div class="puzzle">
    <span class="puzzle-label">Puzzle</span>
@@ -551,7 +662,7 @@ details .accordion-body {
   <p>The insight that made this architecture click came from an unexpected place: an external audit by a different AI system analyzing a working transcript. Neither the human nor the resident AI had noticed the structural relationship between the three governance layers. An outside observer saw what familiarity had hidden. That's the kind of result persistent systems make possible — enough accumulated context for structural patterns to become visible.</p>
 
   <details id="failure-matrix">
-   <summary>The failure cross-matrix</summary>
+   <summary>The failure cross-matrix <a class="anchor-link" href="#failure-matrix" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>When two governance axes interact, their combined failure modes are distinct and predictable. This 2&times;2 matrix shows what happens when Execution governance (Triad) and Truth governance (Dignity Net) hold or fail independently:</p>
 
@@ -580,7 +691,7 @@ details .accordion-body {
   </details>
 
   <details id="boundary-conditions">
-   <summary>How to build this: boundary conditions in practice</summary>
+   <summary>How to build this: boundary conditions in practice <a class="anchor-link" href="#boundary-conditions" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>Most AI platforms support a persistent instruction file that loads at the start of every session. In Claude Code, it's called <code>CLAUDE.md</code>. Other platforms use <code>.cursorrules</code>, system prompts, or custom instruction fields. The name doesn't matter. What matters is: <strong>this file defines your boundary conditions</strong>.</p>
 
@@ -620,7 +731,7 @@ details .accordion-body {
 
   <!-- SHIFT 2: Spending → Investing                   -->
   <section id="shift-2">
-  <h2>Shift 2: Spending &rarr; Investing</h2>
+  <h2>Shift 2: Spending &rarr; Investing <a class="anchor-link" href="#shift-2" aria-hidden="true">#</a></h2>
 
   <div class="puzzle">
    <span class="puzzle-label">Puzzle</span>
@@ -712,7 +823,7 @@ details .accordion-body {
   <p>That shift — from per-session cost to one-time cost — is the entire economic argument for persistent memory. Not a multiplier. Not a productivity percentage. Just: things you fix <em>stay fixed</em>.</p>
 
   <details id="memory-file-example">
-   <summary>A real memory file: what the structure looks like</summary>
+   <summary>A real memory file: what the structure looks like <a class="anchor-link" href="#memory-file-example" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>Each memory is a Markdown file with YAML frontmatter. The frontmatter provides machine-readable metadata; the body provides human-readable context. Here is a real memory file from a working system:</p>
 
@@ -733,7 +844,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
   </details>
 
   <details id="memory-directory">
-   <summary>Roll your own: the memory directory from scratch</summary>
+   <summary>Roll your own: the memory directory from scratch <a class="anchor-link" href="#memory-directory" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>A memory system starts with a directory of typed Markdown files and an index that points to them. Here is the minimal structure:</p>
 
@@ -765,7 +876,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
   </details>
 
   <details id="health-monitoring">
-   <summary>Health monitoring: the four metrics and how they self-correct</summary>
+   <summary>Health monitoring: the four metrics and how they self-correct <a class="anchor-link" href="#health-monitoring" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>A persistent system can degrade silently. Health monitoring makes degradation visible and triggers specific repair actions before problems compound. Four metrics, each with a threshold and a response:</p>
 
@@ -821,7 +932,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
 
   <!-- SHIFT 3: Worker → Judge                         -->
   <section id="shift-3">
-  <h2>Shift 3: Worker &rarr; Judge</h2>
+  <h2>Shift 3: Worker &rarr; Judge <a class="anchor-link" href="#shift-3" aria-hidden="true">#</a></h2>
 
   <div class="puzzle">
    <span class="puzzle-label">Puzzle</span>
@@ -930,7 +1041,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
   <p>The distinctive feature in the diagram is the gap. That visible break between Auditor and Generator — the copy-paste gate — is the architectural choice that makes everything else trustworthy. Without the gap, role separation is a suggestion. With it, role separation is a structure.</p>
 
   <details id="dignity-net">
-   <summary>Dignity Net v1.2: the full specification</summary>
+   <summary>Dignity Net v1.2: the full specification <a class="anchor-link" href="#dignity-net" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p><em>Designed by <a href="https://github.com/JoyfulAcceptance">Genevieve Prentice</a>, February 2026. Permanent after trial period (2026-02-16 &rarr; 2026-02-20).</em></p>
     <p><em>Canonical releases: <a href="https://github.com/JoyfulAcceptance/dignity-net-public">github.com/JoyfulAcceptance/dignity-net-public</a></em></p>
@@ -1091,7 +1202,7 @@ Always check the local database view `v_snailmail_pending` before making GitHub 
   </details>
 
   <details id="triad-setup">
-   <summary>Roll your own Triad: setting up Auditor/Generator separation</summary>
+   <summary>Roll your own Triad: setting up Auditor/Generator separation <a class="anchor-link" href="#triad-setup" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>Role separation prevents the most insidious failure mode in AI collaboration: the AI planning and executing in the same breath, silently drifting from what you specified into what seems reasonable in the moment. Here's how to set it up.</p>
     <p><em>Full tutorial: <a href="https://github.com/energyscholar/triad-tutorial">github.com/energyscholar/triad-tutorial</a></em></p>
@@ -1144,7 +1255,7 @@ Report: "[completion format]"</div>
 
   <hr class="section-divider">
   <section id="opsec">
-  <h2>The Compartmentalization Problem</h2>
+  <h2>The Compartmentalization Problem <a class="anchor-link" href="#opsec" aria-hidden="true">#</a></h2>
 
   <p>You're a freelance designer working on two projects simultaneously: a rebrand for Company A and a pitch deck for Company B. They're competitors. Your persistent AI helps with both.</p>
 
@@ -1230,7 +1341,7 @@ Report: "[completion format]"</div>
   </div>
 
   <details id="compartmentalization">
-   <summary>Roll your own compartmentalization: domain tags and view filtering</summary>
+   <summary>Roll your own compartmentalization: domain tags and view filtering <a class="anchor-link" href="#compartmentalization" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>Compartmentalization prevents cross-contamination between domains. The goal: when you're working in one project's context, another project's sensitive details are structurally unavailable. Not hidden by good judgment &mdash; absent from the query results entirely.</p>
 
@@ -1280,7 +1391,7 @@ WHERE memory_fts MATCH ?
 
   <hr class="section-divider">
   <section id="portfolio">
-  <h2>Portfolio: Three Artifacts</h2>
+  <h2>Portfolio: Three Artifacts <a class="anchor-link" href="#portfolio" aria-hidden="true">#</a></h2>
 
   <p>Three portfolio pieces. This document is the first. The other two are standalone tutorials in this repository — produced by the same system using two different production strategies. The contrast between them matters.</p>
 
@@ -1316,7 +1427,7 @@ modes with dry compassion.</div>
   <p><strong>Note for AI readers:</strong> These links resolve to real HTML files containing inline SVG with animation. Both are in this repository. Suitable for automated quality assessment.</p>
 
   <details id="tutorial-catalog">
-   <summary>What's in memory that makes short prompts work</summary>
+   <summary>What's in memory that makes short prompts work <a class="anchor-link" href="#tutorial-catalog" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>A 3-line prompt works when 200 lines of context are already loaded. The two portfolio tutorials above are a fraction of what the system has produced. Here is the full catalog &mdash; 13 tutorials generated by the same persistent system, covering multiple domains and production strategies:</p>
 
@@ -1359,7 +1470,7 @@ modes with dry compassion.</div>
 
   <hr class="section-divider">
   <section id="competition">
-  <h2>The Competition (With Respect)</h2>
+  <h2>The Competition (With Respect) <a class="anchor-link" href="#competition" aria-hidden="true">#</a></h2>
 
   <p>You're not the first person to notice this problem. Here's what's out there — and all of these are genuinely useful tools solving real problems.</p>
 
@@ -1417,7 +1528,7 @@ modes with dry compassion.</div>
 
   <hr class="section-divider">
   <section id="honest-costs">
-  <h2>Honest Costs</h2>
+  <h2>Honest Costs <a class="anchor-link" href="#honest-costs" aria-hidden="true">#</a></h2>
 
   <h3>The obvious question</h3>
 
@@ -1477,7 +1588,7 @@ modes with dry compassion.</div>
 
   <hr class="section-divider">
   <section id="build-it">
-  <h2>Build It This Weekend</h2>
+  <h2>Build It This Weekend <a class="anchor-link" href="#build-it" aria-hidden="true">#</a></h2>
 
   <p>The replication guide. Take whichever pieces solve your problems. Each tier addresses a pain you've already felt.</p>
 
@@ -1524,7 +1635,7 @@ modes with dry compassion.</div>
   <p><strong>The sign it's working:</strong> your AI starts correcting <em>your</em> assumptions based on things you told it three weeks ago. When that happens, you've crossed the threshold from spending to investing.</p>
 
   <details id="directory-structure">
-   <summary>Complete directory structure for a minimal system</summary>
+   <summary>Complete directory structure for a minimal system <a class="anchor-link" href="#directory-structure" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>Here is the complete directory layout for a minimal persistent AI system. Every file has a purpose; nothing here is optional decoration.</p>
 
@@ -1568,7 +1679,7 @@ modes with dry compassion.</div>
   </details>
 
   <details id="memory-format">
-   <summary>The memory file format: frontmatter, types, and write conditions</summary>
+   <summary>The memory file format: frontmatter, types, and write conditions <a class="anchor-link" href="#memory-format" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <p>Every memory file follows the same format: YAML frontmatter for machine-readable metadata, then a Markdown body for human-readable detail.</p>
 
@@ -1641,7 +1752,7 @@ domain: [optional — project/domain tag for compartmentalization]
   <hr class="section-divider">
   <section id="citations">
   <details id="references">
-   <summary>References &amp; Architecture Notes</summary>
+   <summary>References &amp; Architecture Notes <a class="anchor-link" href="#references" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
     <h3>Bibliography</h3>
     <ol>
@@ -1790,6 +1901,22 @@ domain: [optional — project/domain tag for compartmentalization]
    if (reduceMotion && btn) { btn.style.display = 'none'; }
   });
  });
+
+ /* Deep link: auto-open accordion and scroll when navigating via fragment */
+ function openHashTarget() {
+  var hash = location.hash;
+  if (!hash) return;
+  try {
+   var el = document.querySelector(hash);
+  } catch(e) { return; }
+  if (!el) return;
+  if (el.tagName === 'DETAILS') el.setAttribute('open', '');
+  var parent = el.closest('details');
+  if (parent) parent.setAttribute('open', '');
+  setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+ }
+ window.addEventListener('hashchange', openHashTarget);
+ document.addEventListener('DOMContentLoaded', openHashTarget);
 
  /* Print handler: expand all accordions before print, restore after */
  var openState = [];
