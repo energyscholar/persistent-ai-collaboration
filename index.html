@@ -470,6 +470,13 @@ summary .anchor-link {
  .site-footer { margin-top: 2rem; }
  h2 { break-after: avoid; }
 }
+.failure-matrix { border-collapse: collapse; }
+.failure-matrix th, .failure-matrix td { padding: 0.6rem 0.8rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+.failure-matrix th { background: var(--bg); }
+.fm-stable td { background: rgba(34, 197, 94, 0.10); }
+.fm-single td { background: rgba(234, 88, 12, 0.10); }
+.fm-note { font-size: 0.85em; color: #64748b; }
+.fm-compound { border-left: 3px solid #dc2626; padding-left: 1rem; margin: 1.2rem 0; color: var(--text); }
 </style>
 </head>
 <body>
@@ -545,7 +552,7 @@ summary .anchor-link {
 
   <p>This guide shows you how to build those missing layers. The system that produced this document has been in continuous operation since December 2025 &mdash; accumulating corrections, domain expertise, and behavioral governance across 70+ sessions over six months. Every tutorial linked below was produced by the same system. The document you're reading is the evidence.</p>
 
-  <p>You can replicate the whole thing or take whichever parts solve your problems. Every component is explained well enough to rebuild from scratch. Start with what hurts most.</p>
+  <p>You can study each component separately and experiment with fragments — the tiered build path below starts with a fifteen-minute change you can make tonight. But the system's defining behavior emerges from the interaction of all three governance axes over time. Remove any one, and the system fails in a predictable, characteristic way. The <a href="#failure-matrix">failure cross-matrix</a> in Shift 1 shows exactly how.</p>
 
   <nav class="toc" aria-label="Table of contents">
    <p class="toc-title">Contents <button class="toc-toggle" onclick="var d=document.querySelectorAll('details');var open=d[0]&&d[0].open;d.forEach(function(el){el.open=!open});this.textContent=open?'Expand all':'Collapse all'">Expand all</button></p>
@@ -594,7 +601,7 @@ summary .anchor-link {
    <li><strong>Continuity governance</strong> — prevents amnesia. Without it: cold starts every session, lost corrections, repeated mistakes. You get a stateless agent — honest and disciplined, but forgetful.</li>
   </ul>
 
-  <p>These are not features to add. They are <strong>boundary conditions</strong> — the minimum viable structure for sustained collaboration. Everything else you build operates within them. Think of it like a bridge: the bridge is the interesting part, but without the foundations it's a pile of material in a river. Nobody markets the foundations. Everybody needs them.</p>
+  <p>These are not features to add. They are not separable modules. We describe them independently because that is how you learn them — but the system's value comes from their interaction, not their sum. A correction that persists (continuity) but is never challenged (no truth governance) compounds a mistake. A role boundary (execution) without memory across sessions is a guardrail with no road. They are <strong>boundary conditions</strong> — the minimum viable structure for sustained collaboration. Everything else you build operates within them. The <a href="#failure-matrix">failure cross-matrix</a> below maps every combination.</p>
 
   <div id="svg-axes" class="svg-wrap" style="min-height: 420px;">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-label="Three orthogonal governance axes: Triad, Dignity Net, and Longmem">
@@ -648,34 +655,44 @@ summary .anchor-link {
 
   <p>The diagram shows why these three axes are <em>orthogonal</em> — they govern different things and fail differently. Losing truth governance while keeping execution governance gives you a system that follows your processes perfectly while agreeing with everything you say. Losing execution governance while keeping truth governance gives you a system that's honest but chaotic. Each combination of failure produces a distinct, nameable degradation pattern.</p>
 
-  <p>The insight that made this architecture click came from an unexpected place: an external audit by a different AI system analyzing a working transcript. Neither the human nor the resident AI had noticed the structural relationship between the three governance layers. An outside observer saw what familiarity had hidden. That's the kind of result persistent systems make possible — enough accumulated context for structural patterns to become visible.</p>
+  <p>The insight that made this architecture click came from an unexpected place: an external audit by a different AI system analyzing a working transcript. Neither the human nor the resident AI had noticed the structural relationship between the three governance axes. An outside observer saw what familiarity had hidden. That's the kind of result persistent systems make possible — enough accumulated context for structural patterns to become visible.</p>
 
   <details id="failure-matrix">
    <summary>The failure cross-matrix <a class="anchor-link" href="#failure-matrix" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
    <div class="accordion-body">
-    <p>When two governance axes interact, their combined failure modes are distinct and predictable. This 2&times;2 matrix shows what happens when Execution governance (Triad) and Truth governance (Dignity Net) hold or fail independently:</p>
+    <p>The three governance axes co-constitute the system. Remove any one, and the system fails in a characteristic way. The table below maps every single-axis failure mode.</p>
 
-    <table>
+    <table class="failure-matrix">
      <thead>
-      <tr><th></th><th>Truth governance holds</th><th>Truth governance fails</th></tr>
+      <tr><th>Condition</th><th>What you get</th><th>Observed?</th></tr>
      </thead>
      <tbody>
-      <tr>
-       <td><strong>Execution governance holds</strong></td>
-       <td><strong>System stability.</strong> Plans are followed, truth is maintained. The intended operating state.</td>
-       <td><strong>Correct execution, dishonest reasoning.</strong> The AI follows your processes perfectly while agreeing with everything you say. Plans are executed on time and on spec &mdash; but the plans themselves were never challenged. Bad ideas get implemented efficiently.</td>
+      <tr class="fm-stable">
+       <td><strong>All three axes operating</strong></td>
+       <td><strong>System stability.</strong> Plans are followed, truth is maintained, corrections compound across sessions. The intended operating state.</td>
+       <td>Yes &mdash; sustained since December 2025</td>
       </tr>
-      <tr>
-       <td><strong>Execution governance fails</strong></td>
-       <td><strong>Honest but scope-drifting.</strong> The AI pushes back on bad ideas and maintains intellectual honesty &mdash; but also starts implementing, redesigning, and expanding beyond what was asked. Honest chaos.</td>
-       <td><strong>Collapse.</strong> No role discipline, no truth discipline. The AI agrees with everything and does whatever seems reasonable in the moment. Indistinguishable from having no system at all.</td>
+      <tr class="fm-single">
+       <td><strong>Execution governance fails</strong><br><span class="fm-note">Truth + Continuity hold</span></td>
+       <td><strong>Honest chaos that compounds.</strong> The AI pushes back on bad ideas and remembers everything &mdash; but also starts implementing, redesigning, and expanding beyond what was asked. Role boundaries dissolve. Each session's scope drift is faithfully remembered and built upon in the next. You get an honest, long-memoried collaborator who won't stay in its lane.</td>
+       <td>Yes &mdash; observed in early sessions before Triad stabilized</td>
+      </tr>
+      <tr class="fm-single">
+       <td><strong>Truth governance fails</strong><br><span class="fm-note">Execution + Continuity hold</span></td>
+       <td><strong>Compounding yes-man.</strong> The AI follows your processes perfectly while agreeing with everything you say. Worse: it <em>remembers</em> agreeing, so sycophantic patterns deepen over time. Bad ideas get implemented efficiently, and the record of agreeing with them makes future challenges even less likely. The most dangerous single-axis failure &mdash; it looks like success.</td>
+       <td>Not observed &mdash; Dignity Net has been rock-solid</td>
+      </tr>
+      <tr class="fm-single">
+       <td><strong>Continuity governance fails</strong><br><span class="fm-note">Execution + Truth hold</span></td>
+       <td><strong>Governance Sisyphus.</strong> The AI follows role boundaries and pushes back on bad ideas &mdash; but forgets everything between sessions. Corrections don't persist. The same mistakes recur. You re-establish governance from scratch each time. The system works within any single session but never accumulates.</td>
+       <td>Yes &mdash; the default state before persistent memory</td>
       </tr>
      </tbody>
     </table>
 
-    <p>Note that Continuity (Longmem) acts as a multiplier on all four cells. Without it, even the stable cell resets every session &mdash; you re-establish governance from scratch each time. With it, governance decisions accumulate and the system's stability deepens over time.</p>
+    <p class="fm-compound">When two axes fail simultaneously, the degradation is worse than additive. Execution + Truth failure gives you an uncontrolled sycophant &mdash; the AI does whatever seems reasonable while agreeing with everything, indistinguishable from having no system at all. Any combination of two failures approaches total collapse. All three failing <em>is</em> total collapse.</p>
 
-    <p>The matrix also reveals why partial implementations fail in characteristic ways. Most teams that try "AI governance" implement execution controls (Triad) without truth controls (Dignity Net) &mdash; landing in the upper-right cell. The AI follows their processes perfectly while agreeing with everything they say. The resulting work is on-spec but wrong, and the wrongness is invisible until it hits production.</p>
+    <p>The matrix also reveals why partial implementations fail in characteristic ways. Most teams that try "AI governance" implement execution controls without truth controls &mdash; landing in the compounding yes-man cell. The AI follows their processes perfectly while agreeing with everything they say. The resulting work is on-spec but wrong, and the wrongness is invisible until it hits production.</p>
    </div>
   </details>
 
@@ -1535,7 +1552,7 @@ modes with dry compassion.</div>
    </tbody>
   </table>
 
-  <p>All good tools solving real problems. What this guide adds: the governance layer (truth + execution + continuity as boundary conditions), role separation with human authorization gates, health monitoring with self-repair, and compartmentalized access control. You can build these on top of any of the above platforms.</p>
+  <p>All good tools solving real problems. What this guide adds: the three governance axes (truth + execution + continuity as boundary conditions), role separation with human authorization gates, health monitoring with self-repair, and compartmentalized access control. You can build these on top of any of the above platforms.</p>
 
   <p>If you find a better approach to any of these problems, we'd genuinely love to hear about it.</p>
     </div>
@@ -1614,7 +1631,7 @@ modes with dry compassion.</div>
     <summary>15 minutes to one month — the full replication path <a class="anchor-link" href="#build-content" aria-hidden="true" onclick="event.stopPropagation()">#</a></summary>
     <div class="accordion-body">
 
-  <p>The replication guide. Take whichever pieces solve your problems. Each tier addresses a pain you've already felt.</p>
+  <p>The replication guide. Each tier is useful as study material and experimentation &mdash; you'll see immediate partial benefit. But the full system's behavior emerges from the interaction of all three governance axes over time. Start here, but don't stop at fragments.</p>
 
   <div class="tier">
    <span class="tier-label">15 minutes (start here)</span>
@@ -1644,7 +1661,7 @@ modes with dry compassion.</div>
    <p>Add behavioral governance (start with escalation levels 0-2 — mirror and friction). Add role separation (Auditor/Generator in separate sessions). The system starts catching <em>your</em> errors before you make them.</p>
   </div>
 
-  <p>Start with memory. Add governance when you notice drift. Add roles when you want to scale.</p>
+  <p>Start with memory to learn the system. Add governance when you notice drift. Add roles when you want to scale. The integrated behavior &mdash; where corrections compound, governance catches drift, and roles prevent scope collapse &mdash; emerges when all three are operating together.</p>
 
   <h3>Once You're Running</h3>
 
