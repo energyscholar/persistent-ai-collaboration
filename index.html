@@ -455,11 +455,13 @@ details .accordion-body {
   <button class="anim-btn" aria-label="Play animation" data-state="paused" data-target="svg-hero">&#9654; Play</button>
   </div>
   <section id="opening">
-  <p>Every AI conversation starts from zero. Your five-hundredth session knows exactly as much about you as your first. Corrections you made in February? Gone. Preferences you stated in March? Forgotten. That detailed architectural decision from three weeks ago, the one that took forty minutes to explain? Explain it again.</p>
+  <p>Your AI remembers you now. ChatGPT stores facts about you. Claude has Projects. Claude Code saves corrections automatically. This is real progress &mdash; several years ago, every session started cold.</p>
 
-  <p>This is not a limitation of the models. It is a limitation of how we use them. We pick up the tool, use it, and set it down. Tomorrow we pick it up cold.</p>
+  <p>But try this: use the same AI for two clients who are competitors. Ask it what color palettes you've been working with lately. Watch it cheerfully mention Client A's rebrand in Client B's context. Or correct the same architectural mistake for the third time and realize the correction was saved &mdash; but filed so generically that it never fires when it matters. Or notice that your AI agrees with a plan that contradicts a decision you documented last month, because its memory is a flat pool with no structure, no governance, and no way to tell stale knowledge from current.</p>
 
-  <p>This guide shows you how to build an AI system that actually learns from its mistakes, remembers what you've told it, and protects sensitive information from leaking across contexts. The system that produced this document has been in continuous operation since early 2026 — accumulating corrections, domain expertise, and behavioral governance across 70+ sessions over five months. Every tutorial linked below was produced by the same system. The document you're reading is the evidence.</p>
+  <p>The problem is no longer amnesia. It's that memory without architecture is a <span data-tip="Ungoverned memory leaks across contexts, decays without detection, and enables sycophancy by remembering what you like to hear rather than what's true.">liability</span>. Commercial AI memory learns your name and your preferences. What it doesn't do: silo sensitive information by context, detect its own knowledge decay, prevent sycophancy, separate planning from execution, or compound corrections across months of sustained collaboration.</p>
+
+  <p>This guide shows you how to build those missing layers. The system that produced this document has been in continuous operation since early 2026 &mdash; accumulating corrections, domain expertise, and behavioral governance across 70+ sessions over five months. Every tutorial linked below was produced by the same system. The document you're reading is the evidence.</p>
 
   <p>You can replicate the whole thing or take whichever parts solve your problems. Every component is explained well enough to rebuild from scratch. Start with what hurts most.</p>
   </section>
@@ -1130,6 +1132,8 @@ Report: "[completion format]"</div>
     <h3>Why this works</h3>
     <p>The Auditor can't execute, so it can't shortcut past its own criteria. The Generator can't plan, so it can't expand scope. You sit between them, approving the handoff. Three checkpoints where drift gets caught: when the Auditor presents the plan, when you authorize the handoff, and when the Auditor reviews the Generator's output.</p>
 
+    <p>The overhead looks expensive&mdash;two shells, copy-paste handoffs, plan files for small tasks. Over 70+ sessions, every attempt to shortcut the protocol (Auditor writing deliverables directly, skipping the plan step, combining roles in one shell) produced errors that took longer to fix than the protocol would have taken. The discipline is not overhead. It is the cheapest path.</p>
+
     <h3>Getting started</h3>
     <p>Start with a simple project &mdash; something you'd normally do in a single session. Split it: first session writes the plan, second session executes it. The overhead feels excessive for small tasks. That's fine. You're building the habit. By the third or fourth time, you'll notice something: the plans get better because the Auditor knows the Generator has no context beyond what the plan provides. Precision becomes the default.</p>
 
@@ -1318,30 +1322,30 @@ modes with dry compassion.</div>
 
     <h3>Space Physics &amp; MHD</h3>
     <ul>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/solar-wind-coupling.html">Solar Wind Coupling</a> &mdash; 120KB, 9 JS-animated SVGs. Solar wind&ndash;magnetosphere coupling, Borovsky functions, reconnection.</li>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/mhd-waves.html">MHD Waves</a> &mdash; Alfv&eacute;n and magnetosonic modes, dispersion relations, wave coupling.</li>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/mhd-physics.html">MHD Physics</a> &mdash; 30KB. MHD fundamentals, frozen-in theorem, force balance.</li>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/fac-visual.html">Field-Aligned Currents</a> &mdash; FAC systems, R1/R2 currents, Birkeland current visualization.</li>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/magnetosphere-overview.html">Magnetosphere Overview</a> &mdash; Full magnetospheric system, regions, dynamics.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/solar-wind-coupling.html">Solar Wind Coupling</a> &mdash; 120KB, 9 JS-animated SVGs. Solar wind&ndash;magnetosphere coupling, Borovsky functions, reconnection.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/mhd-waves.html">MHD Waves</a> &mdash; Alfv&eacute;n and magnetosonic modes, dispersion relations, wave coupling.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/mhd-physics.html">MHD Physics</a> &mdash; 30KB. MHD fundamentals, frozen-in theorem, force balance.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/fac-visual.html">Field-Aligned Currents</a> &mdash; FAC systems, R1/R2 currents, Birkeland current visualization.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/magnetosphere-overview.html">Magnetosphere Overview</a> &mdash; Full magnetospheric system, regions, dynamics.</li>
     </ul>
 
     <h3>Inversion &amp; Methods</h3>
     <ul>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/combination-inversion.html">Combination Inversion</a> &mdash; Joint multi-source overdetermined inversion with animated SVGs.</li>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/unified-pipeline.html">Unified Pipeline</a> &mdash; End-to-end analysis pipeline with SVG visualizations.</li>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/extended-analysis.html">Extended Analysis</a> &mdash; Full analysis walkthrough.</li>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/morans-i-swmf-decomposition.html">Moran's I + SWMF Decomposition</a> &mdash; Spatial autocorrelation, model decomposition with animated SVGs.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/combination-inversion.html">Combination Inversion</a> &mdash; Joint multi-source overdetermined inversion with animated SVGs.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/unified-pipeline.html">Unified Pipeline</a> &mdash; End-to-end analysis pipeline with SVG visualizations.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/extended-analysis.html">Extended Analysis</a> &mdash; Full analysis walkthrough.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/morans-i-swmf-decomposition.html">Moran's I + SWMF Decomposition</a> &mdash; Spatial autocorrelation, model decomposition with animated SVGs.</li>
     </ul>
 
     <h3>Fundamentals</h3>
     <ul>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/kriging-fundamentals.md">Kriging Fundamentals</a> &mdash; Variograms, kriging theory, spatial estimation.</li>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/multifidelity-methods.md">Multifidelity Methods</a> &mdash; Multi-resolution techniques, co-kriging.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/kriging-fundamentals.md">Kriging Fundamentals</a> &mdash; Variograms, kriging theory, spatial estimation.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/multifidelity-methods.md">Multifidelity Methods</a> &mdash; Multi-resolution techniques, co-kriging.</li>
     </ul>
 
     <h3>Cross-Domain</h3>
     <ul>
-     <li><a href="https://github.com/energyscholar/has-anyone-looked/blob/main/tutorials/raf-autocatalytic-sets.html">RAF Autocatalytic Sets</a> &mdash; 60KB, 27 SMIL animations. Reflexively autocatalytic food-generated sets &mdash; demonstrates the system working outside its primary domain.</li>
+     <li><a href="https://github.com/energyscholar/persistent-ai-collaboration/blob/main/tutorials/raf-autocatalytic-sets.html">RAF Autocatalytic Sets</a> &mdash; 60KB, 27 SMIL animations. Reflexively autocatalytic food-generated sets &mdash; demonstrates the system working outside its primary domain.</li>
     </ul>
 
     <p>These tutorials span multiple scientific domains, use different animation strategies (JS-driven, SMIL, static), and were produced over a period of weeks. Each one was generated with a short prompt backed by persistent memory &mdash; the system already knew the user's expertise level, preferred visual style, pedagogical approach, and domain vocabulary. The prompts were brief because the context was already loaded.</p>
@@ -1415,16 +1419,59 @@ modes with dry compassion.</div>
   <section id="honest-costs">
   <h2>Honest Costs</h2>
 
-  <p><strong>This is not instant.</strong> The system needs 10-15 sessions of active teaching before it significantly outperforms a fresh instance. You'll spend those sessions correcting mistakes, writing feedback rules, building the memory that makes future sessions fast. It's exactly like onboarding a talented new hire — they're capable immediately, but they don't know your conventions, your judgment calls, or your domain until they've worked with you. Budget the ramp-up time. It pays back, but not on day one.</p>
+  <h3>The obvious question</h3>
 
-  <p><strong>This is for building artifacts.</strong> Architecture specs. Technical tutorials. Analysis pipelines. Research papers. Grant applications. If you want a chatbot or a conversational companion, this approach is massively over-engineered — use your provider's built-in memory features. This system is for people who need AI to produce professional-quality deliverables, reliably, session after session.</p>
+  <p>&ldquo;If this approach is so good, why aren&rsquo;t OpenAI, Anthropic, and Google shipping something like it?&rdquo;</p>
 
-  <p><strong>Other honest limitations:</strong></p>
+  <p>Partly, they are. ChatGPT memory, Claude Projects, Claude Code auto-memory &mdash; these are real steps in this direction. They solve the easy parts: remembering your name, your coding style, your preferred frameworks.</p>
+
+  <p>The hard parts resist productization. Governance rules are domain-specific &mdash; what counts as sycophancy in a physics collaboration is different from what counts in a therapy chatbot. Role separation requires workflow discipline that doesn&rsquo;t fit a chat interface. Health monitoring needs thresholds tuned to your work patterns. Context siloing depends on your specific confidentiality requirements. These aren&rsquo;t features you can ship to a hundred million users. They&rsquo;re architecture you build for your situation.</p>
+
+  <p>The governance architecture described here operates at the application layer &mdash; system prompts, memory files, behavioral rules. A complementary approach monitors the model layer directly, using relational mathematics to detect internal structural drift that output metrics cannot see. A working demonstration exists: <a href="https://github.com/Relational-Relativity-Corporation/abrce-alignment-demo">ABRCE Alignment Drift Detection</a>. The mathematical formalism is published at <a href="https://arxiv.org/abs/2601.22389">arXiv:2601.22389</a>.</p>
+
+  <p>Argus was built for one person doing a specific kind of work: sustained research and writing across space physics, mathematics, and a literary project, over months, with strict information compartmentalization requirements. It is not a product. It is a custom-built system that happens to have replicable architecture.</p>
+
+  <h3>This is probably not for you</h3>
+
+  <p>Painfully honest pros and cons:</p>
+
+  <table>
+   <tr><th style="width:50%">Strengths</th><th style="width:50%">Costs</th></tr>
+   <tr>
+    <td>Corrections compound &mdash; fix a mistake once, it stays fixed across months</td>
+    <td>10-15 sessions of active teaching before it outperforms a fresh instance</td>
+   </tr>
+   <tr>
+    <td>Context siloing prevents information leaks between projects</td>
+    <td>You maintain the memory files, the database rebuild, the health checks</td>
+   </tr>
+   <tr>
+    <td>Anti-sycophancy governance catches agreement that should be pushback</td>
+    <td>Governance rules require ongoing tuning &mdash; false positives are annoying, false negatives are dangerous</td>
+   </tr>
+   <tr>
+    <td>Role separation (Auditor/Generator) prevents scope drift on complex deliverables</td>
+    <td>Running two shells with copy-paste handoffs is slower than just asking the AI to do it</td>
+   </tr>
+   <tr>
+    <td>Health monitoring detects knowledge decay before it causes errors</td>
+    <td>The system is tuned to its builder &mdash; someone else would need to build their own, not clone this one</td>
+   </tr>
+   <tr>
+    <td>Professional-quality artifacts: 119KB animated white papers, 100KB cinematic tutorials, research pipelines</td>
+    <td>Strongest for engineering and technical writing. Less proven where training data is sparse</td>
+   </tr>
+  </table>
+
+  <p><strong>For most people, the built-in memory features are enough.</strong> If you use AI for daily questions, quick coding tasks, or general assistance, use ChatGPT memory or Claude Projects. They work. They&rsquo;re free (or included in your subscription). They require zero setup.</p>
+
+  <p>This approach is for a narrower audience: people who need AI to produce professional-quality deliverables on sustained projects over months, with strict context boundaries and the discipline to invest in training time. That&rsquo;s a real audience &mdash; but it&rsquo;s not most people, and pretending otherwise would be dishonest.</p>
+
+  <p><strong>Other limitations:</strong></p>
   <ul>
    <li>Amplifies existing expertise. Garbage in, persistent garbage out.</li>
    <li>Self-audit catches most errors but not all. Human review remains necessary for high-stakes work.</li>
-   <li>Strongest for engineering and technical writing. Less proven for novel research where training data is sparse.</li>
-   <li>This is architecture, not sentience. It works because it's structurally constrained to, not because it "understands."</li>
+   <li>This is architecture, not sentience. It works because it&rsquo;s structurally constrained to, not because it &ldquo;understands.&rdquo;</li>
   </ul>
   </section>
 
@@ -1602,6 +1649,7 @@ domain: [optional — project/domain tag for compartmentalization]
      <li>Stephenson, B. &amp; Argus. (2026). <em>Triad Protocol: Role-Separation Architecture for AI-Assisted Development</em>. <a href="https://github.com/energyscholar/triad-tutorial">github.com/energyscholar/triad-tutorial</a></li>
      <li>Stephenson, B. &amp; Argus. (2026). <em>Longmem: Persistent Memory for Claude Code</em>. <a href="https://github.com/energyscholar/longmem">github.com/energyscholar/longmem</a></li>
      <li>Anthropic. (2025&ndash;2026). <em>Claude Code</em>. CLI tool for AI-assisted software engineering. <a href="https://docs.anthropic.com/en/docs/claude-code">docs.anthropic.com</a></li>
+     <li>Stephenson, B. &amp; Macomber, R. (2026). <em>ABRCE Alignment Drift Detection: Cross-Domain Generalizability Demonstration</em>. Metatron Dynamics. <a href="https://github.com/Relational-Relativity-Corporation/abrce-alignment-demo">github.com/Relational-Relativity-Corporation/abrce-alignment-demo</a>. Mathematical formalism: <a href="https://arxiv.org/abs/2601.22389">arXiv:2601.22389</a>.</li>
     </ol>
 
     <h3>Component Provenance</h3>
@@ -1609,6 +1657,7 @@ domain: [optional — project/domain tag for compartmentalization]
      <li><strong>Dignity Net v1.2:</strong> Designed by <a href="https://github.com/JoyfulAcceptance">Genevieve Prentice</a>, February 2026. Trial period 2026-02-16 through 2026-02-20; made permanent based on demonstrated value. The full specification is reproduced in Accordion 3A with the designer's permission. Canonical releases at <a href="https://github.com/JoyfulAcceptance/dignity-net-public">github.com/JoyfulAcceptance/dignity-net-public</a>.</li>
      <li><strong>Three Orthogonal Axes insight:</strong> Surfaced by external audit (ChatGPT analysis of a working transcript), 2026-05-01. Confirmed by both human and AI &mdash; neither had independently noticed the structural relationship between execution, truth, and continuity governance. The insight that these three form <em>boundary conditions</em> rather than features emerged from an outside observer seeing what familiarity had hidden.</li>
      <li><strong>Triad protocol:</strong> Adapted from software engineering Auditor/Generator separation patterns. The Origin role (human purpose + domain expertise + final authority) was added to prevent scope drift at the top of the authority chain. The copy-paste gate between Auditor and Generator is original to this system. Tutorial and reference implementation at <a href="https://github.com/energyscholar/triad-tutorial">github.com/energyscholar/triad-tutorial</a>.</li>
+     <li><strong>Alignment drift detection:</strong> ABRCE operators applied to transformer internal states detect structural deviation that output metrics are blind to. 31 of 43 escalation sequences triggered field alarms without output degradation. Working demonstration on Phi-3 Mini (model-agnostic). Published: <a href="https://arxiv.org/abs/2601.22389">arXiv:2601.22389</a>.</li>
      <li><strong>Memory architecture (Longmem):</strong> Flat file upstream (version-controlled Markdown with YAML frontmatter) &rarr; ingestion script &rarr; SQLite database (read cache with FTS5). Deterministically rebuildable from flat files. Reference implementation at <a href="https://github.com/energyscholar/longmem">github.com/energyscholar/longmem</a>.</li>
     </ul>
 
@@ -1623,7 +1672,7 @@ domain: [optional — project/domain tag for compartmentalization]
      <li><strong>Session count at publication:</strong> 70+ sessions over approximately five months (January&ndash;May 2026, with formalized tracking beginning in April).</li>
      <li><strong>Platform:</strong> Claude (Anthropic), Claude Code CLI. Pro Max subscription.</li>
      <li><strong>Memory size:</strong> ~50 flat files across user, feedback, project, reference, and correction types. SQLite database ~200KB.</li>
-     <li><strong>Tutorial output:</strong> 15 standalone HTML tutorials (13 in the extended catalog + 2 portfolio pieces), ranging from 30KB to 120KB, using JS-animated SVGs, SMIL animations, and static diagrams.</li>
+     <li><strong>Tutorial output:</strong> 14 standalone HTML tutorials (12 in the extended catalog + 2 portfolio pieces), ranging from 28KB to 2.1MB, using JS-animated SVGs, SMIL animations, and static diagrams.</li>
     </ul>
 
     <h3>License &amp; Copyright</h3>

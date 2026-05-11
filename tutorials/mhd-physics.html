@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MHD Physics of Ground Magnetic Perturbations: A Practical Guide</title>
+<style>
+:root { --bg: #fafaf8; --text: #222; --accent: #1a5276; --accent2: #884400; --border: #ddd; }
+* { box-sizing: border-box; }
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  max-width: 860px; margin: 0 auto; padding: 2em 1.5em;
+  background: var(--bg); color: var(--text);
+  line-height: 1.65; font-size: 16px;
+}
+h1 { font-size: 1.7em; color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 0.3em; margin-top: 2em; }
+h2 { font-size: 1.3em; color: var(--accent2); margin-top: 1.8em; }
+h3 { font-size: 1.1em; color: #444; margin-top: 1.4em; }
+.header { text-align: center; padding: 2em 0; border-bottom: 3px solid var(--accent); margin-bottom: 2em; }
+.header h1 { border: none; font-size: 1.5em; margin: 0; }
+.header .subtitle { font-size: 1.05em; color: #555; margin-top: 0.5em; }
+.header .meta { font-size: 0.9em; color: #888; margin-top: 1em; }
+.finding { background: #f0f7ff; border-left: 4px solid var(--accent); padding: 0.8em 1.2em; margin: 1.2em 0; border-radius: 0 4px 4px 0; }
+.finding strong { color: var(--accent); }
+.physics { background: #fff8f0; border-left: 4px solid var(--accent2); padding: 0.8em 1.2em; margin: 1.2em 0; border-radius: 0 4px 4px 0; }
+.caution { background: #fff0f0; border-left: 4px solid #c33; padding: 0.8em 1.2em; margin: 1.2em 0; border-radius: 0 4px 4px 0; }
+table { border-collapse: collapse; margin: 1em auto; font-size: 0.9em; width: 100%; }
+th, td { border: 1px solid var(--border); padding: 0.4em 0.8em; text-align: center; }
+th { background: #f0f0f0; }
+td.left { text-align: left; }
+.fig-caption { text-align: center; font-size: 0.9em; color: #555; font-style: italic; margin: 0.5em 0 1.5em; }
+code { font-family: 'Menlo', 'Consolas', monospace; background: #f0f0f0; padding: 0.1em 0.3em; font-size: 0.9em; border-radius: 2px; }
+.eq { text-align: center; font-size: 1.1em; margin: 1em 0; padding: 0.5em; background: #f8f8f8; border-radius: 4px; }
+.toc { background: #f5f5f5; padding: 1em 1.5em; border-radius: 6px; margin: 1em 0 2em; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { margin: 0.3em 0; }
+.toc a { color: var(--accent); text-decoration: none; }
+hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+img { border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+.current-box { background: #f8f8ff; border: 1px solid #aac; padding: 1em; border-radius: 6px; margin: 1em 0; }
+.current-box h3 { margin-top: 0; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>MHD Physics of Ground Magnetic Perturbations</h1>
+  <div class="subtitle">Current Systems, Biot-Savart Decomposition, and What Ground Magnetometers Actually See</div>
+  <div class="meta">Bruce Stephenson &amp; Argus &middot; May 2026</div>
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#m1">1. Earth's Magnetic Envelope</a></li>
+    <li><a href="#m2">2. The Current Systems</a></li>
+    <li><a href="#m3">3. Biot-Savart: From Currents to δB</a></li>
+    <li><a href="#m4">4. The Current Closure Circuit</a></li>
+    <li><a href="#m5">5. Why Hall Currents Cancel FAC at the Ground</a></li>
+    <li><a href="#m6">6. The SWMF Model: What It Computes</a></li>
+    <li><a href="#m7">7. Reading the 15-Column Decomposition</a></li>
+    <li><a href="#m8">8. What the Model Gets Right and Wrong</a></li>
+    <li><a href="#m9">9. Induction Effects: The Ground Matters</a></li>
+    <li><a href="#m10">10. Connecting MHD to Spatial Coherence</a></li>
+  </ul>
+</div>
+
+<h1 id="m1">1. Earth's Magnetic Envelope</h1>
+
+<p>Earth's internal dynamo generates a roughly dipolar magnetic field that extends into space.
+The solar wind — a supersonic plasma flowing at 400&ndash;800 km/s from the Sun — compresses this
+field on the dayside and stretches it into a long tail on the nightside, creating the
+<strong>magnetosphere</strong>: a bullet-shaped cavity in the solar wind about 10 Earth radii (R_E ≈ 6371 km)
+wide on the dayside and extending &gt;100 R_E tailward.</p>
+
+<p>The magnetosphere is not empty space — it's filled with hot, tenuous plasma organized by
+the magnetic field. The plasma and field are coupled through the MHD equations: the plasma can't
+cross field lines (except through reconnection), and the magnetic field can't change without
+moving the plasma (except through resistivity). This coupling is what makes the system both
+complex and tractable — complex because everything is connected, tractable because the MHD
+equations provide a complete description.</p>
+
+<svg viewBox="0 0 750 300" xmlns="http://www.w3.org/2000/svg" style="max-width:750px;margin:1.5em auto;display:block;">
+  <style>
+    text { font-family: 'Georgia', serif; font-size: 11px; fill: #333; }
+    .region { font-size: 10px; fill: #555; font-style: italic; }
+  </style>
+  <defs>
+    <marker id="arr3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Solar wind -->
+  <rect x="10" y="10" width="100" height="280" fill="#fff8e0" stroke="#cc9" stroke-width="1"/>
+  <text x="60" y="30" text-anchor="middle" font-weight="bold" fill="#aa6">Solar Wind</text>
+  <text x="60" y="50" text-anchor="middle" class="region">v ≈ 400 km/s</text>
+  <text x="60" y="65" text-anchor="middle" class="region">n ≈ 5/cc</text>
+  <line x1="30" y1="80" x2="30" y2="280" stroke="#cc9" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="60" y1="80" x2="60" y2="280" stroke="#cc9" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="90" y1="80" x2="90" y2="280" stroke="#cc9" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Bow shock -->
+  <path d="M 130,20 Q 110,150 130,280" fill="none" stroke="#c66" stroke-width="2"/>
+  <text x="120" y="15" font-size="10" fill="#c66">Bow shock</text>
+
+  <!-- Magnetosheath -->
+  <text x="160" y="30" font-size="10" fill="#886">Magnetosheath</text>
+
+  <!-- Magnetopause -->
+  <path d="M 200,30 Q 170,150 200,270" fill="none" stroke="#66c" stroke-width="2.5"/>
+  <text x="175" y="22" font-size="10" fill="#66c">Magnetopause</text>
+
+  <!-- Magnetosphere -->
+  <ellipse cx="380" cy="150" rx="180" ry="120" fill="#e8f0ff" opacity="0.4" stroke="#88b" stroke-width="1"/>
+  <text x="380" y="145" text-anchor="middle" font-size="13" fill="#336" font-weight="bold">Magnetosphere</text>
+
+  <!-- Earth -->
+  <circle cx="350" cy="150" r="18" fill="#4a7" stroke="#2a5" stroke-width="2"/>
+  <text x="350" y="154" text-anchor="middle" font-size="9" fill="white" font-weight="bold">Earth</text>
+
+  <!-- Ionosphere -->
+  <circle cx="350" cy="150" r="26" fill="none" stroke="#a8a" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="350" y="120" text-anchor="middle" class="region">Ionosphere</text>
+
+  <!-- Tail -->
+  <line x1="520" y1="40" x2="720" y2="40" stroke="#88b" stroke-width="1.5"/>
+  <line x1="520" y1="260" x2="720" y2="260" stroke="#88b" stroke-width="1.5"/>
+  <text x="620" y="145" text-anchor="middle" class="region">Magnetotail</text>
+  <text x="620" y="160" text-anchor="middle" class="region">Plasma sheet</text>
+  <rect x="580" y="140" width="80" height="20" fill="#fdd" opacity="0.3" stroke="#c88" stroke-width="0.5"/>
+
+  <!-- Ring current -->
+  <ellipse cx="350" cy="150" rx="60" ry="25" fill="none" stroke="#c6c" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="420" y="170" font-size="10" fill="#c6c">Ring current</text>
+
+  <!-- Field lines -->
+  <path d="M 350,132 Q 280,80 350,30 Q 420,80 350,132" fill="none" stroke="#88b" stroke-width="0.8"/>
+  <path d="M 350,168 Q 280,220 350,270 Q 420,220 350,168" fill="none" stroke="#88b" stroke-width="0.8"/>
+
+  <!-- Cross-tail current -->
+  <line x1="600" y1="150" x2="640" y2="150" stroke="#c88" stroke-width="1.5" marker-end="url(#arr3)"/>
+  <text x="650" y="154" font-size="9" fill="#c88">J_tail</text>
+
+  <!-- Labels -->
+  <text x="300" y="90" font-size="10" fill="#88b">Dipole field lines</text>
+</svg>
+<p class="fig-caption">Figure 1. Schematic magnetosphere (not to scale). The solar wind
+compresses the dayside and stretches the nightside into a long tail. Key current systems
+flow at the magnetopause, in the ring current, through the cross-tail, and along field lines
+connecting to the ionosphere.</p>
+
+<h1 id="m2">2. The Current Systems</h1>
+
+<p>Electric currents flow everywhere in the magnetosphere-ionosphere system. Each current system
+has a distinct physical origin, spatial scale, and ground signature. Understanding these is
+essential for interpreting what ground magnetometers measure.</p>
+
+<div class="current-box">
+<h3>Chapman-Ferraro Currents (Magnetopause)</h3>
+<p><strong>Location:</strong> Magnetopause surface, ~10 R_E on dayside</p>
+<p><strong>Physical origin:</strong> Pressure balance. Solar wind dynamic pressure compresses the
+geomagnetic field; the boundary condition requires a surface current flowing dawn-to-dusk on the
+dayside to shield the Earth's field from the solar wind. Named after Chapman and Ferraro who
+predicted them in 1930.</p>
+<p><strong>Ground signature:</strong> Increases the horizontal field at the equator (adds to the
+main field). Magnitude: ~20 nT during quiet, ~50 nT during compression events (sudden
+commencements). Spatially very smooth — uniform over thousands of km. Low Moran's I contribution
+because variation between stations is minimal.</p>
+<p><strong>Typical δB at ground:</strong> 10&ndash;50 nT, very smooth</p>
+</div>
+
+<div class="current-box">
+<h3>Ring Current</h3>
+<p><strong>Location:</strong> Equatorial plane, 3&ndash;8 R_E, flowing westward</p>
+<p><strong>Physical origin:</strong> Energetic ions (10&ndash;100 keV, primarily H⁺ and O⁺) trapped in the
+dipolar magnetic field undergo gradient and curvature drift, creating a net westward current.
+During storms, fresh injection from the plasma sheet intensifies this current.</p>
+<p><strong>Ground signature:</strong> Depresses the horizontal field globally — this is what
+the <strong>Dst index</strong> measures. A Dst of −100 nT means the ring current is producing
+a 100 nT southward perturbation at the equator. Spatially very smooth because the current
+is at 3&ndash;8 R_E distance: all ground stations see essentially the same perturbation.</p>
+<p><strong>Why it matters for Moran's I:</strong> The ring current produces a <em>common-mode</em>
+perturbation — it shifts all stations similarly. Because Moran's I measures deviation from
+the mean, a uniform shift doesn't contribute to spatial pattern. The ring current tells you
+how intense the storm is, but it doesn't create spatial structure on the ground.</p>
+<p><strong>Typical δB at ground:</strong> 50&ndash;400+ nT during storms, nearly uniform</p>
+</div>
+
+<div class="current-box">
+<h3>Cross-Tail Current</h3>
+<p><strong>Location:</strong> Plasma sheet, 10&ndash;30 R_E tailward, flowing dawn-to-dusk</p>
+<p><strong>Physical origin:</strong> Pressure gradient in the plasma sheet drives a current sheet
+that maintains the stretched tail field configuration. During substorms, part of this current
+is disrupted ("current wedge") and diverted along field lines to the ionosphere.</p>
+<p><strong>Ground signature:</strong> Small at the ground due to large distance. But during substorms,
+the current disruption drives the substorm current wedge — see FAC below.</p>
+<p><strong>Typical δB at ground:</strong> Small directly; large indirectly via FAC</p>
+</div>
+
+<div class="current-box">
+<h3>Field-Aligned Currents (FAC) — Region 1 and Region 2</h3>
+<p><strong>Location:</strong> Along geomagnetic field lines, connecting magnetosphere to ionosphere</p>
+<p><strong>Physical origin:</strong> Magnetospheric convection (driven by reconnection) maps an electric
+field into the ionosphere. The resulting potential difference drives currents that close through
+the ionosphere. Iijima &amp; Potemra (1976) identified the two-ring pattern:</p>
+<ul>
+  <li><strong>Region 1 (R1):</strong> Higher latitude (~70&ndash;75°), flows INTO the ionosphere on
+    the dawnside, OUT on the duskside. Driven by the boundary between open and closed field lines.</li>
+  <li><strong>Region 2 (R2):</strong> Lower latitude (~65&ndash;70°), opposite polarity to R1.
+    Driven by the inner magnetosphere pressure gradient (ring current shielding).</li>
+</ul>
+<p><strong>Ground signature:</strong> FAC are the primary source of <em>spatially organized</em>
+ground magnetic perturbations at high latitudes. The R1/R2 system creates a large-scale
+(~5000 km diameter) pattern of perturbations that is coherent across many stations.</p>
+<p><strong>THIS IS THE KEY CURRENT FOR SPATIAL COHERENCE.</strong></p>
+<p><strong>Typical δB at ground:</strong> 100&ndash;1000+ nT during storms, spatially organized</p>
+</div>
+
+<div class="current-box">
+<h3>Ionospheric Hall Currents</h3>
+<p><strong>Location:</strong> Ionospheric E-region, ~100&ndash;130 km altitude</p>
+<p><strong>Physical origin:</strong> When FAC close through the ionosphere, the perpendicular electric
+field drives horizontal currents. Hall currents flow perpendicular to both E and B — in the
+ionosphere, this means perpendicular to the applied electric field. The Hall current is the
+dominant contributor to the auroral electrojets (the intense east-west current bands at
+auroral latitudes).</p>
+<p><strong>Ground signature:</strong> Creates strong north-south (N-component) perturbations
+directly below. But because Hall currents respond to the <em>local</em> electric field and
+conductance, their spatial pattern is more fragmented than the FAC pattern that drives them.
+They partially <em>cancel</em> the FAC ground signal.</p>
+<p><strong>Typical δB at ground:</strong> 200&ndash;2000+ nT during substorms, locally intense</p>
+</div>
+
+<div class="current-box">
+<h3>Ionospheric Pedersen Currents</h3>
+<p><strong>Location:</strong> Ionospheric E and F-region, 110&ndash;300+ km</p>
+<p><strong>Physical origin:</strong> Pedersen currents flow parallel to the applied electric field
+(perpendicular to B) — the "resistive" component. In the ionosphere, they flow in the
+direction of the convection electric field and close the FAC circuit through the ionosphere.</p>
+<p><strong>Ground signature:</strong> Relatively weak at the ground because Pedersen currents flow
+radially (from FAC entry point outward) and tend to cancel when projected to the ground.
+The main contribution is through Joule heating (J·E), which modifies TEC by changing
+ionospheric density and composition.</p>
+<p><strong>Typical δB at ground:</strong> 20&ndash;100 nT, spatially diffuse</p>
+</div>
+
+<h1 id="m3">3. Biot-Savart: From Currents to δB</h1>
+
+<p>The Biot-Savart law relates a current distribution J(r) to the magnetic field perturbation
+at any point r₀:</p>
+
+<div class="eq">
+  δB(r₀) = (μ₀/4π) ∫ J(r) × (r₀ − r) / |r₀ − r|³ dV
+</div>
+
+<p>This integral has three key properties that matter for our analysis:</p>
+
+<ol>
+  <li><strong>Superposition:</strong> Each current source contributes independently. The total
+    δB is the sum of contributions from every current in the system. This is what makes the
+    SWMF decomposition possible — you can integrate over just the FAC current density, or
+    just the Hall current density, and get their individual contributions.</li>
+  <li><strong>Distance weighting:</strong> The 1/|r|² dependence means nearby currents dominate.
+    A 100 nT perturbation from Hall currents at 110 km altitude is comparable to a 100 nT
+    perturbation from FAC at 100&ndash;10,000 km. Hall currents are close; FAC span a huge
+    range of distances.</li>
+  <li><strong>Geometry sensitivity:</strong> The cross product J × r̂ means the direction matters.
+    A current flowing east-west produces north-south δB at the ground (and vice versa).
+    A radial current (like the vertical segment of FAC near the ground) produces a circular
+    pattern of horizontal δB.</li>
+</ol>
+
+<div class="physics">
+  <strong>Why decomposition is non-trivial:</strong> The Biot-Savart integral is over all space,
+  so the "FAC contribution" includes not just the FAC themselves but their distant magnetic field
+  projected to the ground. A field-aligned current at 5 R_E altitude contributes to ground δB
+  through this long-range integral. The SWMF evaluates this integral separately for each current
+  source using the full 3D current distribution from the MHD solution.
+</div>
+
+<h1 id="m4">4. The Current Closure Circuit</h1>
+
+<p>Currents don't start and end — they form closed circuits (∇·J = 0). The M-I current closure
+circuit is:</p>
+
+<div class="eq">
+  Magnetospheric driving → FAC (along field lines) → Ionospheric Pedersen + Hall → FAC return → Magnetosphere
+</div>
+
+<p>In more detail:</p>
+
+<ol>
+  <li><strong>Solar wind reconnection</strong> drives magnetospheric convection, creating a
+    dawn-dusk electric field mapped along field lines to the ionosphere.</li>
+  <li><strong>The electric field drives FAC</strong> along field lines — downward on one side
+    of the convection cell, upward on the other. Region 1 flows at ~70° latitude;
+    Region 2 at ~65°.</li>
+  <li><strong>In the ionosphere</strong>, the FAC must close horizontally. Pedersen currents flow
+    along E, Hall currents flow along E×B. The total horizontal current connects the downward
+    and upward FAC channels.</li>
+  <li><strong>The upward FAC returns</strong> to the magnetosphere, completing the circuit.</li>
+</ol>
+
+<p>A ground magnetometer sitting below this circuit sees the superposition of contributions from
+ALL segments of the circuit — FAC overhead, Hall currents at 110 km, Pedersen currents at 150 km,
+and the distant magnetospheric currents that drive the whole system. This is why the total
+ground δB is such a complicated quantity to interpret.</p>
+
+<h1 id="m5">5. Why Hall Currents Cancel FAC at the Ground</h1>
+
+<p>This is the central puzzle our pipeline illuminates: why does the total ground δB show
+less spatial coherence than the FAC component alone?</p>
+
+<p>The answer lies in geometry. Consider a single FAC sheet — an infinite line of current
+flowing vertically downward into the ionosphere at some latitude. By Biot-Savart, this current
+produces a circular pattern of horizontal δB at the ground, centered on the footpoint. If
+there are two FAC sheets (R1 and R2, with opposite polarity), they create a large-scale
+organized pattern with a characteristic scale equal to the R1-R2 separation (~500&ndash;1000 km).</p>
+
+<p>Now consider what happens when this FAC closes through the ionosphere. The Hall current flows
+east-west in the E-region, directly below the FAC footprint. By Biot-Savart, this east-west
+current produces a north-south δB at the ground. But the Hall current flows in a direction
+that partially opposes the ground projection of the FAC itself.</p>
+
+<div class="finding">
+  <strong>The cancellation mechanism:</strong> The FAC (at varying altitude) produces a broad,
+  smooth ground δB pattern. The Hall current (at ~110 km, very close to the ground) produces
+  a strong, local δB that opposes part of the FAC signal. Because the Hall current is close,
+  its amplitude is large relative to its spatial extent — it creates local perturbations that
+  <em>fragment</em> the large-scale FAC pattern.
+</div>
+
+<p>In our SWMF results, the numbers are striking:</p>
+<ul>
+  <li>FAC alone: Moran's I ≈ +0.15 (coherent large-scale pattern)</li>
+  <li>Hall alone: Moran's I ≈ 0.0 (no large-scale pattern)</li>
+  <li>FAC + Hall + others: Moran's I ≈ 0.0 (cancellation!)</li>
+</ul>
+
+<p>The Hall current doesn't just add noise — it specifically destroys the large-scale structure
+that FAC creates. This is because the Hall current is driven <em>by</em> the FAC closure
+and therefore flows in a spatial pattern that is anti-correlated with the FAC ground signature
+at large scales.</p>
+
+<h1 id="m6">6. The SWMF Model: What It Computes</h1>
+
+<p>The Space Weather Modeling Framework (SWMF) couples multiple physics models:</p>
+
+<h3>GM: Global Magnetosphere (BATS-R-US)</h3>
+<p>BATS-R-US solves the ideal MHD equations on an adaptive mesh grid covering the magnetosphere
+(−250 R_E to +32 R_E in GSM coordinates). It computes the full 3D magnetic field, plasma
+velocity, density, and pressure at each grid point. From the MHD solution, the current density
+J = ∇×B/μ₀ is computed everywhere in the volume.</p>
+
+<h3>IE: Ionosphere Electrodynamics (Ridley)</h3>
+<p>The Ridley model solves a 2D Poisson equation for the ionospheric potential Φ on a spherical
+shell at ~110 km altitude. Inputs: FAC pattern from BATS-R-US (mapped along field lines to
+the ionosphere), ionospheric conductance model (solar illumination + auroral precipitation).
+Outputs: electric field E = −∇Φ, Hall and Pedersen current densities.</p>
+
+<h3>Virtual Magnetometers</h3>
+<p>At specified ground locations, SWMF evaluates the Biot-Savart integral for each current source
+separately:</p>
+
+<table>
+  <tr><th>Component</th><th>Biot-Savart domain</th><th>Columns</th></tr>
+  <tr><td class="left">MHD</td><td class="left">All magnetospheric currents (GM volume)</td><td>N, E, D</td></tr>
+  <tr><td class="left">FAC</td><td class="left">Field-aligned currents (at the IE boundary)</td><td>N, E, D</td></tr>
+  <tr><td class="left">Hall</td><td class="left">Hall currents (IE sheet)</td><td>N, E, D</td></tr>
+  <tr><td class="left">Pedersen</td><td class="left">Pedersen currents (IE sheet)</td><td>N, E, D</td></tr>
+  <tr><td class="left"><strong>Total</strong></td><td class="left"><strong>Sum of all four</strong></td><td><strong>N, E, D</strong></td></tr>
+</table>
+
+<p>N = geographic north, E = geographic east, D = vertical (downward positive). Each timestep
+produces 15 values per station: 5 sources × 3 components.</p>
+
+<h1 id="m7">7. Reading the 15-Column Decomposition</h1>
+
+<p>When you look at SWMF .mag output, the 15 columns are ordered:</p>
+
+<div class="eq">
+  total_N, total_E, total_D, mhd_N, mhd_E, mhd_D, fac_N, fac_E, fac_D, hall_N, hall_E, hall_D, ped_N, ped_E, ped_D
+</div>
+
+<p>The total should equal the sum of the four components: total = mhd + fac + hall + ped.
+(In practice, there can be small numerical differences due to interpolation between
+the GM and IE grids.)</p>
+
+<h3>What to look for</h3>
+<ul>
+  <li><strong>MHD columns:</strong> Usually small compared to FAC and Hall. The magnetospheric
+    currents are far away. Largest during sudden commencements (magnetopause compression) and
+    for low-latitude stations (ring current).</li>
+  <li><strong>FAC columns:</strong> Large, spatially organized. The N and E components are
+    comparably sized (FAC creates both horizontal components through the Biot-Savart cross product).
+    D is usually smaller.</li>
+  <li><strong>Hall columns:</strong> Large in N (the east-west electrojet creates north-south δB),
+    smaller in E. Often opposite sign to FAC_N at the same station — this is the cancellation.</li>
+  <li><strong>Pedersen columns:</strong> Usually small. Pedersen currents flow radially from
+    the FAC footpoint and their ground δB tends to cancel by symmetry.</li>
+</ul>
+
+<div class="caution">
+  <strong>Caution: the decomposition is model-dependent.</strong> The split between FAC, Hall,
+  and Pedersen depends on how the model defines the ionospheric boundary, how conductance is
+  computed, and how the Biot-Savart integral handles the interface between GM and IE. Different
+  models (e.g., GAMERA, LFM, OpenGGCM) will give different decompositions for the same event,
+  though the total should be similar if the models are well-calibrated.
+</div>
+
+<h1 id="m8">8. What the Model Gets Right and Wrong</h1>
+
+<h3>What SWMF/BATS-R-US gets right</h3>
+<ul>
+  <li><strong>Large-scale current systems:</strong> The R1/R2 FAC pattern, magnetopause currents,
+    and ring current are well-reproduced. The model captures the basic convection pattern and
+    its dependence on IMF Bz.</li>
+  <li><strong>Decomposition insight:</strong> Even if individual values are off by 30&ndash;50%,
+    the relative importance of FAC vs Hall vs MHD is meaningful. The cancellation pattern
+    is robust.</li>
+  <li><strong>Temporal evolution:</strong> Storm onset, main phase, and recovery are qualitatively
+    correct. Substorm dynamics are captured (though timing is often wrong).</li>
+</ul>
+
+<h3>What it gets wrong</h3>
+<ul>
+  <li><strong>Spatial resolution:</strong> BATS-R-US uses adaptive mesh but even with refinement,
+    the ionospheric mapping is limited. Small-scale FAC structure (&lt;100 km) is not resolved.</li>
+  <li><strong>Ionospheric conductance:</strong> The Ridley model uses empirical conductance
+    (solar EUV + Hardy auroral model). Real conductance has much more structure (discrete arcs,
+    diffuse vs discrete precipitation). This affects the Hall/Pedersen current distribution.</li>
+  <li><strong>Numerical diffusion:</strong> Ideal MHD with numerical resistivity smears out
+    current sheets and reduces sharp gradients. This may reduce the actual FAC spatial structure
+    below what nature produces.</li>
+  <li><strong>Missing physics:</strong> No kinetic effects, no ring current chemistry (O⁺ injection),
+    no radiation belt dynamics, no induction effects in the ground. Substorm onset timing
+    is notoriously difficult for MHD models.</li>
+</ul>
+
+<div class="physics">
+  <strong>Bottom line:</strong> Trust the decomposition for qualitative insights (which current
+  system dominates spatial structure?), but be cautious about quantitative comparisons with
+  observations. The FAC-Hall cancellation is a robust prediction across models; the exact
+  cancellation ratio is model-dependent.
+</div>
+
+<h1 id="m9">9. Induction Effects: The Ground Matters</h1>
+
+<p>One important effect that neither our pipeline nor SWMF currently accounts for is
+<strong>electromagnetic induction in the Earth</strong>. Time-varying magnetic fields from
+ionospheric currents induce electric currents in the conducting ground (oceans, sedimentary
+basins, ore bodies), which produce their own δB that adds to the measured signal.</p>
+
+<h3>How big is this?</h3>
+<p>Induction effects can contribute 20&ndash;40% of the measured horizontal δB, depending on
+local ground conductivity. Coastal stations (near conducting ocean) see stronger induction
+than inland stations. This creates systematic spatial variation that is NOT due to the
+ionospheric source — it's due to geology.</p>
+
+<h3>Impact on Moran's I</h3>
+<p>Induction effects could either increase or decrease spatial autocorrelation:</p>
+<ul>
+  <li><strong>Increase:</strong> If nearby stations have similar ground conductivity
+    (likely in Scandinavia or Canadian Shield), induction amplifies the signal uniformly,
+    adding coherent spatial pattern.</li>
+  <li><strong>Decrease:</strong> If nearby stations have very different conductivity
+    (one coastal, one inland), induction creates local differences that reduce coherence.</li>
+</ul>
+
+<p>The Z-component is most sensitive to induction (vertical δB from induced currents is large
+and conductivity-dependent). Our finding that Z has the lowest Moran's I (mean = −0.02) is
+consistent with geologically-driven local variations masking any ionospheric spatial pattern
+in the vertical component.</p>
+
+<h1 id="m10">10. Connecting MHD to Spatial Coherence</h1>
+
+<p>Now we can connect the MHD physics to what our pipeline measures:</p>
+
+<table>
+  <tr><th>Physical Quantity</th><th>Creates Spatial Coherence?</th><th>Scale</th><th>Ground Effect</th></tr>
+  <tr><td class="left">Ring current</td><td>No (common mode)</td><td>Global</td><td>Uniform δB, subtracted by mean</td></tr>
+  <tr><td class="left">Chapman-Ferraro</td><td>No (very smooth)</td><td>Global</td><td>Small, uniform</td></tr>
+  <tr><td class="left">FAC (R1/R2)</td><td><strong>Yes — primary source</strong></td><td>~5000 km</td><td>Large, organized pattern</td></tr>
+  <tr><td class="left">Hall currents</td><td>No (local, cancels FAC)</td><td>~1000 km</td><td>Fragments FAC pattern</td></tr>
+  <tr><td class="left">Pedersen</td><td>No (weak, symmetric)</td><td>~500 km</td><td>Small contribution</td></tr>
+  <tr><td class="left">Substorm current wedge</td><td>Yes (during substorms)</td><td>~2000 km</td><td>Transient organized pattern</td></tr>
+</table>
+
+<p>The ground magnetometer sees the <strong>sum of all contributions</strong>. The ring current
+adds a large common-mode offset (this is Dst). FAC creates the spatial pattern. Hall currents
+partially cancel it. The result is a much weaker spatial coherence signal than the driving
+FAC structure would predict.</p>
+
+<div class="finding">
+  <strong>The fundamental insight:</strong> Ground magnetometers are excellent amplitude detectors
+  (Dst captures storm intensity with high fidelity) but <em>poor spatial structure detectors</em>
+  because the closure currents that enable FAC to flow also destroy the FAC's ground signature
+  through cancellation. Understanding this requires the model decomposition — which is exactly
+  what SWMF provides and our pipeline analyzes.
+</div>
+
+<h2>Implications for Observation Strategy</h2>
+<p>Given this physics, how should we optimize spatial coherence detection?</p>
+
+<ol>
+  <li><strong>Use the E-component preferentially:</strong> It's less contaminated by Hall
+    currents (Finding 7).</li>
+  <li><strong>Focus on auroral latitudes:</strong> Spatial structure is concentrated at
+    60&ndash;90° (Finding 8).</li>
+  <li><strong>Require N ≥ 25 stations:</strong> Below this, sampling noise dominates
+    (Finding 3).</li>
+  <li><strong>Use 2&ndash;4 hour time windows:</strong> Coherence oscillates on this timescale,
+    so snapshot analysis may miss it (Finding 9).</li>
+  <li><strong>Consider AMPERE (direct FAC observation):</strong> Bypass the cancellation
+    problem entirely by measuring FAC directly from low-orbit magnetometers.</li>
+</ol>
+
+<hr>
+<p style="text-align:center;color:#888;font-size:0.85em;">
+  MHD physics tutorial &middot; May 2026 &middot;
+  See also: <a href="tutorial-unified-pipeline.html">Baseline Pipeline Tutorial</a>,
+  <a href="tutorial-extended-analysis.html">Extended Analysis Tutorial</a>
+</p>
+
+</body></html>

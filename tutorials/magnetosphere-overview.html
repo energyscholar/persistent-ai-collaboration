@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>M-I Current System Tutorial</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">M-I Current System Tutorial</h1>
+</header>
+<h1
+id="observing-the-magnetosphere-ionosphere-current-system-from-the-ground">Observing
+the Magnetosphere-Ionosphere Current System from the Ground</h1>
+<p><em>A tutorial covering the physics of ground magnetic perturbations,
+the spatial-spectral analysis pipeline, and what we’ve found so far.
+Broad context first, then drill-down to our specific techniques and
+data.</em></p>
+<hr />
+<h2 id="part-1-the-big-circuit">Part 1: The Big Circuit</h2>
+<p>The magnetosphere-ionosphere (M-I) system is a single electrical
+circuit. Solar wind kinetic energy drives it; Joule heating in the
+ionosphere dissipates it. Everything we observe on the ground — magnetic
+perturbations of hundreds to thousands of nT during storms — is current
+flowing through this circuit.</p>
+<p>The circuit has four segments:</p>
+<ol type="1">
+<li><strong>Magnetopause / ring currents</strong> — driven by solar wind
+compression and particle injection</li>
+<li><strong>Field-aligned currents (FACs)</strong> — Birkeland currents
+flowing along magnetic field lines between magnetosphere and
+ionosphere</li>
+<li><strong>Ionospheric currents</strong> — Hall and Pedersen currents
+in the conducting E-region (~90–130 km altitude)</li>
+<li><strong>Ground induction</strong> — secondary currents in the
+conducting Earth, opposing the ionospheric currents (Lenz’s law)</li>
+</ol>
+<figure>
+<img src="img/03_current_circuit.png" alt="M-I Current Circuit" />
+<figcaption aria-hidden="true">M-I Current Circuit</figcaption>
+</figure>
+<p>The key Lenz’s law framing: the <strong>solar wind compresses the
+magnetosphere</strong>, adding magnetic flux to the polar cap. The
+<strong>M-I current system opposes this</strong> — FACs close through
+ionospheric currents whose magnetic field opposes the flux addition. The
+system is always trying to reach equilibrium, never quite getting there.
+The energy extracted from solar wind convection is dissipated as Joule
+heating: <strong>P = J · E</strong>, where the Pedersen current (along
+E) does the heating. The Hall current (perpendicular to E) does no work
+but creates the largest ground magnetic perturbation.</p>
+<p><strong>Energy budget during storms:</strong> Solar wind input ~10¹²
+W → ~30% to ring current, ~30% to ionospheric Joule heating, ~10% to
+auroral particle precipitation, ~30% to tail/other. The ionospheric
+Joule heating term is what we observe indirectly through ground
+magnetometers.</p>
+<h2 id="part-2-where-hall-currents-form">Part 2: Where Hall Currents
+Form</h2>
+<p>This was the question that needed a clear picture. Here it is.</p>
+<figure>
+<img src="img/01_hall_current_formation.png"
+alt="Hall Current Formation" />
+<figcaption aria-hidden="true">Hall Current Formation</figcaption>
+</figure>
+<h3 id="the-e-region-90130-km">The E-Region (90–130 km)</h3>
+<p>The ionospheric E-region is the narrow altitude band where Hall
+currents exist. The physics:</p>
+<ul>
+<li><p><strong>Electrons</strong> are strongly magnetized (gyrofrequency
+&gt;&gt; collision frequency). They cannot move along the electric field
+E — instead they <strong>E×B drift</strong>, moving perpendicular to
+both E and B. This drift is the same physics as the <a
+href="https://en.wikipedia.org/wiki/Hall_effect">Hall effect</a> in a
+conductor.</p></li>
+<li><p><strong>Ions</strong> (mostly O⁺ at these altitudes) are
+partially magnetized but collision-dominated. They collide with neutrals
+before completing a gyration, so they drift along E — the
+<strong>Pedersen drift</strong>.</p></li>
+<li><p><strong>Below ~90 km</strong> (D-region): both species are
+collision-dominated. No differential drift, no current.</p></li>
+<li><p><strong>Above ~130 km</strong> (F-region): both species are
+magnetized. Both E×B drift together. No differential drift, no
+current.</p></li>
+</ul>
+<p>The Hall current is the <strong>electron E×B drift minus the ion
+drift</strong>:</p>
+<pre><code>J_H = σ_H (B̂ × E)</code></pre>
+<p>where σ_H is the <a
+href="https://en.wikipedia.org/wiki/Hall_effect#Hall_conductivity">Hall
+conductivity</a>, which depends on electron density (ionization from
+solar UV and particle precipitation).</p>
+<h3 id="the-electrojet-is-the-hall-current">The Electrojet IS the Hall
+Current</h3>
+<p>The auroral electrojet — the intense east-west current in the auroral
+zone — is simply the Hall current in the E-region. When you see
+“electrojet” in the literature, think “Hall current integrated over the
+E-region altitude.” The electrojet is east-west because:</p>
+<ul>
+<li>B is approximately vertical at auroral latitudes (~70° MLAT)</li>
+<li>E is approximately equatorward (from magnetospheric convection
+mapped along field lines)</li>
+<li>J_H = σ_H(B̂ × E) points east-west</li>
+</ul>
+<h3 id="pedersen-current-closes-the-circuit">Pedersen Current Closes the
+Circuit</h3>
+<p>The Pedersen current flows along E (equatorward), connecting the
+upward and downward FAC sheets. This is where Joule heating happens:
+<strong>P = σ_P |E|²</strong>. The Pedersen current does work; the Hall
+current doesn’t (J_H ⊥ E, so J_H · E = 0).</p>
+<h3 id="seasonal-dependence">Seasonal Dependence</h3>
+<p>In <strong>winter darkness</strong>, solar UV doesn’t ionize the
+E-region. Conductivity drops. The ionosphere becomes resistive. FACs
+can’t close efficiently through Hall/Pedersen currents, so the
+<strong>ground magnetic perturbation becomes dominated by the FAC
+pattern directly</strong> rather than by the Hall current pattern (<a
+href="https://doi.org/10.1002/2014GL062816">Laundal et al. 2015,
+GRL</a>). This is key for interpreting our spatial statistics — the
+spatial structure we measure changes with season even if the driving
+current system doesn’t.</p>
+<p>In <strong>summer</strong>, strong UV ionization → high Hall
+conductivity → ground signal dominated by the electrojet. More spatially
+variable, masks FAC structure.</p>
+<h2 id="part-3-the-polar-view-r1-r2-and-the-12-hour-switch">Part 3: The
+Polar View — R1, R2, and the 12-Hour Switch</h2>
+<figure>
+<img src="img/02_polar_current_system.png" alt="Polar Current System" />
+<figcaption aria-hidden="true">Polar Current System</figcaption>
+</figure>
+<h3 id="region-1-and-region-2-facs">Region 1 and Region 2 FACs</h3>
+<p>The FAC system organizes into two concentric rings around the
+magnetic pole:</p>
+<ul>
+<li><p><strong>Region 1 (R1):</strong> Poleward ring, ~68–75° MLAT.
+Connects to the magnetopause current. R1 is the primary driver — it
+carries the energy extracted from solar wind reconnection.</p></li>
+<li><p><strong>Region 2 (R2):</strong> Equatorward ring, ~58–68° MLAT.
+Connects to the <a
+href="https://en.wikipedia.org/wiki/Ring_current">ring current</a>. R2
+is the return path — it closes the ionospheric Pedersen current
+circuit.</p></li>
+</ul>
+<p>The R1/R2 system is “almost permanent” — it’s always there, scaling
+up and down with solar wind energy input. The correlation between AE
+index (a measure of electrojet strength) and total FAC is r = 0.90–0.93
+(<a href="https://doi.org/10.1029/2020JA028628">Pedersen et
+al. 2021</a>). They measure the same system.</p>
+<h3 id="the-12-hour-switch">The 12-Hour Switch</h3>
+<p>This is one of the most striking features of the M-I system.
+<strong>R1/R2 polarity reverses from dawn to dusk:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>Dusk (18 MLT)</th>
+<th>Dawn (06 MLT)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>R1</strong></td>
+<td>Upward (out of ionosphere)</td>
+<td>Downward (into ionosphere)</td>
+</tr>
+<tr class="even">
+<td><strong>R2</strong></td>
+<td>Downward</td>
+<td>Upward</td>
+</tr>
+</tbody>
+</table>
+<p>Why? The magnetospheric convection electric field E points from dawn
+to dusk across the polar cap (driven by the reconnection geometry).
+Since the Pedersen current flows along E (dusk-to-dawn), it must be fed
+by downward FAC on dawn and drained by upward FAC on dusk — which is
+exactly the R1 pattern. R2 closes the circuit with opposite
+polarity.</p>
+<p>The reversal at the dawn-dusk meridian creates the <strong>Harang
+discontinuity</strong> (~21 MLT) where the eastward and westward
+electrojets meet. The Harang is not a simple boundary — it shifts with
+activity level and has complex internal structure.</p>
+<h3 id="what-ground-magnetometers-see">What Ground Magnetometers
+See</h3>
+<p>A station at ~70° MLAT under the electrojet sees: - <strong>X (north)
+component:</strong> dominated by the east-west electrojet (Hall
+current). Negative perturbation (southward) during substorms when the
+westward electrojet intensifies. - <strong>Y (east) component:</strong>
+sensitive to FAC polarity reversals and the Harang discontinuity. -
+<strong>Z (vertical) component:</strong> <strong>direct FAC
+proxy</strong> (<a href="https://doi.org/10.1029/2010JA015544">Weimer
+2010</a>). Overhead FAC density maps to Z perturbation. This is why Z
+carries more spatial information than H in 71% of months (our S60
+finding).</p>
+<h2 id="part-4-the-plasma-sheet">Part 4: The Plasma Sheet</h2>
+<figure>
+<img src="img/06_plasma_sheet.gif" alt="Plasma Sheet Ion Dynamics" />
+<figcaption aria-hidden="true">Plasma Sheet Ion Dynamics</figcaption>
+</figure>
+<h3 id="ion-cyclotron-motion-in-the-tail">Ion Cyclotron Motion in the
+Tail</h3>
+<p>The <a href="https://en.wikipedia.org/wiki/Plasma_sheet">plasma
+sheet</a> is the hot (keV), dense plasma layer in the magnetic
+equatorial plane of the magnetotail, extending from ~6 to &gt;30 R_E
+tailward. The magnetic field here is weak (~5 nT, vs. ~50,000 nT at the
+surface).</p>
+<p>In this weak field, ion <a
+href="https://en.wikipedia.org/wiki/Gyroradius">gyroradii</a> become
+enormous:</p>
+<pre><code>r_g = mv⊥ / (qB) ≈ 500–1000 km for 5 keV protons in 5 nT</code></pre>
+<p>This is NOT small compared to the current sheet thickness (~1–2 R_E).
+Ions are <strong>not well magnetized</strong> — they don’t simply follow
+field lines. They execute complex <a
+href="https://doi.org/10.1029/JZ071i013p03369">Speiser orbits</a>:
+bouncing across the current sheet, gaining energy from the dawn-dusk
+electric field with each crossing. This creates a cross-tail current —
+the <a
+href="https://en.wikipedia.org/wiki/Magnetotail#Magnetotail_current_sheet">tail
+current sheet</a>.</p>
+<h3 id="substorm-disruption">Substorm Disruption</h3>
+<p>During substorm onset, the near-tail current sheet (~8–12 R_E) thins
+until ion orbits become chaotic. The ordered cyclotron motion breaks
+down:</p>
+<ol type="1">
+<li><strong>Growth phase:</strong> Solar wind energy loads the tail.
+Current sheet thins. B_z component weakens.</li>
+<li><strong>Onset:</strong> Current disruption — the orderly Speiser
+orbits become chaotic. Magnetic reconnection may trigger or follow
+(causality debated for 50 years).</li>
+<li><strong>Expansion:</strong> The disrupted current diverts along
+field lines as the <a
+href="https://en.wikipedia.org/wiki/Substorm#Substorm_current_wedge">substorm
+current wedge</a> (SCW). This is a localized R1-like FAC that creates
+the sudden intensification seen by ground magnetometers.</li>
+<li><strong>Recovery:</strong> Tail rebuilds. Current sheet re-forms.
+Ordered cyclotron motion resumes.</li>
+</ol>
+<p>The SCW is what creates the sharp, localized substorm signatures that
+our temporal analysis detects — pattern persistence drops to 2–3 minutes
+at storm peak because the current system is being constantly disrupted
+and reformed.</p>
+<h2 id="part-5-what-we-can-observe">Part 5: What We Can Observe</h2>
+<figure>
+<img src="img/04_observation_scales.png" alt="Observation Scales" />
+<figcaption aria-hidden="true">Observation Scales</figcaption>
+</figure>
+<h3 id="the-instrument-hierarchy">The Instrument Hierarchy</h3>
+<p>Different instruments see different spatial and temporal scales:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Instrument</th>
+<th>Spatial Scale</th>
+<th>Temporal</th>
+<th>What It Sees</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>SuperMAG</strong> (~100 stations, global)</td>
+<td>500–10,000 km</td>
+<td>1 min</td>
+<td>Large-scale electrojet, ring current, SYM-H</td>
+</tr>
+<tr class="even">
+<td><strong>IMAGE</strong> (~30 stations, Scandinavia)</td>
+<td>88–2,355 km</td>
+<td>1 min (10 sec available)</td>
+<td>Regional FAC structure, electrojet fine structure</td>
+</tr>
+<tr class="odd">
+<td><strong>Cluster</strong> (4 spacecraft, in-situ)</td>
+<td>10–1,000 km</td>
+<td>sub-second</td>
+<td>Current sheet crossings, wave measurements</td>
+</tr>
+<tr class="even">
+<td><strong>MMS</strong> (4 spacecraft, in-situ)</td>
+<td>10–100 km</td>
+<td>millisecond</td>
+<td>Electron-scale physics, reconnection geometry</td>
+</tr>
+</tbody>
+</table>
+<p>Ground magnetometers integrate the magnetic field of ALL currents
+above them — FACs, Hall, Pedersen, ring current — weighted by ~1/r². The
+“footprint” for a current at 110 km altitude is roughly ±100 km. This
+sets the minimum resolvable scale for ground observations.</p>
+<h3 id="image-network-specifics">IMAGE Network Specifics</h3>
+<p>The IMAGE (<a href="https://space.fmi.fi/image/">International
+Monitor for Auroral Geomagnetic Effects</a>) network spans Fennoscandia
+from Svalbard (~79°N) to central Europe (~52°N). For our Halloween 2003
+analysis:</p>
+<ul>
+<li><strong>26 stations</strong> reporting (of ~37 in the full
+network)</li>
+<li><strong>325 unique station pairs</strong> for spatial
+statistics</li>
+<li><strong>Minimum spacing:</strong> 88 km (e.g., TRO-KIL)</li>
+<li><strong>Maximum extent:</strong> 2,355 km (NAL-BRZ)</li>
+<li>Dense cluster in the auroral zone (65–70°N): ideal for R1/R2
+boundary work</li>
+<li>104 pairs below 500 km → good short-range variogram coverage</li>
+</ul>
+<figure>
+<img src="img/09_image_network.png" alt="IMAGE Network" />
+<figcaption aria-hidden="true">IMAGE Network</figcaption>
+</figure>
+<h3 id="what-1-minute-data-resolves">What 1-Minute Data Resolves</h3>
+<p>With 1-minute sampling at IMAGE: - <strong>Convection band (&gt;10
+min period):</strong> Fully resolved. L ~ 2,000–5,000 km. Electrojet
+sheets. - <strong>Pc5 ULF band (3–10 min period):</strong> Resolved but
+near transition. L ~ 500–3,000 km. Field line resonances. - <strong>Pi2
+band (40–150 s period):</strong> Barely resolved. L ~ 200–1,000 km.
+Substorm onset. <strong>Nyquist limit at 2 min</strong> — need 10-sec
+data to confirm. - <strong>Pc3 band (10–40 s):</strong> NOT resolved.
+Need 10-sec or faster data.</p>
+<h2 id="part-6-our-analysis-pipeline">Part 6: Our Analysis Pipeline</h2>
+<p>We combine three independent analysis axes — spatial, temporal,
+spectral — to characterize the M-I current system from ground
+magnetometer data. The pipeline is implemented in
+<code>scripts/spectral_spatial.py</code>.</p>
+<h3 id="axis-1-spatial-autocorrelation">Axis 1: Spatial
+Autocorrelation</h3>
+<p><strong><a href="https://en.wikipedia.org/wiki/Moran%27s_I">Moran’s
+I</a>:</strong> A single number measuring global spatial
+autocorrelation, from -1 (perfect dispersion) through 0 (random) to +1
+(perfect clustering). We compute it at each timestep using
+inverse-distance weighting:</p>
+<pre><code>I = (N/W) × Σᵢ Σⱼ wᵢⱼ(xᵢ - x̄)(xⱼ - x̄) / Σᵢ(xᵢ - x̄)²</code></pre>
+<p>where wᵢⱼ = 1/dᵢⱼ and W = Σwᵢⱼ.</p>
+<p>For Halloween 2003: <strong>I = +0.248</strong> (median over storm
+period). Strongly positive — the perturbation field is spatially
+organized, not random. This is the electrojet’s signature.</p>
+<p><strong><a
+href="https://en.wikipedia.org/wiki/Indicators_of_spatial_association">LISA</a>
+(Local Moran’s I):</strong> Decomposition into per-station
+contributions. Shows WHERE the spatial structure is. At storm peak:
+High-High clusters in Svalbard (polar cap), Low-Low in the electrojet
+zone, High-Low at the equatorward boundary. Clean latitude gradient — no
+anomalous longitudinal structure.</p>
+<h3 id="axis-2-geostatistical-structure">Axis 2: Geostatistical
+Structure</h3>
+<p><strong><a
+href="https://en.wikipedia.org/wiki/Variogram">Variogram</a>:</strong>
+Semivariance γ(h) as a function of station separation h. Increases from
+nugget (measurement noise) to sill (total variance) over the
+<strong>correlation length</strong> L — the distance at which
+perturbations become uncorrelated.</p>
+<p>We fit three <a
+href="https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function">Matérn</a>
+models: - <strong>ν = 1/2</strong> (exponential): Rough fields. The
+simplest model. - <strong>ν = 3/2:</strong> Once-differentiable.
+Physically correct for current sheets (kinks, not discontinuities). -
+<strong>ν = 5/2:</strong> Twice-differentiable. Smooth fields.</p>
+<p><strong>ν = 3/2 wins</strong> at storm peak by AIC. The exponential
+(ν = 1/2) fails catastrophically (R² = -1.0). This matters: the
+practical range depends on ν. For ν = 3/2, practical range = 4.90 ×
+scale parameter ℓ, vs. 2.83 × ℓ for exponential. <strong>Our reported
+correlation lengths are model-dependent</strong> — always report both ℓ
+and effective range.</p>
+<p><strong>Directional variograms</strong> reveal anisotropy: split
+pairs into N-S and E-W sectors, fit independently. The electrojet
+creates a ~10:1 E-W:N-S anisotropy ratio at storm peak.</p>
+<h3 id="axis-3-spectral-correlation-length-lf">Axis 3: Spectral
+Correlation Length L(f)</h3>
+<p>This is the key deliverable. For each frequency f:</p>
+<ol type="1">
+<li>Compute the N×N <a
+href="https://en.wikipedia.org/wiki/Spectral_density#Cross-spectral_density">cross-spectral
+density matrix</a> Sᵢⱼ(f) using <a
+href="https://en.wikipedia.org/wiki/Multitaper">multi-taper
+estimation</a> (Thomson 1982, NW=4, K=7 DPSS tapers)</li>
+<li>Extract coherence: γ²ᵢⱼ(f) = |Sᵢⱼ(f)|² / [Sᵢᵢ(f) · Sⱼⱼ(f)]</li>
+<li>Fit spatial decay: γ²(f, d) = exp(-d / L(f))</li>
+</ol>
+<p><strong>L(f) tells us how spatial scale depends on
+frequency.</strong> Different predictions: - L(f) constant → broadband
+FAC (all frequencies have same spatial scale) - L(f) power-law →
+turbulent cascade - L(f) peaked → resonant modes at specific
+frequencies</p>
+<h3 id="phase-structure">Phase Structure</h3>
+<p>From the cross-spectral matrix, extract phase φᵢⱼ(f) = arg(Sᵢⱼ(f)): -
+<strong>Random phases</strong> (high circular variance) → incoherent
+noise - <strong>Linear phase gradient</strong> φᵢⱼ = k·Δr → traveling
+wave - <strong>Clustered at 0 or π</strong> → standing wave</p>
+<p>Phase structure discriminates between traveling ULF waves and
+standing <a
+href="https://en.wikipedia.org/wiki/Field_line_resonance">field line
+resonances</a> (FLRs).</p>
+<h2 id="part-7-what-we-found">Part 7: What We Found</h2>
+<h3 id="lf-is-not-flat">L(f) Is NOT Flat</h3>
+<figure>
+<img src="img/05_lf_interpretation.png" alt="L(f) Interpretation" />
+<figcaption aria-hidden="true">L(f) Interpretation</figcaption>
+</figure>
+<p>The spectral correlation length <strong>increases with
+period</strong>: ~700 km at 3 min to ~2,000 km at 30 min (X component,
+storm peak). This rules out the simplest broadband FAC
+interpretation.</p>
+<p>Physical picture: <strong>short-period perturbations are spatially
+localized</strong> (FAC filaments, FLR nodes) while <strong>long-period
+perturbations are spatially extended</strong> (large-scale convection,
+electrojet sheets). The current system has different spatial scales at
+different frequencies — it’s not a single structure observed at multiple
+frequencies but multiple structures each with their own characteristic
+scale.</p>
+<p>Comparison: <a href="https://doi.org/10.1029/2025JA034567">Käki et
+al. (2026)</a> found ℓ ≈ 600 km using Bayesian SECS with a Matérn prior
+— but their ℓ is a Matérn scale parameter, not our coherence decay
+length. With ν = 3/2, their effective range ≈ 2,940 km, consistent with
+our broadband estimate.</p>
+<h3 id="frequency-dependent-anisotropy-reversal">Frequency-Dependent
+Anisotropy Reversal</h3>
+<figure>
+<img src="img/07_anisotropy_reversal.png" alt="Anisotropy Reversal" />
+<figcaption aria-hidden="true">Anisotropy Reversal</figcaption>
+</figure>
+<p><strong>This appears to be unreported in the literature.</strong> The
+dominant spatial orientation of perturbations reverses with
+frequency:</p>
+<ul>
+<li><strong>Low frequency (&gt;10 min period):</strong> L_EW/L_NS =
+4–11×. Perturbations are extended east-west. The electrojet (a sheet
+current) dominates.</li>
+<li><strong>Crossover at ~7–15 min</strong> (shorter for stronger
+storms): ~2.2 mHz, coincident with FLR eigenfrequency at L ≈ 6.</li>
+<li><strong>High frequency (&lt;5 min period):</strong> L_EW/L_NS =
+0.1–0.5. Perturbations are extended north-south. FAC filaments (N-S
+aligned) and/or Alfvén waves dominate.</li>
+</ul>
+<p><strong>Replicated in 2 events</strong> (Halloween 2003 and
+St. Patrick’s 2015, X component).</p>
+<p>The Z component shows the <strong>opposite</strong> pattern: L_NS
+&gt; L_EW at low frequency. This is consistent with Z being a FAC proxy
+while X is an electrojet proxy — different current systems have
+different geometry.</p>
+<p>The crossover frequency may be a natural boundary between
+convection-driven (large-scale, E-W) and wave-driven (localized, N-S)
+perturbation regimes.</p>
+<h3 id="three-regime-coherence-structure">Three-Regime Coherence
+Structure</h3>
+<figure>
+<img src="img/08_three_regime_coherence.png"
+alt="Three-Regime Coherence" />
+<figcaption aria-hidden="true">Three-Regime Coherence</figcaption>
+</figure>
+<p>Mean coherence between nearby stations (&lt;500 km) shows three
+distinct regimes:</p>
+<p><strong>Regime 1 (&gt;10 min period): High coherence
+(&gt;0.8).</strong> Large-scale convection and the R1/R2 current system
+create highly coherent perturbations. Both X and Z are coherent. X is
+slightly higher because the electrojet is a continuous sheet —
+neighboring stations under the same sheet see the same thing.</p>
+<p><strong>Regime 2 (3–10 min period): Coherence dip (0.3–0.5).</strong>
+<a href="https://en.wikipedia.org/wiki/Pc5_pulsations">Pc5
+pulsations</a> — field line resonances where different L-shells
+oscillate independently at their own eigenfrequencies. Nearby stations
+may be on different L-shells and thus see incoherent oscillations. This
+is where L(f) shows a dip — the coherence is “broken into pieces.”</p>
+<p><strong>Regime 3 (&lt;3 min period): Partial recovery (0.5–0.7), X
+only.</strong> X coherence recovers but <strong>Z does not</strong>
+(~0.2). This is consistent with <a
+href="https://en.wikipedia.org/wiki/Pi2_pulsations">Pi2 pulsations</a> —
+substorm-associated oscillations that are predominantly horizontal. Pi2
+involves cavity/waveguide modes that are coherent over ~200–1,000 km in
+the horizontal plane but produce minimal vertical signature.</p>
+<p><strong>Caution:</strong> At 1-minute sampling, the 2–3 min period
+band is near Nyquist. The X-only recovery needs confirmation with 10-sec
+data.</p>
+<h3 id="component-dependent-spatial-structure">Component-Dependent
+Spatial Structure</h3>
+<p>Each magnetic field component sees a different current system:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Moran’s I (storm)</th>
+<th>Anisotropy (NS/EW γ)</th>
+<th>What It Sees</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>X (North)</strong></td>
+<td>0.326 (highest)</td>
+<td>10:1 (E-W sheets)</td>
+<td>Electrojet — continuous E-W sheet</td>
+</tr>
+<tr class="even">
+<td><strong>Y (East)</strong></td>
+<td>0.205</td>
+<td>0.3 (N-S elongated)</td>
+<td>FAC polarity reversal across dawn-dusk</td>
+</tr>
+<tr class="odd">
+<td><strong>Z (Vertical)</strong></td>
+<td>0.147 (lowest)</td>
+<td>1.0 (isotropic)</td>
+<td>FAC filaments — discrete, roughly circular</td>
+</tr>
+</tbody>
+</table>
+<p>Z is the most isotropic because FAC filaments don’t have a preferred
+horizontal orientation — they’re vertical currents hitting the
+ionosphere as roughly circular patches. X is the most anisotropic
+because the electrojet is a thin E-W sheet.</p>
+<p><strong>Critical insight:</strong> Z coherence
+<strong>decreases</strong> during storms while X
+<strong>increases</strong>. Different current systems respond oppositely
+to driving intensity. The electrojet (X) becomes more coherent as it
+strengthens (bigger sheet, more uniform). The FAC system (Z) becomes
+less coherent — more filaments, more complex geometry, more substorm
+disruptions.</p>
+<h2 id="part-8-the-observational-philosophy">Part 8: The Observational
+Philosophy</h2>
+<p>This project is fundamentally about <strong>observing</strong>. The
+data has already been captured by magnetometer networks running
+continuously for decades. We are not running experiments or simulations
+— we are developing tools to see what is there.</p>
+<p>The pipeline combines three independent axes of observation: -
+<strong>Spatial</strong> (Moran’s I, variogram) → where is the
+structure? - <strong>Temporal</strong> (pattern persistence, storm
+evolution) → when does structure change? - <strong>Spectral</strong>
+(L(f), coherence, phase) → at what scales does structure exist?</p>
+<p>No single axis is sufficient. Moran’s I tells you there IS spatial
+structure but not at what frequencies. L(f) tells you spatial scale
+depends on frequency but not where. The variogram tells you correlation
+length but not whether it changes with time. The three axes together
+create a view that none achieves alone.</p>
+<h3 id="what-we-can-see-vs.-what-we-cant">What We Can See vs. What We
+Can’t</h3>
+<p><strong>We CAN see (with current IMAGE 1-min data):</strong> -
+Spatial correlation structure at scales 88–2,355 km - Spectral content
+from ~2 min (Nyquist) to hours - Convection, substorm, and Pc5 band
+spatial structure - Component-dependent anisotropy → current system
+identification - Storm-time evolution of all the above</p>
+<p><strong>We CANNOT yet see:</strong> - Pi2 band (need 10-sec data —
+available from FMI, not yet downloaded) - Pc3 band (need 1-sec data) -
+Spatial structure below ~88 km (minimum station spacing) - Absolute FAC
+density (need in-situ calibration, e.g., Swarm or MMS conjunction) -
+Structures larger than ~2,355 km reliably (network extent
+limitation)</p>
+<h3 id="next-steps">Next Steps</h3>
+<ol type="1">
+<li><strong>10-sec IMAGE data</strong> — Download and analyze to confirm
+the Regime 3 coherence recovery and resolve the Pi2 band properly</li>
+<li><strong>Bayesian SECS cross-validation</strong> — Compare our
+Tikhonov inversion spatial structure with Käki et al.’s Matérn-prior
+SECS</li>
+<li><strong>Multi-event analysis</strong> — Full pipeline on all 8
+catalog events to test universality of L(f) shape and anisotropy
+reversal</li>
+<li><strong>MMS conjunctions</strong> — Search for times when MMS
+spacecraft pass through IMAGE network field-of-view for ground-truth FAC
+density</li>
+</ol>
+<hr />
+<p><em>Tutorial generated 2026-05-09. Images in
+<code>docs/ms-tutorial/img/</code>. Analysis pipeline:
+<code>scripts/spectral_spatial.py</code>. Data: FMI IMAGE archive via
+<code>scripts/download_image.py</code>.</em></p>
+</body>
+</html>

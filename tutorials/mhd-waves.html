@@ -1,0 +1,2666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MHD Wave Theory in the Magnetosphere</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  font-size: 18px;
+}
+
+body {
+  background: #0a0a1a;
+  color: #e0e0e8;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ===== STARFIELD BACKGROUND ===== */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 30% 50%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 15% 70%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 45% 90%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 60% 60%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.4), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1 {
+  font-size: 2.4rem;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: #88ccff;
+  text-align: center;
+  padding: 2rem 1rem 0.5rem;
+  text-shadow: 0 0 30px rgba(100,180,255,0.3);
+}
+
+h1 .subtitle {
+  display: block;
+  font-size: 0.9rem;
+  color: #7799bb;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+h2 {
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #66bbff;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(100,180,255,0.2);
+}
+
+h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #99ddff;
+  margin: 1.5rem 0 0.5rem;
+}
+
+p { margin-bottom: 1rem; }
+
+strong { color: #bbddff; }
+
+em { color: #ccddee; font-style: italic; }
+
+/* ===== LAYOUT ===== */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+}
+
+section {
+  margin: 3rem 0;
+  padding: 2rem;
+  background: rgba(10, 15, 35, 0.7);
+  border: 1px solid rgba(100,180,255,0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+}
+
+/* ===== FLOATING TOC ===== */
+#toc {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 1000;
+  background: rgba(10, 15, 35, 0.92);
+  border: 1px solid rgba(100,180,255,0.2);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  padding: 0.8rem 0;
+  max-height: 80vh;
+  overflow-y: auto;
+  transition: width 0.3s, opacity 0.3s;
+  width: 44px;
+}
+
+#toc:hover {
+  width: 320px;
+}
+
+#toc .toc-toggle {
+  display: block;
+  text-align: center;
+  color: #66bbff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.3rem;
+  line-height: 1;
+}
+
+#toc ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#toc:hover ol {
+  opacity: 1;
+}
+
+#toc li {
+  padding: 0;
+}
+
+#toc a {
+  display: block;
+  padding: 0.3rem 1rem;
+  color: #88aacc;
+  text-decoration: none;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s, background 0.2s;
+}
+
+#toc a:hover {
+  color: #88ccff;
+  background: rgba(100,180,255,0.1);
+}
+
+#toc a.active {
+  color: #66bbff;
+  border-left: 2px solid #66bbff;
+}
+
+/* ===== DIAGRAM CONTAINERS ===== */
+.diagram-container {
+  margin: 2rem -1rem;
+  padding: 1rem;
+  background: rgba(5, 8, 20, 0.8);
+  border: 1px solid rgba(100,180,255,0.15);
+  border-radius: 8px;
+  text-align: center;
+  position: relative;
+}
+
+.diagram-container svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.diagram-label {
+  display: block;
+  text-align: center;
+  color: #7799bb;
+  font-size: 0.8rem;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+/* ===== PLAY/PAUSE BUTTON ===== */
+.anim-controls {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+}
+
+.play-pause-btn {
+  background: rgba(100,180,255,0.15);
+  border: 1px solid rgba(100,180,255,0.3);
+  color: #88ccff;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 0.2s;
+}
+
+.play-pause-btn:hover {
+  background: rgba(100,180,255,0.3);
+}
+
+/* ===== CONNECTION BOX ===== */
+.connection-box {
+  margin: 1.5rem 0 0;
+  padding: 1.2rem 1.5rem;
+  background: rgba(40, 80, 40, 0.2);
+  border: 1px solid rgba(80, 200, 80, 0.3);
+  border-left: 4px solid rgba(80, 200, 80, 0.6);
+  border-radius: 6px;
+}
+
+.connection-box h4 {
+  color: #66cc66;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.connection-box p, .connection-box ul {
+  color: #aaddaa;
+  font-size: 0.9rem;
+}
+
+.connection-box ul {
+  padding-left: 1.5rem;
+}
+
+.connection-box li {
+  margin-bottom: 0.3rem;
+}
+
+/* ===== FORMULA ===== */
+.formula {
+  display: inline-block;
+  background: rgba(50, 60, 100, 0.3);
+  border: 1px solid rgba(100,150,255,0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-family: 'Cambria Math', 'Times New Roman', serif;
+  color: #ccddff;
+  font-size: 1.05em;
+}
+
+.formula-block {
+  display: block;
+  text-align: center;
+  background: rgba(50, 60, 100, 0.3);
+  border: 1px solid rgba(100,150,255,0.2);
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  font-family: 'Cambria Math', 'Times New Roman', serif;
+  color: #ccddff;
+  font-size: 1.1em;
+  margin: 1rem 0;
+}
+
+/* ===== LISTS ===== */
+ul, ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+li {
+  margin-bottom: 0.4rem;
+}
+
+/* ===== SPEED INFO ===== */
+.speed-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.speed-table th, .speed-table td {
+  padding: 0.5rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(100,180,255,0.1);
+}
+
+.speed-table th {
+  color: #88ccff;
+  font-weight: 600;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0a0a1a; }
+::-webkit-scrollbar-thumb { background: rgba(100,180,255,0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(100,180,255,0.5); }
+
+/* ===== INTRO BOX ===== */
+.intro-box {
+  text-align: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #8899bb;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(100,180,255,0.1);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  html { font-size: 16px; }
+  section { padding: 1.2rem; margin: 2rem 0; }
+  .container { padding: 0 1rem 3rem; }
+  #toc { display: none; }
+  h1 { font-size: 1.8rem; }
+  h2 { font-size: 1.4rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TABLE OF CONTENTS ===== -->
+<nav id="toc">
+  <span class="toc-toggle">&#9776;</span>
+  <ol>
+    <li><a href="#sec1">1. Frozen-In Flux</a></li>
+    <li><a href="#sec2">2. Three MHD Wave Modes</a></li>
+    <li><a href="#sec3">3. The Plucked String</a></li>
+    <li><a href="#sec4">4. Field Line Resonances</a></li>
+    <li><a href="#sec5">5. Cavity/Waveguide Modes</a></li>
+    <li><a href="#sec6">6. Magnetosphere Breathing</a></li>
+    <li><a href="#sec7">7. Reconnection</a></li>
+    <li><a href="#sec8">8. Substorm Dynamics</a></li>
+    <li><a href="#sec9">9. 12-Hour Station View</a></li>
+    <li><a href="#sec10">10. Four Regimes Explained</a></li>
+  </ol>
+</nav>
+
+<!-- ===== HEADER ===== -->
+<div class="container">
+
+<h1>MHD Wave Theory in the Magnetosphere
+  <span class="subtitle">A Tutorial for Ground Magnetometer Analysts</span>
+</h1>
+
+<div class="intro-box">
+  <p>This tutorial bridges MHD wave physics to the coherence regimes, correlation lengths, and anisotropy patterns you observe in IMAGE cross-spectral analysis. Each section presents the physics, shows an animated diagram, and connects directly to your data.</p>
+</div>
+
+<!-- ================================================================== -->
+<!-- SECTION 1: FROZEN-IN FLUX                                          -->
+<!-- ================================================================== -->
+<section id="sec1">
+<h2>1. MHD Basics &mdash; Frozen-In Flux</h2>
+
+<p>In a highly conducting plasma (like the magnetosphere), magnetic field lines are "frozen in" to the plasma. Where the plasma goes, the field goes. This means disturbances propagate as <strong>waves on the magnetic field</strong>, not through the field. The magnetic field is the medium.</p>
+
+<p>This frozen-in condition holds whenever the magnetic Reynolds number R<sub>m</sub> = &mu;<sub>0</sub>&sigma;VL &gg; 1, which is satisfied everywhere in the magnetosphere except at reconnection sites (Section 7). It means that plasma elements that start on the same field line stay on that field line as the system evolves.</p>
+
+<h3>Three Key Speeds</h3>
+
+<p>The dynamics of a magnetized plasma are controlled by three characteristic wave speeds:</p>
+
+<table class="speed-table">
+  <tr><th>Speed</th><th>Formula</th><th>Physics</th><th>Magnetosphere</th></tr>
+  <tr>
+    <td><strong>Alfv&eacute;n speed</strong> V<sub>A</sub></td>
+    <td><span class="formula">B / &radic;(&mu;<sub>0</sub>&rho;)</span></td>
+    <td>Transverse waves along field lines. Magnetic tension is the restoring force.</td>
+    <td>~1000 km/s at 4 R<sub>E</sub>, ~100 km/s at 10 R<sub>E</sub></td>
+  </tr>
+  <tr>
+    <td><strong>Sound speed</strong> C<sub>s</sub></td>
+    <td><span class="formula">&radic;(&gamma;p / &rho;)</span></td>
+    <td>Compressive waves in the plasma. Thermal pressure is the restoring force.</td>
+    <td>~200 km/s</td>
+  </tr>
+  <tr>
+    <td><strong>Fast magnetosonic</strong> V<sub>f</sub></td>
+    <td><span class="formula">&radic;(V<sub>A</sub>&sup2; + C<sub>s</sub>&sup2;)</span></td>
+    <td>Compressive waves in all directions. Both magnetic and thermal pressure.</td>
+    <td>~1020 km/s at 4 R<sub>E</sub></td>
+  </tr>
+</table>
+
+<p>The key insight: V<sub>A</sub> varies enormously across the magnetosphere because <strong>B decreases</strong> as r<sup>&minus;3</sup> (dipole) while <strong>&rho; increases</strong> with L-shell (more plasma at larger distances). This variation in V<sub>A</sub> is what creates the rich wave structure you observe.</p>
+
+<!-- DIAGRAM 1: Frozen-In Flux -->
+<div class="diagram-container" id="diagram1-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('frozenFlux')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-frozen-flux" viewBox="0 0 900 400" width="900" height="400">
+    <defs>
+      <linearGradient id="bgGrad1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#080818"/>
+        <stop offset="100%" stop-color="#0a0a2a"/>
+      </linearGradient>
+      <filter id="glow1">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <rect width="900" height="400" fill="url(#bgGrad1)"/>
+    <!-- Field lines (will be animated) -->
+    <g id="frozen-field-lines" filter="url(#glow1)"></g>
+    <!-- Particles -->
+    <g id="frozen-particles"></g>
+    <!-- Labels -->
+    <text x="450" y="30" fill="#7799bb" font-size="14" text-anchor="middle" font-style="italic">The field is frozen to the plasma. Bend the plasma &rarr; bend the field &rarr; wave propagates.</text>
+    <!-- Perturbation arrow -->
+    <g id="frozen-perturb-arrow" opacity="0">
+      <line x1="200" y1="200" x2="200" y2="140" stroke="#ff8844" stroke-width="3" marker-end="url(#arrowOrange1)"/>
+      <text x="210" y="135" fill="#ff8844" font-size="12">Velocity</text>
+      <text x="210" y="150" fill="#ff8844" font-size="12">perturbation</text>
+    </g>
+    <!-- Propagation arrow -->
+    <g id="frozen-prop-arrow" opacity="0">
+      <line x1="480" y1="70" x2="600" y2="70" stroke="#44ff88" stroke-width="2" marker-end="url(#arrowGreen1)"/>
+      <text x="510" y="62" fill="#44ff88" font-size="12">Wave propagation &rarr;</text>
+    </g>
+    <defs>
+      <marker id="arrowOrange1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#ff8844"/>
+      </marker>
+      <marker id="arrowGreen1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#44ff88"/>
+      </marker>
+    </defs>
+    <!-- V_A label -->
+    <text x="700" y="385" fill="#446688" font-size="12">V<tspan baseline-shift="sub" font-size="9">A</tspan> = B / &radic;(&mu;<tspan baseline-shift="sub" font-size="9">0</tspan>&rho;)</text>
+  </svg>
+  <span class="diagram-label">Alfv&eacute;n wave: a transverse perturbation propagates along the frozen-in field</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <p>The frozen-in condition means that every current system you measure on the ground &mdash; electrojet, FACs, ring current &mdash; involves bulk plasma motion dragging field lines with it. When you see a &Delta;B perturbation, there is a corresponding plasma flow and field line displacement somewhere above you. The wave speeds determine how quickly perturbations propagate and therefore set the <strong>spatial coherence scales</strong> you observe.</p>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 2: THREE MHD WAVE MODES                                    -->
+<!-- ================================================================== -->
+<section id="sec2">
+<h2>2. The Three MHD Wave Modes</h2>
+
+<p>Three fundamental wave types exist in a magnetized plasma. Understanding these is essential because <strong>each mode creates different ground signatures</strong> with different spatial coherence properties:</p>
+
+<h3>1. Alfv&eacute;n Wave (Shear / Transverse)</h3>
+<p>Field lines bend transversely but do not compress. Like shaking a rope sideways. Propagates <strong>only along B</strong> (the background magnetic field). Speed = V<sub>A</sub>. The wave carries a field-aligned current (FAC) that closes through the ionosphere &mdash; this is what your magnetometers detect as a <strong>magnetic perturbation in the N-S direction</strong> (the &Delta;B<sub>X</sub> component from the Hall current).</p>
+
+<h3>2. Fast Magnetosonic Wave (Compressive)</h3>
+<p>Field lines AND plasma compress together. Propagates in <strong>all directions</strong> (isotropic in the limit V<sub>A</sub> &gg; C<sub>s</sub>). Speed = V<sub>f</sub> &asymp; V<sub>A</sub>. This is the "sound wave" of MHD. Because it propagates isotropically, it can carry energy across field lines &mdash; crucial for coupling different L-shells and creating global signatures.</p>
+
+<h3>3. Slow Magnetosonic Wave (Compressive)</h3>
+<p>A compressive wave guided along B at speed below V<sub>A</sub>. Less important for ground signatures in the Pc3&ndash;Pc5 bands because it is strongly damped in the magnetosphere. Included for completeness.</p>
+
+<!-- DIAGRAM 2: Three Wave Modes -->
+<div class="diagram-container" id="diagram2-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('threeModes')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-three-modes" viewBox="0 0 900 400" width="900" height="400">
+    <rect width="900" height="400" fill="#080818"/>
+    <!-- Panel dividers -->
+    <line x1="300" y1="40" x2="300" y2="380" stroke="rgba(100,180,255,0.15)" stroke-width="1"/>
+    <line x1="600" y1="40" x2="600" y2="380" stroke="rgba(100,180,255,0.15)" stroke-width="1"/>
+    <!-- Panel titles -->
+    <text x="150" y="35" fill="#88ccff" font-size="14" text-anchor="middle" font-weight="bold">Alfv&eacute;n (Shear)</text>
+    <text x="450" y="35" fill="#88ccff" font-size="14" text-anchor="middle" font-weight="bold">Fast Magnetosonic</text>
+    <text x="750" y="35" fill="#88ccff" font-size="14" text-anchor="middle" font-weight="bold">Slow Magnetosonic</text>
+    <!-- Propagation labels -->
+    <text x="150" y="375" fill="#44ff88" font-size="11" text-anchor="middle">Propagates along B only</text>
+    <text x="450" y="375" fill="#44ff88" font-size="11" text-anchor="middle">Propagates in all directions</text>
+    <text x="750" y="375" fill="#44ff88" font-size="11" text-anchor="middle">Propagates mainly along B</text>
+    <!-- Speed labels -->
+    <text x="150" y="392" fill="#7799aa" font-size="10" text-anchor="middle">Speed = V_A</text>
+    <text x="450" y="392" fill="#7799aa" font-size="10" text-anchor="middle">Speed = V_f &asymp; V_A</text>
+    <text x="750" y="392" fill="#7799aa" font-size="10" text-anchor="middle">Speed &lt; V_A</text>
+    <!-- B-field direction arrows for each panel -->
+    <g>
+      <line x1="20" y1="60" x2="80" y2="60" stroke="#556688" stroke-width="1.5" marker-end="url(#arrowGray)"/>
+      <text x="85" y="64" fill="#556688" font-size="10">B&#x2080;</text>
+    </g>
+    <g>
+      <line x1="320" y1="60" x2="380" y2="60" stroke="#556688" stroke-width="1.5" marker-end="url(#arrowGray)"/>
+      <text x="385" y="64" fill="#556688" font-size="10">B&#x2080;</text>
+    </g>
+    <g>
+      <line x1="620" y1="60" x2="680" y2="60" stroke="#556688" stroke-width="1.5" marker-end="url(#arrowGray)"/>
+      <text x="685" y="64" fill="#556688" font-size="10">B&#x2080;</text>
+    </g>
+    <defs>
+      <marker id="arrowGray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#556688"/>
+      </marker>
+    </defs>
+    <!-- Animated field lines for each mode -->
+    <g id="alfven-mode-lines" filter="url(#glow1)"></g>
+    <g id="fast-mode-lines" filter="url(#glow1)"></g>
+    <g id="slow-mode-lines" filter="url(#glow1)"></g>
+  </svg>
+  <span class="diagram-label">Three MHD wave modes: transverse bending, isotropic compression, and guided compression</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <ul>
+    <li><strong>Alfv&eacute;n waves</strong> produce localized signatures (they don't cross field lines) &rarr; SHORT correlation lengths. This maps to your Pc5 coherence dip.</li>
+    <li><strong>Fast magnetosonic waves</strong> produce global signatures (they propagate isotropically) &rarr; LONG correlation lengths. This maps to your Pi2 coherence recovery and Pc3 high coherence.</li>
+    <li>The competition between these two modes at different frequencies is the fundamental reason your L(f) is not monotonic.</li>
+  </ul>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 3: ALFVEN WAVE AS PLUCKED STRING                           -->
+<!-- ================================================================== -->
+<section id="sec3">
+<h2>3. Alfv&eacute;n Waves &mdash; The Plucked String</h2>
+
+<p>An Alfv&eacute;n wave is a transverse oscillation of a magnetic field line, exactly like a vibrating guitar string. The physics is a direct analogy:</p>
+
+<table class="speed-table">
+  <tr><th>Guitar String</th><th>Magnetic Field Line</th></tr>
+  <tr><td>String tension T</td><td>Magnetic tension B&sup2;/&mu;<sub>0</sub></td></tr>
+  <tr><td>Linear mass density &mu;</td><td>Plasma mass density &rho;</td></tr>
+  <tr><td>Wave speed &radic;(T/&mu;)</td><td>Alfv&eacute;n speed B/&radic;(&mu;<sub>0</sub>&rho;)</td></tr>
+  <tr><td>Fixed ends (bridge &amp; nut)</td><td>Ionospheric boundaries (north &amp; south)</td></tr>
+  <tr><td>Standing wave harmonics</td><td>Field line eigenfrequencies</td></tr>
+</table>
+
+<p>In the magnetosphere, field lines connect the northern and southern ionospheres. The ionospheres act as <strong>partial reflectors</strong>: the conductive ionosphere shorts out the wave's electric field, reflecting the Alfv&eacute;n wave back along the field line. Standing waves form &mdash; just like standing waves on a guitar string with fixed ends.</p>
+
+<p>The fundamental frequency of a field line is:</p>
+<div class="formula-block">f<sub>1</sub> &asymp; V<sub>A</sub> / (2L<sub>path</sub>)</div>
+<p>where L<sub>path</sub> is the total path length from ionosphere to ionosphere along the field line. Higher harmonics: f<sub>n</sub> = n &middot; f<sub>1</sub>.</p>
+
+<!-- DIAGRAM 3: Plucked String (KEY ANIMATION) -->
+<div class="diagram-container" id="diagram3-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('pluckedString')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-plucked-string" viewBox="0 0 900 550" width="900" height="550">
+    <defs>
+      <linearGradient id="ionoGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="rgba(80,120,80,0.3)"/>
+        <stop offset="50%" stop-color="rgba(80,120,80,0.6)"/>
+        <stop offset="100%" stop-color="rgba(80,120,80,0.3)"/>
+      </linearGradient>
+      <filter id="glowStrong">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <rect width="900" height="550" fill="#060614"/>
+
+    <!-- Ionosphere boundaries -->
+    <rect x="50" y="45" width="800" height="25" fill="url(#ionoGrad)" rx="3"/>
+    <text x="450" y="40" fill="#66aa66" font-size="13" text-anchor="middle">Northern Ionosphere (reflection boundary)</text>
+    <rect x="50" y="480" width="800" height="25" fill="url(#ionoGrad)" rx="3"/>
+    <text x="450" y="525" fill="#66aa66" font-size="13" text-anchor="middle">Southern Ionosphere (reflection boundary)</text>
+
+    <!-- Equatorial plane -->
+    <line x1="50" y1="275" x2="850" y2="275" stroke="rgba(100,180,255,0.15)" stroke-width="1" stroke-dasharray="8,6"/>
+    <text x="855" y="279" fill="#446688" font-size="11" text-anchor="start">Equator</text>
+
+    <!-- The animated field line -->
+    <g id="plucked-string-group" filter="url(#glowStrong)">
+      <path id="plucked-string-line" d="" stroke="#00ccff" stroke-width="3" fill="none"/>
+    </g>
+
+    <!-- Nodes and antinodes will be drawn by JS -->
+    <g id="plucked-nodes"></g>
+
+    <!-- Harmonic label -->
+    <text id="harmonic-label" x="450" y="545" fill="#ccddff" font-size="15" text-anchor="middle" font-weight="bold"></text>
+
+    <!-- Guitar string analogy label -->
+    <text x="450" y="18" fill="#7799bb" font-size="13" text-anchor="middle" font-style="italic">Like a guitar string: ionospheres = fixed ends, equator = maximum displacement</text>
+  </svg>
+  <span class="diagram-label">Standing Alfv&eacute;n wave harmonics on a dipole field line: fundamental, 2nd, and 3rd harmonics</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <p>The eigenfrequency of the field line directly above IMAGE's dense cluster (L &asymp; 6, ~67&deg; MLAT) falls in the <strong>Pc5 band</strong> (period ~300&ndash;600 s). This is not a coincidence &mdash; it is the <em>fundamental physical reason</em> why Pc5 pulsations are prominent in your data. The field lines overhead are resonating at their natural frequency, just like plucked strings. Higher harmonics of these same field lines produce oscillations in the Pi2 band.</p>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 4: FIELD LINE RESONANCES                                   -->
+<!-- ================================================================== -->
+<section id="sec4">
+<h2>4. Field Line Resonances (FLR) &mdash; Why Pc5 is Localized</h2>
+
+<p>Each magnetic field line has its own eigenfrequency, determined by its length and the Alfv&eacute;n speed along it. Because both B and &rho; vary along the field line, the eigenfrequency must be computed as an integral:</p>
+
+<div class="formula-block">f<sub>n</sub> = n / (2 &int; ds / V<sub>A</sub>(s))</div>
+
+<p>But the key scaling is simple: <strong>longer field lines (larger L) have lower eigenfrequencies</strong>.</p>
+
+<table class="speed-table">
+  <tr><th>L-shell</th><th>MLAT (&deg;)</th><th>Fundamental Period</th><th>ULF Band</th></tr>
+  <tr><td>L = 4</td><td>60&deg;</td><td>~60&ndash;100 s</td><td>Pi2</td></tr>
+  <tr><td>L = 6</td><td>67&deg;</td><td>~300&ndash;600 s</td><td>Pc5</td></tr>
+  <tr><td>L = 8</td><td>71&deg;</td><td>~600&ndash;1000 s</td><td>Pc5/Pc6</td></tr>
+  <tr><td>L = 10</td><td>73&deg;</td><td>~1000&ndash;1500 s</td><td>Pc6</td></tr>
+</table>
+
+<p><strong>Field Line Resonance (FLR)</strong> is what happens when a broadband fast-mode wave (Section 2) encounters a region where the local eigenfrequency matches the wave frequency. Energy transfers from the fast mode (compressive, global) to the Alfv&eacute;n mode (transverse, localized). The field line <strong>resonates</strong>.</p>
+
+<p>But here is the critical point: each field line resonates at its <em>own</em> frequency. At a given frequency f, only the L-shell where f<sub>eigen</sub>(L) = f will resonate. Neighboring L-shells have different eigenfrequencies and do not resonate at that frequency. The result is a perturbation that is <strong>highly localized in latitude</strong> &mdash; extending only &Delta;L &asymp; 0.5&ndash;1 R<sub>E</sub> around the resonant shell.</p>
+
+<!-- DIAGRAM 4: FLR Mechanism -->
+<div class="diagram-container" id="diagram4-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('flr')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-flr" viewBox="0 0 900 500" width="900" height="500">
+    <rect width="900" height="500" fill="#060614"/>
+    <!-- Earth -->
+    <circle cx="100" cy="250" r="50" fill="#1a3355" stroke="#3366aa" stroke-width="1.5"/>
+    <text x="100" y="254" fill="#5588bb" font-size="11" text-anchor="middle">Earth</text>
+
+    <!-- L-shell labels along the top -->
+    <text id="flr-l4-label" x="250" y="25" fill="#6688aa" font-size="11" text-anchor="middle">L=4</text>
+    <text id="flr-l6-label" x="400" y="25" fill="#6688aa" font-size="11" text-anchor="middle">L=6</text>
+    <text id="flr-l8-label" x="550" y="25" fill="#6688aa" font-size="11" text-anchor="middle">L=8</text>
+    <text id="flr-l10-label" x="700" y="25" fill="#6688aa" font-size="11" text-anchor="middle">L=10</text>
+
+    <!-- Eigenfrequency labels -->
+    <text x="250" y="485" fill="#557788" font-size="10" text-anchor="middle">f &asymp; 12 mHz</text>
+    <text x="400" y="485" fill="#557788" font-size="10" text-anchor="middle">f &asymp; 2.5 mHz</text>
+    <text x="550" y="485" fill="#557788" font-size="10" text-anchor="middle">f &asymp; 1.2 mHz</text>
+    <text x="700" y="485" fill="#557788" font-size="10" text-anchor="middle">f &asymp; 0.8 mHz</text>
+
+    <!-- Field lines (drawn by JS) -->
+    <g id="flr-field-lines"></g>
+
+    <!-- Fast mode wave front (drawn by JS) -->
+    <g id="flr-fast-wave"></g>
+
+    <!-- Resonance glow -->
+    <g id="flr-resonance-glow"></g>
+
+    <!-- Labels -->
+    <text x="450" y="18" fill="#7799bb" font-size="13" text-anchor="middle" font-style="italic">Each field line is a different note. The fast wave excites only the matching string.</text>
+
+    <!-- Fast wave label -->
+    <g id="flr-wave-label">
+      <text x="830" y="250" fill="#ff6644" font-size="12" text-anchor="middle" transform="rotate(-90,830,250)">Fast-mode wave &rarr;</text>
+    </g>
+  </svg>
+  <span class="diagram-label">Field Line Resonance: a broadband fast-mode wave selectively excites the field line whose eigenfrequency matches</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <ul>
+    <li><strong>Your L(f) minimum at Pc5</strong> is a direct consequence of FLR. At Pc5 frequencies (~2&ndash;5 mHz), the resonant L-shell lies within or near your IMAGE network. The perturbation is localized to a narrow latitude band &rarr; short correlation length.</li>
+    <li><strong>The anisotropy crossover at ~2.2 mHz</strong> maps to the FLR eigenfrequency at L &asymp; 6. Below this frequency, perturbations are dominated by the electrojet (E-W extended). Above it, FAC filaments associated with FLR (N-S aligned) become dominant.</li>
+    <li>The FLR amplitude peaks at the resonant latitude and drops off rapidly on either side. In your variogram, this shows as a nugget + short-range structure in the N-S direction at Pc5 frequencies.</li>
+  </ul>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 5: CAVITY / WAVEGUIDE MODES                                -->
+<!-- ================================================================== -->
+<section id="sec5">
+<h2>5. Cavity/Waveguide Modes &mdash; Why Pi2 Coherence Recovers</h2>
+
+<p>The magnetosphere also acts as a <strong>waveguide or cavity</strong> for fast-mode (compressive) waves. The boundaries are regions where V<sub>A</sub> changes sharply, creating partial reflections:</p>
+
+<ul>
+  <li><strong>Outer boundary:</strong> The magnetopause, where the solar wind's low V<sub>A</sub> meets the magnetosphere's high V<sub>A</sub>.</li>
+  <li><strong>Inner boundary:</strong> The plasmapause (L &asymp; 4), where a sharp density increase causes V<sub>A</sub> to drop abruptly. Also, the upper ionosphere serves as a lower boundary.</li>
+</ul>
+
+<p>Fast-mode waves bounce between these boundaries, setting up <strong>standing patterns</strong> &mdash; cavity modes. These are the MHD analog of acoustic resonances in a room. Their periods are determined by the cavity dimensions and the fast-mode speed:</p>
+
+<div class="formula-block">T<sub>cavity</sub> &asymp; 2&Delta;R / V<sub>f</sub> &asymp; 2 &times; 6 R<sub>E</sub> / 1000 km/s &asymp; 80 s &nbsp;&nbsp; (Pi2 band)</div>
+
+<p>The essential difference from FLR: cavity modes are <strong>global</strong>. The entire magnetosphere between the boundaries participates in the same oscillation. All ground stations within the cavity see the same phase of compression and rarefaction. This is why your coherence <strong>recovers</strong> at Pi2 frequencies.</p>
+
+<p>Your Pc5 coherence dip is therefore the transition zone: from global convection (high coherence at low-f) through localized FLR (low coherence at Pc5) back to global cavity modes (recovered coherence at Pi2).</p>
+
+<!-- DIAGRAM 5: Cavity Mode -->
+<div class="diagram-container" id="diagram5-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('cavity')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-cavity" viewBox="0 0 900 500" width="900" height="500">
+    <rect width="900" height="500" fill="#060614"/>
+    <!-- Earth -->
+    <circle cx="450" cy="250" r="40" fill="#1a3355" stroke="#3366aa" stroke-width="1.5"/>
+    <text x="450" y="254" fill="#5588bb" font-size="11" text-anchor="middle">Earth</text>
+
+    <!-- Plasmapause circle (inner boundary) -->
+    <circle id="cavity-inner" cx="450" cy="250" r="100" fill="none" stroke="#886644" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.6"/>
+    <text x="450" y="142" fill="#886644" font-size="10" text-anchor="middle">Plasmapause (L&asymp;4)</text>
+
+    <!-- Magnetopause (outer boundary) - elliptical -->
+    <ellipse id="cavity-outer" cx="430" cy="250" rx="280" ry="230" fill="none" stroke="#00aacc" stroke-width="2" opacity="0.7"/>
+    <text x="155" y="85" fill="#00aacc" font-size="10" text-anchor="middle">Magnetopause</text>
+
+    <!-- Cavity fill (animated) -->
+    <g id="cavity-fill"></g>
+
+    <!-- Standing wave nodes/antinodes -->
+    <g id="cavity-nodes"></g>
+
+    <!-- Wave arrows -->
+    <g id="cavity-arrows"></g>
+
+    <!-- Label -->
+    <text x="450" y="18" fill="#7799bb" font-size="13" text-anchor="middle" font-style="italic">The magnetosphere rings like a bell. All stations hear the same note.</text>
+    <text x="450" y="490" fill="#557788" font-size="11" text-anchor="middle">Cavity mode: fast-mode standing wave between plasmapause and magnetopause</text>
+  </svg>
+  <span class="diagram-label">Magnetospheric cavity mode: global compressive oscillation between the plasmapause and magnetopause</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <ul>
+    <li><strong>Pi2 coherence recovery:</strong> Cavity modes are global &rarr; all IMAGE stations see the same oscillation &rarr; high coherence, long L.</li>
+    <li><strong>Z component does NOT recover:</strong> Cavity modes produce horizontal (X, Y) perturbations, not vertical. The Z component coherence stays low because FAC (which drives &Delta;B<sub>Z</sub>) remains localized. This is a strong diagnostic for cavity modes vs. other mechanisms.</li>
+    <li>Your L &asymp; 800 km at Pc5 is the FLR width. At Pi2, L increases again because cavity modes extend across the full network.</li>
+  </ul>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 6: MAGNETOSPHERE BREATHING                                 -->
+<!-- ================================================================== -->
+<section id="sec6">
+<h2>6. Magnetosphere Breathing &mdash; Solar Wind Pressure Pulses</h2>
+
+<p>The most basic MHD response of the magnetosphere to external forcing: when solar wind dynamic pressure increases, the magnetopause is compressed inward; when it decreases, the magnetopause expands outward. This is a fast-mode compression/rarefaction, and it creates the largest-scale perturbations observable on the ground.</p>
+
+<div class="formula-block">P<sub>dyn</sub> = &frac12; &rho;<sub>sw</sub> V<sub>sw</sub>&sup2; &nbsp;&nbsp;&nbsp; (typical: ~2 nPa quiet, ~10&ndash;50 nPa storm)</div>
+
+<p><strong>Sudden commencements (SC):</strong> A sharp increase in solar wind pressure at storm onset drives rapid magnetopause compression. A fast-mode pulse propagates inward through the magnetosphere at V<sub>f</sub> &asymp; 1000 km/s. Since the IMAGE network spans ~1000 km and V<sub>f</sub> is ~1000 km/s, the transit time across the network is ~1 second. This means SC signals arrive at all stations <strong>nearly simultaneously</strong> &rarr; extremely high coherence.</p>
+
+<p>Continuous pressure fluctuations in the solar wind drive continuous fast-mode compressions at the magnetopause. These are the primary driver of the <strong>high coherence at frequencies below the FLR band</strong> (&lt; 1.7 mHz in your data).</p>
+
+<!-- DIAGRAM 6: Magnetosphere Breathing (THE BIG ANIMATION) -->
+<div class="diagram-container" id="diagram6-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('breathing')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-breathing" viewBox="0 0 1000 600" width="1000" height="600">
+    <defs>
+      <radialGradient id="earthGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#1a4466"/>
+        <stop offset="100%" stop-color="#0a2244"/>
+      </radialGradient>
+      <filter id="glowBreathing">
+        <feGaussianBlur stdDeviation="5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <linearGradient id="solarWindGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#cc8822"/>
+        <stop offset="100%" stop-color="#664411" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <rect width="1000" height="600" fill="#040410"/>
+
+    <!-- Solar wind background -->
+    <rect id="sw-glow" x="0" y="0" width="200" height="600" fill="url(#solarWindGrad)" opacity="0.3"/>
+
+    <!-- Solar wind arrows (animated) -->
+    <g id="solar-wind-arrows"></g>
+
+    <!-- Bow shock (animated) -->
+    <path id="bow-shock" d="" stroke="#cc4422" stroke-width="2" stroke-dasharray="8,5" fill="none" opacity="0.7"/>
+    <text id="bow-shock-label" x="0" y="0" fill="#cc4422" font-size="11" text-anchor="middle">Bow Shock</text>
+
+    <!-- Magnetopause (animated) -->
+    <path id="magnetopause" d="" stroke="#00ccdd" stroke-width="2.5" fill="none" opacity="0.8" filter="url(#glowBreathing)"/>
+    <text id="mpause-label" x="0" y="0" fill="#00ccdd" font-size="11" text-anchor="middle">Magnetopause</text>
+
+    <!-- Dipole field lines (animated) -->
+    <g id="breathing-field-lines" filter="url(#glowBreathing)"></g>
+
+    <!-- Tail field lines -->
+    <g id="breathing-tail-lines"></g>
+
+    <!-- Earth -->
+    <circle id="breathing-earth" cx="500" cy="300" r="30" fill="url(#earthGrad)" stroke="#3366aa" stroke-width="1.5"/>
+    <text x="500" y="304" fill="#6699cc" font-size="10" text-anchor="middle">Earth</text>
+
+    <!-- Pressure indicator -->
+    <g id="pressure-indicator">
+      <rect x="20" y="540" width="160" height="40" rx="5" fill="rgba(20,20,40,0.8)" stroke="rgba(100,180,255,0.2)" stroke-width="1"/>
+      <text x="100" y="556" fill="#aa8844" font-size="11" text-anchor="middle">Solar Wind Pressure</text>
+      <rect id="pressure-bar" x="30" y="565" width="100" height="8" rx="3" fill="#cc8822" opacity="0.8"/>
+      <rect x="30" y="565" width="140" height="8" rx="3" fill="none" stroke="rgba(200,150,50,0.3)" stroke-width="1"/>
+    </g>
+
+    <!-- Labels -->
+    <text x="500" y="22" fill="#7799bb" font-size="14" text-anchor="middle" font-style="italic">Solar wind pressure compresses and releases the magnetosphere</text>
+    <text x="500" y="592" fill="#557788" font-size="11" text-anchor="middle">Field lines visibly compress during high pressure; relax during low pressure</text>
+  </svg>
+  <span class="diagram-label">Magnetosphere breathing: the global response to solar wind dynamic pressure variations</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <ul>
+    <li><strong>Regime 1 (>10 min):</strong> Solar wind pressure fluctuations on these timescales drive global compressions that are seen by all stations simultaneously. V<sub>f</sub> &asymp; 1000 km/s &gg; network size / period, so all stations are in phase &rarr; coherence ~0.9, L &asymp; 2000&ndash;5000 km.</li>
+    <li><strong>Sudden commencements</strong> are the extreme case: a step-function pressure increase propagates through the magnetosphere as a single fast-mode wavefront. Your cross-spectral analysis of SC events should show coherence &asymp; 1.0 across ALL frequency bands, briefly.</li>
+    <li>The transition from high coherence (Regime 1) to the Pc5 dip (Regime 2) occurs when the wave frequency approaches the FLR eigenfrequency. Below FLR, the magnetosphere responds as a whole. At FLR, individual field lines decouple from the global response and resonate independently.</li>
+  </ul>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 7: RECONNECTION                                            -->
+<!-- ================================================================== -->
+<section id="sec7">
+<h2>7. Field Line Decoupling During Reconnection</h2>
+
+<p>Reconnection is where the frozen-in condition (Section 1) breaks down. At an X-point (or X-line), the resistivity is locally enhanced, allowing field lines to <strong>change their topology</strong>. This is not merely a theoretical concept &mdash; it is a <strong>wave physics event</strong> that changes the entire character of MHD wave propagation.</p>
+
+<h3>Dayside Reconnection</h3>
+<p>When the IMF (interplanetary magnetic field) is southward, it is antiparallel to the Earth's northward field at the subsolar magnetopause. At the X-line:</p>
+<ul>
+  <li>A <strong>closed</strong> field line (both ends on Earth) splits into two <strong>open</strong> field lines (one end on Earth, one end in the solar wind)</li>
+  <li>These open lines get swept poleward and tailward by the solar wind flow</li>
+  <li>Open flux accumulates in the tail lobes</li>
+</ul>
+
+<h3>Nightside (Tail) Reconnection</h3>
+<p>In the magnetotail, the reverse process:</p>
+<ul>
+  <li>Two <strong>open</strong> field lines approach the tail X-line</li>
+  <li>They reconnect &rarr; one <strong>closed</strong> line (snaps earthward as a dipolarization front) + one <strong>disconnected</strong> IMF line (ejected tailward as a plasmoid)</li>
+</ul>
+
+<h3>Wave Physics Consequences</h3>
+<p>An open field line has <strong>no southern reflection point</strong> &rarr; no standing wave &rarr; no FLR eigenfrequency. When reconnection opens or closes field lines, it changes the Alfv&eacute;n travel time discontinuously. The wave physics of the magnetosphere changes fundamentally. This is why FLR behavior changes dramatically between quiet and disturbed conditions.</p>
+
+<!-- DIAGRAM 7: Reconnection -->
+<div class="diagram-container" id="diagram7-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('reconnection')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-reconnection" viewBox="0 0 900 500" width="900" height="500">
+    <rect width="900" height="500" fill="#060614"/>
+
+    <!-- Divider -->
+    <line x1="450" y1="30" x2="450" y2="470" stroke="rgba(100,180,255,0.1)" stroke-width="1"/>
+
+    <!-- Panel labels -->
+    <text x="225" y="25" fill="#88ccff" font-size="14" text-anchor="middle" font-weight="bold">Dayside Reconnection</text>
+    <text x="675" y="25" fill="#88ccff" font-size="14" text-anchor="middle" font-weight="bold">Tail Reconnection</text>
+
+    <!-- Dayside panel -->
+    <!-- Magnetopause line -->
+    <line x1="350" y1="40" x2="350" y2="460" stroke="#00aacc" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>
+    <text x="355" y="465" fill="#00aacc" font-size="9">Magnetopause</text>
+
+    <!-- X-point marker dayside -->
+    <g id="xpoint-day">
+      <text x="280" y="255" fill="#ff4444" font-size="16" text-anchor="middle" font-weight="bold">&times;</text>
+      <text x="280" y="275" fill="#ff6644" font-size="10" text-anchor="middle">X-line</text>
+    </g>
+
+    <!-- Dayside field lines (animated) -->
+    <g id="reconnect-day-lines"></g>
+
+    <!-- Tail panel -->
+    <!-- X-point marker tail -->
+    <g id="xpoint-tail">
+      <text x="680" y="255" fill="#ff4444" font-size="16" text-anchor="middle" font-weight="bold">&times;</text>
+      <text x="680" y="275" fill="#ff6644" font-size="10" text-anchor="middle">X-line</text>
+    </g>
+
+    <!-- Earth in tail panel -->
+    <circle cx="530" cy="250" r="20" fill="#1a3355" stroke="#3366aa" stroke-width="1"/>
+    <text x="530" y="254" fill="#5588bb" font-size="8" text-anchor="middle">Earth</text>
+
+    <!-- Tail field lines (animated) -->
+    <g id="reconnect-tail-lines"></g>
+
+    <!-- Legend -->
+    <g transform="translate(50, 475)">
+      <line x1="0" y1="0" x2="30" y2="0" stroke="#4488ff" stroke-width="2.5"/>
+      <text x="35" y="4" fill="#88aacc" font-size="10">Closed (both ends on Earth)</text>
+      <line x1="250" y1="0" x2="280" y2="0" stroke="#44cc44" stroke-width="2.5"/>
+      <text x="285" y="4" fill="#88aacc" font-size="10">IMF (solar wind)</text>
+      <line x1="470" y1="0" x2="500" y2="0" stroke="#ff6644" stroke-width="2.5"/>
+      <text x="505" y="4" fill="#88aacc" font-size="10">Open (one end on Earth)</text>
+    </g>
+  </svg>
+  <span class="diagram-label">Magnetic reconnection changes field line topology, fundamentally altering wave propagation</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <ul>
+    <li>During strongly southward IMF (active reconnection), the fraction of open flux over your stations increases. Open field lines cannot support FLR standing waves, so <strong>Pc5 FLR amplitude may decrease</strong> even as overall magnetic activity increases.</li>
+    <li>The Dungey cycle (dayside opening &rarr; tail closure) drives the large-scale convection that produces your <strong>Regime 1 high coherence</strong>. The two-cell convection pattern is the direct consequence of this flux circulation.</li>
+    <li>Tail reconnection launches earthward flows that create substorm signatures (Section 8) &mdash; another contributor to your ground perturbations, especially in the midnight sector.</li>
+  </ul>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 8: SUBSTORM DYNAMICS                                       -->
+<!-- ================================================================== -->
+<section id="sec8">
+<h2>8. Plasma Sheet Dynamics &mdash; Substorm Field Evolution</h2>
+
+<h3>Growth Phase</h3>
+<p>During the substorm growth phase (typically 30&ndash;60 minutes):</p>
+<ul>
+  <li>Open flux accumulates in the tail lobes (from dayside reconnection, Section 7)</li>
+  <li>The lobes expand, squeezing the plasma sheet thinner</li>
+  <li>The cross-tail current intensifies to maintain pressure balance: <span class="formula">J &times; B = &nabla;p</span></li>
+  <li>The magnetic field becomes increasingly stretched &mdash; tail-like rather than dipolar</li>
+</ul>
+
+<h3>Expansion Onset</h3>
+<p>When the tail becomes too thin and stretched, instability triggers:</p>
+<ul>
+  <li>A <strong>Near-Earth Neutral Line (NENL)</strong> forms at ~20 R<sub>E</sub></li>
+  <li>Reconnection begins, and a <strong>dipolarization front</strong> surges earthward at ~200&ndash;400 km/s</li>
+  <li>Stretched field lines snap back to dipolar configuration (think of a rubber band released)</li>
+  <li>The cross-tail current is disrupted, and current is redirected as FACs into the ionosphere &mdash; the <strong>substorm current wedge (SCW)</strong></li>
+  <li>The SCW produces the large &Delta;B<sub>X</sub> perturbations your magnetometers record during substorms</li>
+</ul>
+
+<h3>Pi2 Onset Signature</h3>
+<p>The formation of the SCW and the dipolarization front launch waves in the Pi2 band (40&ndash;150 s). These are the <strong>Pi2 onset pulsations</strong> used universally to time substorm onset. They are a mix of cavity modes (Section 5) and transient Alfv&eacute;n oscillations of the newly dipolarized field lines.</p>
+
+<!-- DIAGRAM 8: Substorm Dynamics -->
+<div class="diagram-container" id="diagram8-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('substorm')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-substorm" viewBox="0 0 900 450" width="900" height="450">
+    <rect width="900" height="450" fill="#060614"/>
+
+    <!-- Phase label -->
+    <text id="substorm-phase-label" x="450" y="25" fill="#ccddff" font-size="15" text-anchor="middle" font-weight="bold">Growth Phase</text>
+
+    <!-- Earth -->
+    <circle cx="120" cy="225" r="35" fill="#1a3355" stroke="#3366aa" stroke-width="1.5"/>
+    <text x="120" y="229" fill="#5588bb" font-size="10" text-anchor="middle">Earth</text>
+
+    <!-- Plasma sheet (animated fill) -->
+    <path id="plasma-sheet" d="" fill="rgba(200,120,40,0.15)" stroke="none"/>
+
+    <!-- Cross-tail current arrows -->
+    <g id="cross-tail-current"></g>
+
+    <!-- Magnetic field lines (animated) -->
+    <g id="substorm-field-lines" filter="url(#glow1)"></g>
+
+    <!-- NENL X-point (appears during expansion) -->
+    <g id="nenl-xpoint" opacity="0">
+      <text x="550" y="230" fill="#ff4444" font-size="18" text-anchor="middle" font-weight="bold">&times;</text>
+      <text x="550" y="248" fill="#ff6644" font-size="10" text-anchor="middle">NENL</text>
+    </g>
+
+    <!-- Dipolarization front (appears during expansion) -->
+    <g id="dipolarization-front" opacity="0">
+      <line x1="0" y1="180" x2="0" y2="270" stroke="#ffaa00" stroke-width="4" opacity="0.8"/>
+      <text x="0" y="175" fill="#ffaa00" font-size="10" text-anchor="middle">Dipolarization</text>
+      <text x="0" y="285" fill="#ffaa00" font-size="10" text-anchor="middle">Front</text>
+    </g>
+
+    <!-- SCW arrows (appear during expansion) -->
+    <g id="scw-arrows" opacity="0"></g>
+
+    <!-- Distance scale -->
+    <text x="120" y="430" fill="#446666" font-size="9" text-anchor="middle">0</text>
+    <text x="330" y="430" fill="#446666" font-size="9" text-anchor="middle">10 R_E</text>
+    <text x="540" y="430" fill="#446666" font-size="9" text-anchor="middle">20 R_E</text>
+    <text x="750" y="430" fill="#446666" font-size="9" text-anchor="middle">30 R_E</text>
+    <line x1="120" y1="420" x2="750" y2="420" stroke="#334455" stroke-width="1"/>
+
+    <text x="450" y="445" fill="#557788" font-size="11" text-anchor="middle">Noon-midnight meridian view (Sun to the left)</text>
+  </svg>
+  <span class="diagram-label">Substorm cycle: growth phase stretching, expansion onset dipolarization, and recovery</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <ul>
+    <li><strong>Pi2 pulsations</strong> at substorm onset are one of the clearest ULF signals in your data. They appear as a burst of ~40&ndash;150 s oscillations, strongest in &Delta;B<sub>X</sub>, beginning precisely at expansion onset. Their spatial coherence is high because the SCW is a large-scale current system.</li>
+    <li><strong>Substorms primarily affect the midnight sector.</strong> If your IMAGE analysis includes stations in the midnight MLT sector, substorm signatures will dominate the perturbation statistics during active intervals.</li>
+    <li>The <strong>cross-tail current disruption</strong> changes the current geometry from a sheet (high spatial coherence, E-W extended) to a wedge with FACs (localized, N-S aligned). This topological transition in the current system may contribute to the anisotropy reversal you observe.</li>
+  </ul>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 9: 12-HOUR STATION VIEW                                    -->
+<!-- ================================================================== -->
+<section id="sec9">
+<h2>9. The 12-Hour View &mdash; How a Ground Station Sees the Magnetosphere</h2>
+
+<p>A ground magnetometer at fixed geographic coordinates rotates through <strong>magnetic local time (MLT)</strong> over 24 hours. At different MLT, it samples completely different parts of the magnetospheric current system:</p>
+
+<table class="speed-table">
+  <tr><th>MLT Sector</th><th>Overhead Currents</th><th>Dominant Signal</th><th>Character</th></tr>
+  <tr><td>00 (Midnight)</td><td>Tail current, SCW</td><td>Strong &Delta;B<sub>X</sub> perturbations</td><td>Substorm-dominated, bursty</td></tr>
+  <tr><td>06 (Dawn)</td><td>R2 FACs, transition</td><td>Mixed signatures</td><td>Transition zone</td></tr>
+  <tr><td>12 (Noon)</td><td>Magnetopause currents</td><td>Compression, Pc3</td><td>Continuous, driven</td></tr>
+  <tr><td>18 (Dusk)</td><td>R1 FACs, Harang</td><td>&Delta;B<sub>Y</sub> perturbations</td><td>Shear-dominated</td></tr>
+</table>
+
+<p>The station sees a <strong>completely different magnetosphere every 6 hours</strong>. The magnetic perturbation switches character: from compression-dominated (noon) to current-sheet-dominated (midnight) to shear-dominated (dusk). This is why <strong>diurnal variation in spatial statistics</strong> is not merely a nuisance &mdash; it reflects genuine physical changes in which current system is overhead.</p>
+
+<!-- DIAGRAM 9: 12-Hour Station Rotation -->
+<div class="diagram-container" id="diagram9-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('rotation')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-rotation" viewBox="0 0 900 550" width="900" height="550">
+    <rect width="900" height="550" fill="#060614"/>
+
+    <!-- Circular MLT clock -->
+    <!-- Outer circle -->
+    <circle cx="450" cy="275" r="220" fill="none" stroke="rgba(100,180,255,0.15)" stroke-width="1"/>
+
+    <!-- MLT labels -->
+    <text x="450" y="40" fill="#88aacc" font-size="13" text-anchor="middle" font-weight="bold">12 MLT (Noon)</text>
+    <text x="450" y="515" fill="#88aacc" font-size="13" text-anchor="middle" font-weight="bold">00 MLT (Midnight)</text>
+    <text x="195" y="280" fill="#88aacc" font-size="13" text-anchor="middle" font-weight="bold">18 MLT (Dusk)</text>
+    <text x="705" y="280" fill="#88aacc" font-size="13" text-anchor="middle" font-weight="bold">06 MLT (Dawn)</text>
+
+    <!-- Sun symbol at noon -->
+    <circle cx="450" cy="25" r="8" fill="#ffcc44" opacity="0.8"/>
+    <g stroke="#ffcc44" stroke-width="1" opacity="0.5">
+      <line x1="450" y1="10" x2="450" y2="5"/>
+      <line x1="450" y1="40" x2="450" y2="45"/>
+      <line x1="435" y1="25" x2="430" y2="25"/>
+      <line x1="465" y1="25" x2="470" y2="25"/>
+    </g>
+
+    <!-- Earth -->
+    <circle cx="450" cy="275" r="30" fill="#1a3355" stroke="#3366aa" stroke-width="1.5"/>
+    <text x="450" y="279" fill="#5588bb" font-size="9" text-anchor="middle">Earth</text>
+
+    <!-- Auroral oval -->
+    <ellipse cx="450" cy="275" rx="130" ry="130" fill="none" stroke="#33aa44" stroke-width="8" opacity="0.15"/>
+    <ellipse cx="450" cy="275" rx="100" ry="100" fill="none" stroke="#33aa44" stroke-width="8" opacity="0.1"/>
+    <text x="340" y="180" fill="#33aa44" font-size="9" opacity="0.6">Auroral oval</text>
+
+    <!-- R1/R2 current indicators -->
+    <g id="current-indicators" opacity="0.4">
+      <!-- R1 poleward -->
+      <circle cx="450" cy="145" r="4" fill="#ff6644"/>
+      <circle cx="450" cy="405" r="4" fill="#4466ff"/>
+      <text x="465" y="149" fill="#ff6644" font-size="8">R1 (down)</text>
+      <text x="465" y="409" fill="#4466ff" font-size="8">R1 (up)</text>
+    </g>
+
+    <!-- Convection streamlines (simplified) -->
+    <g id="convection-lines" opacity="0.2">
+      <path d="M 450 150 Q 550 200 550 275 Q 550 350 450 400" fill="none" stroke="#44aaff" stroke-width="1"/>
+      <path d="M 450 150 Q 350 200 350 275 Q 350 350 450 400" fill="none" stroke="#44aaff" stroke-width="1"/>
+      <path d="M 450 170 Q 520 210 520 275 Q 520 340 450 380" fill="none" stroke="#44aaff" stroke-width="1"/>
+      <path d="M 450 170 Q 380 210 380 275 Q 380 340 450 380" fill="none" stroke="#44aaff" stroke-width="1"/>
+    </g>
+
+    <!-- IMAGE station dot (animated rotation) -->
+    <g id="image-station-group">
+      <circle id="image-station-dot" cx="450" cy="155" r="6" fill="#ffaa00" stroke="#ffcc44" stroke-width="2"/>
+      <text id="image-station-label" x="450" y="140" fill="#ffcc44" font-size="10" text-anchor="middle" font-weight="bold">IMAGE</text>
+    </g>
+
+    <!-- Current MLT info box -->
+    <rect x="30" y="20" width="200" height="80" rx="6" fill="rgba(20,20,40,0.8)" stroke="rgba(100,180,255,0.2)" stroke-width="1"/>
+    <text id="mlt-time" x="130" y="45" fill="#88ccff" font-size="15" text-anchor="middle" font-weight="bold">12:00 MLT</text>
+    <text id="mlt-current" x="130" y="65" fill="#aabbcc" font-size="11" text-anchor="middle">Magnetopause currents</text>
+    <text id="mlt-signal" x="130" y="82" fill="#88aa88" font-size="10" text-anchor="middle">Compression, Pc3</text>
+
+    <!-- Hour labels around the circle -->
+    <g fill="#556677" font-size="9">
+      <text x="525" y="103" text-anchor="middle">09</text>
+      <text x="590" y="155" text-anchor="middle">08</text>
+      <text x="630" y="220" text-anchor="middle">07</text>
+      <text x="375" y="103" text-anchor="middle">15</text>
+      <text x="310" y="155" text-anchor="middle">16</text>
+      <text x="270" y="220" text-anchor="middle">17</text>
+      <text x="270" y="340" text-anchor="middle">19</text>
+      <text x="310" y="400" text-anchor="middle">20</text>
+      <text x="375" y="450" text-anchor="middle">21</text>
+      <text x="525" y="450" text-anchor="middle">03</text>
+      <text x="590" y="400" text-anchor="middle">04</text>
+      <text x="630" y="340" text-anchor="middle">05</text>
+    </g>
+  </svg>
+  <span class="diagram-label">IMAGE station rotating through MLT sectors, sampling different current systems over 24 hours</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data</h4>
+  <ul>
+    <li><strong>Diurnal variation in variogram parameters</strong> is physically real, not an artifact. The spatial statistics of the magnetic field genuinely change as your network rotates through different current systems.</li>
+    <li><strong>Noon sector:</strong> Dominated by magnetopause compression and Pc3 upstream waves. Expect high coherence (global source), E-W anisotropy (compression pattern).</li>
+    <li><strong>Midnight sector:</strong> Dominated by substorm SCW and tail dynamics. Expect lower coherence (localized FACs), N-S anisotropy (FAC alignment), and bursty temporal behavior.</li>
+    <li><strong>Implications for kriging:</strong> The optimal kriging parameters (L, anisotropy ratio, nugget) should ideally vary with MLT, because the underlying physics changes. A single variogram fit over 24 hours averages over fundamentally different physical regimes.</li>
+  </ul>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 10: FOUR REGIMES EXPLAINED                                 -->
+<!-- ================================================================== -->
+<section id="sec10">
+<h2>10. Your Four Regimes Explained &mdash; The Complete Physical Picture</h2>
+
+<p>Now we tie everything together. Your cross-spectral analysis found four coherence regimes. Here is the MHD wave physics behind each one:</p>
+
+<h3>Regime 1: >10 min (&lt;1.7 mHz) &mdash; HIGH Coherence (0.85&ndash;0.95)</h3>
+<p>These are <strong>convection-driven perturbations</strong> from the Dungey cycle (Section 7). The electrojet is a single large-scale current sheet spanning the entire auroral zone. The current flows E-W for thousands of kilometers. All stations within the electrojet see essentially the same current &rarr; high coherence, long L (~2000&ndash;5000 km). The spatial pattern is strongly <strong>E-W extended</strong>, explaining your low-frequency E-W anisotropy.</p>
+
+<h3>Regime 2: 3&ndash;10 min (1.7&ndash;5.6 mHz) &mdash; DIP (0.55&ndash;0.75)</h3>
+<p>This is the <strong>Pc5 / FLR regime</strong> (Section 4). Each field line resonates at its own frequency, determined by its L-shell. Neighboring L-shells resonate at slightly different frequencies &rarr; perturbations are localized in latitude (&Delta;L ~ 0.5&ndash;1 R<sub>E</sub>) &rarr; low coherence, short L (~800&ndash;1500 km). The <strong>L(f) minimum</strong> is here. FLR drives FACs that are N-S aligned (localized filaments in the ionosphere), beginning the transition from E-W to N-S anisotropy.</p>
+
+<h3>Regime 3: 40s&ndash;3 min (5.6&ndash;25 mHz) &mdash; RECOVERY (0.65&ndash;0.76)</h3>
+<p><strong>Pi2 cavity/waveguide modes</strong> (Section 5). Fast-mode waves bouncing between magnetopause and plasmapause create global standing patterns. All stations see the same cavity mode &rarr; coherence recovers, L increases. The Z component does NOT recover &mdash; these are horizontal (X, Y) oscillations. The cavity modes are the MHD "drumhead" of the magnetosphere.</p>
+
+<h3>Regime 4: &lt;40s (>25 mHz) &mdash; HIGH (0.72&ndash;0.84)</h3>
+<p><strong>Pc3 upstream waves.</strong> Ion cyclotron waves generated in the foreshock region, where reflected solar wind ions gyrate and interact with the incoming solar wind. The wave frequency is set by the ion cyclotron frequency in the solar wind: f &asymp; 0.015 &times; B<sub>IMF</sub>(nT) Hz. These waves propagate through the magnetosheath and magnetopause into the dayside magnetosphere. They have a <strong>single, spatially extended source region</strong> &rarr; high spatial coherence across the ground network. The Pc3 signal is strongest at noon MLT (closest to the foreshock).</p>
+
+<!-- DIAGRAM 10a: Four-Regime Summary (STATIC) -->
+<div class="diagram-container" id="diagram10a-container">
+  <svg id="svg-regimes" viewBox="0 0 900 500" width="900" height="500">
+    <rect width="900" height="500" fill="#060614"/>
+
+    <!-- Frequency axis -->
+    <line x1="100" y1="300" x2="830" y2="300" stroke="#556677" stroke-width="1.5"/>
+    <!-- Tick marks and labels -->
+    <g fill="#778899" font-size="10" text-anchor="middle">
+      <line x1="140" y1="296" x2="140" y2="304" stroke="#556677" stroke-width="1"/>
+      <text x="140" y="318">0.1</text>
+      <line x1="260" y1="296" x2="260" y2="304" stroke="#556677" stroke-width="1"/>
+      <text x="260" y="318">1</text>
+      <line x1="380" y1="296" x2="380" y2="304" stroke="#556677" stroke-width="1"/>
+      <text x="380" y="318">3</text>
+      <line x1="460" y1="296" x2="460" y2="304" stroke="#556677" stroke-width="1"/>
+      <text x="460" y="318">5.6</text>
+      <line x1="560" y1="296" x2="560" y2="304" stroke="#556677" stroke-width="1"/>
+      <text x="560" y="318">10</text>
+      <line x1="660" y1="296" x2="660" y2="304" stroke="#556677" stroke-width="1"/>
+      <text x="660" y="318">25</text>
+      <line x1="790" y1="296" x2="790" y2="304" stroke="#556677" stroke-width="1"/>
+      <text x="790" y="318">100</text>
+    </g>
+    <text x="465" y="340" fill="#778899" font-size="12" text-anchor="middle">Frequency (mHz)</text>
+
+    <!-- Coherence axis -->
+    <line x1="100" y1="80" x2="100" y2="300" stroke="#556677" stroke-width="1.5"/>
+    <g fill="#778899" font-size="10" text-anchor="end">
+      <text x="95" y="300">0.5</text>
+      <text x="95" y="256">0.6</text>
+      <text x="95" y="212">0.7</text>
+      <text x="95" y="168">0.8</text>
+      <text x="95" y="124">0.9</text>
+      <text x="95" y="84">1.0</text>
+    </g>
+    <text x="50" y="190" fill="#778899" font-size="12" text-anchor="middle" transform="rotate(-90,50,190)">Coherence</text>
+
+    <!-- Coherence curve (schematic) -->
+    <path d="M 140 110 Q 180 105 220 108 Q 250 110 280 120 Q 320 145 370 210 Q 400 250 420 260 Q 440 265 460 255 Q 500 230 540 200 Q 570 185 600 175 Q 640 165 680 155 Q 720 148 760 140 Q 780 138 790 140"
+          fill="none" stroke="#44ddff" stroke-width="3" filter="url(#glow1)"/>
+
+    <!-- Regime bands (shaded rectangles behind the curve) -->
+    <!-- R1: >10 min = <1.7 mHz -->
+    <rect x="100" y="60" width="185" height="235" fill="rgba(50,100,200,0.08)" stroke="rgba(50,100,200,0.2)" stroke-width="1" rx="3"/>
+    <!-- R2: 3-10 min = 1.7-5.6 mHz -->
+    <rect x="285" y="60" width="175" height="235" fill="rgba(200,100,50,0.08)" stroke="rgba(200,100,50,0.2)" stroke-width="1" rx="3"/>
+    <!-- R3: 40s-3 min = 5.6-25 mHz -->
+    <rect x="460" y="60" width="200" height="235" fill="rgba(50,200,100,0.08)" stroke="rgba(50,200,100,0.2)" stroke-width="1" rx="3"/>
+    <!-- R4: <40s = >25 mHz -->
+    <rect x="660" y="60" width="150" height="235" fill="rgba(200,200,50,0.08)" stroke="rgba(200,200,50,0.2)" stroke-width="1" rx="3"/>
+
+    <!-- Regime labels -->
+    <text x="192" y="55" fill="#6699cc" font-size="12" text-anchor="middle" font-weight="bold">Regime 1</text>
+    <text x="192" y="73" fill="#6699cc" font-size="10" text-anchor="middle">>10 min</text>
+    <text x="372" y="55" fill="#cc8844" font-size="12" text-anchor="middle" font-weight="bold">Regime 2</text>
+    <text x="372" y="73" fill="#cc8844" font-size="10" text-anchor="middle">3&ndash;10 min (Pc5)</text>
+    <text x="560" y="55" fill="#44aa66" font-size="12" text-anchor="middle" font-weight="bold">Regime 3</text>
+    <text x="560" y="73" fill="#44aa66" font-size="10" text-anchor="middle">40s&ndash;3 min (Pi2)</text>
+    <text x="735" y="55" fill="#aaaa44" font-size="12" text-anchor="middle" font-weight="bold">Regime 4</text>
+    <text x="735" y="73" fill="#aaaa44" font-size="10" text-anchor="middle">&lt;40s (Pc3)</text>
+
+    <!-- Physical mechanism annotations -->
+    <!-- R1 -->
+    <g transform="translate(192, 365)">
+      <rect x="-80" y="-15" width="160" height="55" rx="4" fill="rgba(50,100,200,0.15)" stroke="rgba(50,100,200,0.3)" stroke-width="1"/>
+      <text x="0" y="2" fill="#88bbdd" font-size="10" text-anchor="middle" font-weight="bold">Convection / Electrojet</text>
+      <text x="0" y="16" fill="#7799bb" font-size="9" text-anchor="middle">Large-scale current sheet</text>
+      <text x="0" y="29" fill="#7799bb" font-size="9" text-anchor="middle">E-W extended, L~2000+ km</text>
+    </g>
+    <!-- Arrow from box to curve -->
+    <line x1="192" y1="350" x2="192" y2="308" stroke="rgba(50,100,200,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <!-- R2 -->
+    <g transform="translate(372, 365)">
+      <rect x="-80" y="-15" width="160" height="55" rx="4" fill="rgba(200,100,50,0.15)" stroke="rgba(200,100,50,0.3)" stroke-width="1"/>
+      <text x="0" y="2" fill="#ddaa66" font-size="10" text-anchor="middle" font-weight="bold">Field Line Resonance</text>
+      <text x="0" y="16" fill="#bb8855" font-size="9" text-anchor="middle">Each L-shell resonates alone</text>
+      <text x="0" y="29" fill="#bb8855" font-size="9" text-anchor="middle">Localized, L~800 km (min)</text>
+    </g>
+    <line x1="372" y1="350" x2="372" y2="308" stroke="rgba(200,100,50,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <!-- R3 -->
+    <g transform="translate(560, 365)">
+      <rect x="-80" y="-15" width="160" height="55" rx="4" fill="rgba(50,200,100,0.15)" stroke="rgba(50,200,100,0.3)" stroke-width="1"/>
+      <text x="0" y="2" fill="#66cc88" font-size="10" text-anchor="middle" font-weight="bold">Cavity / Waveguide</text>
+      <text x="0" y="16" fill="#55aa77" font-size="9" text-anchor="middle">Global fast-mode resonance</text>
+      <text x="0" y="29" fill="#55aa77" font-size="9" text-anchor="middle">All stations in phase, L rises</text>
+    </g>
+    <line x1="560" y1="350" x2="560" y2="308" stroke="rgba(50,200,100,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <!-- R4 -->
+    <g transform="translate(735, 365)">
+      <rect x="-80" y="-15" width="160" height="55" rx="4" fill="rgba(200,200,50,0.15)" stroke="rgba(200,200,50,0.3)" stroke-width="1"/>
+      <text x="0" y="2" fill="#cccc66" font-size="10" text-anchor="middle" font-weight="bold">Upstream Pc3 Waves</text>
+      <text x="0" y="16" fill="#aaaa55" font-size="9" text-anchor="middle">Foreshock ion cyclotron</text>
+      <text x="0" y="29" fill="#aaaa55" font-size="9" text-anchor="middle">Single source, high coherence</text>
+    </g>
+    <line x1="735" y1="350" x2="735" y2="308" stroke="rgba(200,200,50,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <!-- L(f) minimum annotation -->
+    <g>
+      <path d="M 400 265 Q 395 285 380 290" fill="none" stroke="#ff6644" stroke-width="1.5"/>
+      <text x="380" y="280" fill="#ff6644" font-size="10" text-anchor="end">L(f) minimum</text>
+    </g>
+
+    <!-- Crossover frequency annotation -->
+    <line x1="345" y1="80" x2="345" y2="295" stroke="#ff8866" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+    <text x="345" y="445" fill="#ff8866" font-size="10" text-anchor="middle">~2.2 mHz crossover</text>
+    <text x="345" y="458" fill="#cc7755" font-size="9" text-anchor="middle">(E-W &rarr; N-S anisotropy)</text>
+    <text x="345" y="471" fill="#cc7755" font-size="9" text-anchor="middle">= FLR eigenfrequency at L&asymp;6</text>
+  </svg>
+  <span class="diagram-label">The four coherence regimes and their MHD wave physics origins</span>
+</div>
+
+<!-- DIAGRAM 10b: Crossover Frequency (ANIMATED) -->
+<div class="diagram-container" id="diagram10b-container">
+  <div class="anim-controls">
+    <button class="play-pause-btn" onclick="toggleAnim('crossover')">&#10074;&#10074; Pause</button>
+  </div>
+  <svg id="svg-crossover" viewBox="0 0 900 400" width="900" height="400">
+    <rect width="900" height="400" fill="#060614"/>
+
+    <!-- Title -->
+    <text x="450" y="25" fill="#ccddff" font-size="14" text-anchor="middle" font-weight="bold">Frequency-Dependent Anisotropy Reversal</text>
+
+    <!-- Left panel: Low-f (E-W) -->
+    <g id="crossover-left">
+      <text x="225" y="55" fill="#6699cc" font-size="12" text-anchor="middle">Low frequency (&lt;2.2 mHz)</text>
+      <text x="225" y="72" fill="#557799" font-size="10" text-anchor="middle">Electrojet dominates</text>
+    </g>
+
+    <!-- Right panel: High-f (N-S) -->
+    <g id="crossover-right">
+      <text x="675" y="55" fill="#cc8844" font-size="12" text-anchor="middle">High frequency (>2.2 mHz)</text>
+      <text x="675" y="72" fill="#997755" font-size="10" text-anchor="middle">FAC filaments dominate</text>
+    </g>
+
+    <!-- Center crossover -->
+    <line x1="450" y1="50" x2="450" y2="370" stroke="#ff8866" stroke-width="1" stroke-dasharray="6,4" opacity="0.4"/>
+    <text x="450" y="385" fill="#ff8866" font-size="11" text-anchor="middle">Crossover ~2.2 mHz = FLR at L&asymp;6</text>
+
+    <!-- Animated spatial patterns -->
+    <g id="crossover-ew-pattern"></g>
+    <g id="crossover-ns-pattern"></g>
+
+    <!-- Morphing indicator -->
+    <g id="crossover-morph-arrow">
+      <text x="450" y="220" fill="#ff8866" font-size="24" text-anchor="middle">&rarr;</text>
+    </g>
+  </svg>
+  <span class="diagram-label">The crossover at ~2.2 mHz: below it, the E-W extended electrojet dominates; above it, N-S aligned FAC filaments dominate</span>
+</div>
+
+<div class="connection-box">
+  <h4>Connection to Your Data &mdash; The Complete Map</h4>
+  <ul>
+    <li><strong>Coherence vs. frequency:</strong> The non-monotonic coherence curve (high &rarr; dip &rarr; recovery &rarr; high) is NOT anomalous. It is the <em>expected</em> signature of four distinct MHD wave modes, each with different spatial coherence properties, dominating in different frequency bands.</li>
+    <li><strong>L(f) minimum at Pc5:</strong> FLR creates the most spatially localized perturbations in the magnetosphere. Your kriging should use L &asymp; 800 km (your finding) at Pc5, increasing to L &asymp; 2000 km at lower and higher frequencies.</li>
+    <li><strong>Anisotropy crossover at ~2.2 mHz:</strong> This is the FLR eigenfrequency at the L-shell directly overhead (L &asymp; 6). Below it: the electrojet (E-W current sheet) dominates &rarr; E-W anisotropy. Above it: FLR-driven FAC filaments (N-S aligned) dominate &rarr; N-S anisotropy.</li>
+    <li><strong>Z component coherence:</strong> Stays low at Pi2 because cavity modes produce horizontal (X, Y) perturbations. The Z component is driven by localized FACs, which remain spatially structured even when the X, Y components are globally coherent.</li>
+    <li><strong>Frequency-dependent kriging:</strong> Your finding that optimal L varies with frequency is physically correct and deeply meaningful. Different frequencies sample different wave modes, which have fundamentally different spatial scales. A frequency-dependent variogram model is not merely empirically better &mdash; it is physically necessary.</li>
+  </ul>
+</div>
+</section>
+
+</div><!-- .container -->
+
+<!-- ================================================================== -->
+<!-- JAVASCRIPT: ALL ANIMATIONS                                         -->
+<!-- ================================================================== -->
+<script>
+// ===== ANIMATION CONTROL =====
+const animStates = {};
+function toggleAnim(name) {
+  animStates[name] = !animStates[name];
+  const btn = event.target;
+  btn.innerHTML = animStates[name] ? '&#9654; Play' : '&#10074;&#10074; Pause';
+}
+function isPaused(name) { return animStates[name] === true; }
+
+// ===== UTILITY FUNCTIONS =====
+function dipoleFieldLine(L, thetaStart, thetaEnd, nPoints) {
+  // Dipole field line: r = L * cos^2(theta)
+  // x = r * sin(theta), y = r * cos(theta)
+  const pts = [];
+  for (let i = 0; i <= nPoints; i++) {
+    const theta = thetaStart + (thetaEnd - thetaStart) * i / nPoints;
+    const r = L * Math.cos(theta) * Math.cos(theta);
+    const x = r * Math.sin(theta);
+    const y = -r * Math.cos(theta); // flip so north is up
+    pts.push([x, y]);
+  }
+  return pts;
+}
+
+function ptsToPath(pts) {
+  if (pts.length === 0) return '';
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) {
+    d += ` L ${pts[i][0]} ${pts[i][1]}`;
+  }
+  return d;
+}
+
+function ptsToSmoothPath(pts) {
+  if (pts.length < 2) return '';
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const xc = (pts[i][0] + pts[i+1][0]) / 2;
+    const yc = (pts[i][1] + pts[i+1][1]) / 2;
+    d += ` Q ${pts[i][0]} ${pts[i][1]} ${xc} ${yc}`;
+  }
+  d += ` L ${pts[pts.length-1][0]} ${pts[pts.length-1][1]}`;
+  return d;
+}
+
+function createSVGElement(tag, attrs) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    el.setAttribute(k, v);
+  }
+  return el;
+}
+
+// ===== ANIMATION 1: FROZEN-IN FLUX =====
+(function initFrozenFlux() {
+  const g = document.getElementById('frozen-field-lines');
+  const gp = document.getElementById('frozen-particles');
+  const nLines = 8;
+  const nParticles = 20;
+  const lineY = [];
+  const lines = [];
+  const particles = [];
+
+  for (let i = 0; i < nLines; i++) {
+    const y = 90 + i * 35;
+    lineY.push(y);
+    const line = createSVGElement('path', {
+      d: '', stroke: '#00aadd', 'stroke-width': '1.8', fill: 'none', opacity: '0.7'
+    });
+    g.appendChild(line);
+    lines.push(line);
+  }
+
+  for (let i = 0; i < nParticles; i++) {
+    const c = createSVGElement('circle', {
+      r: '2.5', fill: '#ffaa44', opacity: '0.7'
+    });
+    gp.appendChild(c);
+    particles.push({
+      el: c,
+      baseX: 50 + Math.random() * 800,
+      lineIdx: Math.floor(Math.random() * nLines),
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+
+  const arrowG = document.getElementById('frozen-perturb-arrow');
+  const propG = document.getElementById('frozen-prop-arrow');
+
+  function animate(t) {
+    if (!isPaused('frozenFlux')) {
+      const period = 10000;
+      const phase = (t % period) / period;
+      // Traveling wave: perturbation starts at x~200 and propagates to the right
+      const waveSpeed = 0.08; // in x-units per ms
+      const waveK = 0.012;
+      const waveAmp = 30;
+
+      // Show arrows
+      const arrowOpacity = phase < 0.15 ? phase / 0.15 : (phase < 0.85 ? 1 : (1 - phase) / 0.15);
+      arrowG.setAttribute('opacity', Math.max(0, Math.min(1, arrowOpacity * 0.7)));
+      propG.setAttribute('opacity', phase > 0.1 ? Math.min(1, (phase - 0.1) * 3) * 0.7 : 0);
+
+      for (let i = 0; i < nLines; i++) {
+        const nPts = 120;
+        const pts = [];
+        for (let j = 0; j <= nPts; j++) {
+          const x = 30 + j * 7;
+          // Traveling Alfven wave perturbation
+          const waveFront = t * waveSpeed;
+          const distFromSource = x - 200;
+          let dy = 0;
+          if (distFromSource > 0 && distFromSource < waveFront) {
+            // Envelope
+            const env = Math.sin(Math.PI * distFromSource / Math.max(waveFront, 1));
+            dy = waveAmp * env * Math.sin(waveK * x - t * 0.002);
+          } else if (distFromSource <= 0) {
+            // Source region oscillation
+            const env = Math.exp(distFromSource / 50);
+            dy = waveAmp * env * Math.sin(waveK * 200 - t * 0.002) * Math.min(1, phase * 5);
+          }
+          pts.push([x, lineY[i] + dy]);
+        }
+        lines[i].setAttribute('d', ptsToPath(pts));
+      }
+
+      // Update particles
+      for (const p of particles) {
+        const x = p.baseX;
+        const waveFront = t * waveSpeed;
+        const distFromSource = x - 200;
+        let dy = 0;
+        if (distFromSource > 0 && distFromSource < waveFront) {
+          const env = Math.sin(Math.PI * distFromSource / Math.max(waveFront, 1));
+          dy = waveAmp * env * Math.sin(waveK * x - t * 0.002);
+        } else if (distFromSource <= 0) {
+          const env = Math.exp(distFromSource / 50);
+          dy = waveAmp * env * Math.sin(waveK * 200 - t * 0.002) * Math.min(1, phase * 5);
+        }
+        p.el.setAttribute('cx', x);
+        p.el.setAttribute('cy', lineY[p.lineIdx] + dy);
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 2: THREE WAVE MODES =====
+(function initThreeModes() {
+  const gA = document.getElementById('alfven-mode-lines');
+  const gF = document.getElementById('fast-mode-lines');
+  const gS = document.getElementById('slow-mode-lines');
+
+  const nLines = 9;
+  const lineSpacing = 32;
+  const topY = 85;
+
+  // Create line elements for each mode
+  const alfvenLines = [], fastLines = [], slowLines = [];
+  for (let i = 0; i < nLines; i++) {
+    const aLine = createSVGElement('path', { d: '', stroke: '#00bbdd', 'stroke-width': '1.5', fill: 'none', opacity: '0.7' });
+    gA.appendChild(aLine);
+    alfvenLines.push(aLine);
+
+    const fLine = createSVGElement('path', { d: '', stroke: '#00bbdd', 'stroke-width': '1.5', fill: 'none', opacity: '0.7' });
+    gF.appendChild(fLine);
+    fastLines.push(fLine);
+
+    const sLine = createSVGElement('path', { d: '', stroke: '#00bbdd', 'stroke-width': '1.5', fill: 'none', opacity: '0.7' });
+    gS.appendChild(sLine);
+    slowLines.push(sLine);
+  }
+
+  // Propagation indicators
+  const alfvProp = createSVGElement('circle', { r: '0', fill: 'none', stroke: '#44ff88', 'stroke-width': '1.5', opacity: '0' });
+  gA.appendChild(alfvProp);
+  const fastProp = createSVGElement('circle', { r: '0', fill: 'none', stroke: '#44ff88', 'stroke-width': '1.5', opacity: '0' });
+  gF.appendChild(fastProp);
+  const slowProp = createSVGElement('ellipse', { rx: '0', ry: '0', fill: 'none', stroke: '#44ff88', 'stroke-width': '1.5', opacity: '0' });
+  gS.appendChild(slowProp);
+
+  function animate(t) {
+    if (!isPaused('threeModes')) {
+      const period = 6000;
+      const phase = (t % period) / period;
+      const omega = 2 * Math.PI / period;
+
+      // ALFVEN: transverse displacement, traveling along x (along B)
+      for (let i = 0; i < nLines; i++) {
+        const baseY = topY + i * lineSpacing;
+        const pts = [];
+        for (let j = 0; j <= 40; j++) {
+          const x = 20 + j * 7;
+          const k = 0.03;
+          const amp = 15;
+          const dy = amp * Math.sin(k * x - t * omega) * Math.exp(-Math.pow((x - 150) / 100, 2) * 0.3);
+          pts.push([x, baseY + dy]);
+        }
+        alfvenLines[i].setAttribute('d', ptsToPath(pts));
+      }
+
+      // FAST MODE: compression/rarefaction in all directions from a point
+      const cx = 450, cy = topY + nLines * lineSpacing / 2;
+      const compR = 60 + 40 * Math.sin(t * omega);
+      for (let i = 0; i < nLines; i++) {
+        const baseY = topY + i * lineSpacing;
+        const pts = [];
+        for (let j = 0; j <= 40; j++) {
+          const x = 320 + j * 7;
+          const dx = x - cx;
+          const dy0 = baseY - cy;
+          const dist = Math.sqrt(dx * dx + dy0 * dy0);
+          // Radial compression wave
+          const wave = 6 * Math.sin(0.05 * dist - t * omega * 1.5) * Math.exp(-dist * 0.005);
+          // Compress field lines together/apart
+          const compFactor = wave * (dy0 / (dist + 1));
+          pts.push([x, baseY + compFactor]);
+        }
+        fastLines[i].setAttribute('d', ptsToPath(pts));
+      }
+      // Fast mode propagation circle
+      const fastRadius = ((t * 0.04) % 120);
+      fastProp.setAttribute('cx', cx);
+      fastProp.setAttribute('cy', cy);
+      fastProp.setAttribute('r', fastRadius);
+      fastProp.setAttribute('opacity', Math.max(0, 0.5 - fastRadius / 200));
+
+      // SLOW MODE: compression mainly along B
+      for (let i = 0; i < nLines; i++) {
+        const baseY = topY + i * lineSpacing;
+        const pts = [];
+        for (let j = 0; j <= 40; j++) {
+          const x = 620 + j * 7;
+          const localX = x - 750;
+          // Compression along B (horizontal squeezing)
+          const comp = 4 * Math.sin(0.04 * localX - t * omega * 0.7);
+          // Slight transverse component
+          const dy = comp * 0.3 * (i - nLines / 2) / nLines;
+          // Horizontal density variation shown as vertical offset (subtle)
+          pts.push([x + comp * 0.5, baseY + dy]);
+        }
+        slowLines[i].setAttribute('d', ptsToPath(pts));
+      }
+      // Slow mode propagation (elongated along B)
+      const slowRx = ((t * 0.03) % 80);
+      const slowRy = slowRx * 0.3;
+      slowProp.setAttribute('cx', 750);
+      slowProp.setAttribute('cy', cy);
+      slowProp.setAttribute('rx', slowRx);
+      slowProp.setAttribute('ry', slowRy);
+      slowProp.setAttribute('opacity', Math.max(0, 0.4 - slowRx / 160));
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 3: PLUCKED STRING (KEY ANIMATION) =====
+(function initPluckedString() {
+  const pathEl = document.getElementById('plucked-string-line');
+  const nodesG = document.getElementById('plucked-nodes');
+  const label = document.getElementById('harmonic-label');
+
+  // Field line endpoints (ionosphere boundaries)
+  const topY = 58;
+  const botY = 492;
+  const cx = 450;
+  const fieldLineHeight = botY - topY;
+
+  function animate(t) {
+    if (!isPaused('pluckedString')) {
+      // Cycle through harmonics: fundamental (0-7s), 2nd (7-14s), 3rd (14-21s)
+      const cyclePeriod = 21000;
+      const phase = (t % cyclePeriod) / cyclePeriod;
+      let harmonicN;
+      let harmonicT;
+      if (phase < 1/3) {
+        harmonicN = 1;
+        harmonicT = phase * 3;
+      } else if (phase < 2/3) {
+        harmonicN = 2;
+        harmonicT = (phase - 1/3) * 3;
+      } else {
+        harmonicN = 3;
+        harmonicT = (phase - 2/3) * 3;
+      }
+
+      // Transition: fade amplitude at boundaries
+      const transWidth = 0.15;
+      let ampScale;
+      if (harmonicT < transWidth) {
+        ampScale = harmonicT / transWidth;
+      } else if (harmonicT > 1 - transWidth) {
+        ampScale = (1 - harmonicT) / transWidth;
+      } else {
+        ampScale = 1;
+      }
+
+      // Standing wave frequency scales with harmonic number
+      const omega = harmonicN * 2 * Math.PI / 4000; // period decreases with n
+      const maxAmp = 80 / harmonicN; // amplitude decreases with n
+
+      const nPts = 100;
+      const pts = [];
+      for (let i = 0; i <= nPts; i++) {
+        const frac = i / nPts;
+        const y = topY + frac * fieldLineHeight;
+        // Standing wave: sin(n*pi*frac) * cos(omega*t)
+        const dx = maxAmp * Math.sin(harmonicN * Math.PI * frac) * Math.cos(omega * t) * ampScale;
+        pts.push([cx + dx, y]);
+      }
+      pathEl.setAttribute('d', ptsToSmoothPath(pts));
+
+      // Draw nodes (zero crossings) and antinodes (maxima)
+      while (nodesG.firstChild) nodesG.removeChild(nodesG.firstChild);
+
+      // Nodes at ionospheres
+      for (let i = 0; i <= harmonicN; i++) {
+        const frac = i / harmonicN;
+        const y = topY + frac * fieldLineHeight;
+        const node = createSVGElement('circle', {
+          cx: cx, cy: y, r: '5',
+          fill: 'white', opacity: String(0.8 * ampScale)
+        });
+        nodesG.appendChild(node);
+        if (i > 0 && i < harmonicN) {
+          const nodeLbl = createSVGElement('text', {
+            x: cx + 15, y: y + 4, fill: 'white', 'font-size': '10', opacity: String(0.6 * ampScale)
+          });
+          nodeLbl.textContent = 'node';
+          nodesG.appendChild(nodeLbl);
+        }
+      }
+
+      // Antinodes (midway between nodes)
+      for (let i = 0; i < harmonicN; i++) {
+        const frac = (i + 0.5) / harmonicN;
+        const y = topY + frac * fieldLineHeight;
+        const displacement = maxAmp * Math.sin(harmonicN * Math.PI * frac) * Math.cos(omega * t) * ampScale;
+        const intensity = Math.abs(Math.cos(omega * t));
+        const antinode = createSVGElement('circle', {
+          cx: cx + displacement, cy: y, r: '6',
+          fill: `rgba(255,220,50,${intensity * 0.8 * ampScale})`,
+          stroke: '#ffdd33', 'stroke-width': '1.5',
+          opacity: String(ampScale)
+        });
+        nodesG.appendChild(antinode);
+        const lbl = createSVGElement('text', {
+          x: cx + displacement + (displacement >= 0 ? 15 : -55), y: y + 4,
+          fill: '#ffdd33', 'font-size': '10', opacity: String(0.6 * ampScale)
+        });
+        lbl.textContent = 'antinode';
+        nodesG.appendChild(lbl);
+      }
+
+      // Label
+      const names = ['', 'Fundamental (1st harmonic)', '2nd Harmonic', '3rd Harmonic'];
+      const periods = ['', 'Period ~ 500 s (Pc5)', 'Period ~ 250 s', 'Period ~ 167 s'];
+      label.textContent = `${names[harmonicN]} — ${periods[harmonicN]}`;
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 4: FIELD LINE RESONANCE =====
+(function initFLR() {
+  const gLines = document.getElementById('flr-field-lines');
+  const gWave = document.getElementById('flr-fast-wave');
+  const gGlow = document.getElementById('flr-resonance-glow');
+
+  // Field line positions (simplified as vertical arcs)
+  const Ls = [
+    { x: 250, L: 4, color: '#00aadd', eigenF: 12 },
+    { x: 400, L: 6, color: '#00ccff', eigenF: 2.5 },
+    { x: 550, L: 8, color: '#00aadd', eigenF: 1.2 },
+    { x: 700, L: 10, color: '#0088bb', eigenF: 0.8 }
+  ];
+
+  // Create field line paths
+  const linePaths = [];
+  for (const fl of Ls) {
+    const path = createSVGElement('path', {
+      d: '', stroke: fl.color, 'stroke-width': '2.5', fill: 'none', opacity: '0.6'
+    });
+    gLines.appendChild(path);
+    linePaths.push(path);
+  }
+
+  // Fast wave front
+  const waveLine = createSVGElement('line', {
+    x1: 850, y1: 40, x2: 850, y2: 460,
+    stroke: '#ff4422', 'stroke-width': '2', opacity: '0.6',
+    'stroke-dasharray': '4,3'
+  });
+  gWave.appendChild(waveLine);
+
+  // Resonance glow circle
+  const glowCirc = createSVGElement('circle', {
+    cx: 400, cy: 250, r: 60,
+    fill: 'none', stroke: '#ffaa22', 'stroke-width': '3', opacity: '0'
+  });
+  gGlow.appendChild(glowCirc);
+  const glowText = createSVGElement('text', {
+    x: 400, y: 330, fill: '#ffaa22', 'font-size': '12', 'text-anchor': 'middle', opacity: '0'
+  });
+  glowText.textContent = 'RESONANCE!';
+  gGlow.appendChild(glowText);
+
+  function animate(t) {
+    if (!isPaused('flr')) {
+      const period = 15000;
+      const phase = (t % period) / period;
+
+      // Fast wave front moves from right to left
+      const waveX = 850 - phase * 700;
+      waveLine.setAttribute('x1', waveX);
+      waveLine.setAttribute('x2', waveX);
+      waveLine.setAttribute('opacity', phase < 0.9 ? 0.5 : 0.5 * (1 - phase) / 0.1);
+
+      // Animate each field line
+      for (let i = 0; i < Ls.length; i++) {
+        const fl = Ls[i];
+        const nPts = 60;
+        const pts = [];
+        const cx = fl.x;
+        const halfH = 200;
+
+        // Does the wave front drive this line?
+        const waveReached = waveX < cx;
+        const isResonant = (i === 1); // L=6 resonates at Pc5
+
+        let amp = 0;
+        if (waveReached) {
+          if (isResonant) {
+            // Resonance: amplitude grows dramatically
+            const timeSinceReached = (cx - waveX) / 700 * period;
+            amp = Math.min(40, timeSinceReached * 0.005) * Math.sin(t * 0.003);
+          } else {
+            // Non-resonant: small transient
+            const timeSinceReached = (cx - waveX) / 700 * period;
+            amp = 5 * Math.sin(t * 0.002) * Math.exp(-timeSinceReached * 0.0003);
+          }
+        }
+
+        for (let j = 0; j <= nPts; j++) {
+          const frac = j / nPts;
+          const y = 50 + frac * 400;
+          // Fundamental mode shape
+          const mode = Math.sin(Math.PI * frac);
+          const dx = amp * mode;
+          pts.push([cx + dx, y]);
+        }
+        linePaths[i].setAttribute('d', ptsToSmoothPath(pts));
+
+        // Update opacity based on resonance
+        if (isResonant && waveReached) {
+          linePaths[i].setAttribute('stroke', '#44ffaa');
+          linePaths[i].setAttribute('stroke-width', '3.5');
+          linePaths[i].setAttribute('opacity', '0.9');
+        } else {
+          linePaths[i].setAttribute('stroke', fl.color);
+          linePaths[i].setAttribute('stroke-width', '2.5');
+          linePaths[i].setAttribute('opacity', '0.5');
+        }
+      }
+
+      // Resonance glow at L=6
+      const l6reached = waveX < 400;
+      if (l6reached) {
+        const glowOp = 0.3 + 0.3 * Math.abs(Math.sin(t * 0.003));
+        glowCirc.setAttribute('opacity', glowOp);
+        glowText.setAttribute('opacity', glowOp);
+        const glowR = 50 + 15 * Math.abs(Math.sin(t * 0.002));
+        glowCirc.setAttribute('r', glowR);
+      } else {
+        glowCirc.setAttribute('opacity', '0');
+        glowText.setAttribute('opacity', '0');
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 5: CAVITY MODE =====
+(function initCavity() {
+  const gFill = document.getElementById('cavity-fill');
+  const gNodes = document.getElementById('cavity-nodes');
+  const innerCirc = document.getElementById('cavity-inner');
+  const outerEll = document.getElementById('cavity-outer');
+
+  // Create pulsing rings in the cavity
+  const nRings = 6;
+  const rings = [];
+  for (let i = 0; i < nRings; i++) {
+    const ring = createSVGElement('ellipse', {
+      cx: 430, cy: 250,
+      rx: 120 + i * 28, ry: 100 + i * 22,
+      fill: 'none', stroke: '#22aacc', 'stroke-width': '1.5', opacity: '0.3'
+    });
+    gFill.appendChild(ring);
+    rings.push(ring);
+  }
+
+  // Node markers
+  const nodeMarkers = [];
+  const antinodeMarkers = [];
+  for (let i = 0; i < 3; i++) {
+    const angle = Math.PI / 2; // radial direction
+    const nr = 120 + i * 55;
+    const nm = createSVGElement('circle', {
+      cx: 430 + nr, cy: 250, r: '4',
+      fill: 'white', opacity: '0.5'
+    });
+    gNodes.appendChild(nm);
+    nodeMarkers.push({ el: nm, baseR: nr });
+
+    if (i < 2) {
+      const ar = 145 + i * 55;
+      const am = createSVGElement('circle', {
+        cx: 430 + ar, cy: 250, r: '5',
+        fill: '#ffdd33', opacity: '0.5'
+      });
+      gNodes.appendChild(am);
+      antinodeMarkers.push({ el: am, baseR: ar });
+    }
+  }
+
+  // Compression/rarefaction labels
+  const compLabel = createSVGElement('text', {
+    x: 450, y: 470, fill: '#ff6644', 'font-size': '11', 'text-anchor': 'middle', opacity: '0'
+  });
+  compLabel.textContent = 'Compression';
+  gFill.appendChild(compLabel);
+  const rareLabel = createSVGElement('text', {
+    x: 450, y: 470, fill: '#4466ff', 'font-size': '11', 'text-anchor': 'middle', opacity: '0'
+  });
+  rareLabel.textContent = 'Rarefaction';
+  gFill.appendChild(rareLabel);
+
+  function animate(t) {
+    if (!isPaused('cavity')) {
+      const omega = 2 * Math.PI / 6000;
+      const breathe = Math.sin(t * omega);
+
+      // Pulsate the cavity rings
+      for (let i = 0; i < nRings; i++) {
+        const baseRx = 120 + i * 28;
+        const baseRy = 100 + i * 22;
+        // Standing wave pattern: alternate compression/rarefaction
+        const mode = Math.sin(Math.PI * (i + 0.5) / nRings);
+        const dr = 10 * mode * breathe;
+        rings[i].setAttribute('rx', baseRx + dr);
+        rings[i].setAttribute('ry', baseRy + dr * 0.8);
+        // Color: red during compression (smaller), blue during rarefaction (larger)
+        const comp = mode * breathe;
+        if (comp > 0) {
+          rings[i].setAttribute('stroke', `rgba(${Math.floor(100 + 155 * comp)}, ${Math.floor(80 - 40 * comp)}, ${Math.floor(80 - 40 * comp)}, ${0.3 + 0.3 * comp})`);
+        } else {
+          rings[i].setAttribute('stroke', `rgba(${Math.floor(80 + 40 * comp)}, ${Math.floor(80 + 40 * comp)}, ${Math.floor(100 - 155 * comp)}, ${0.3 - 0.3 * comp})`);
+        }
+      }
+
+      // Animate inner/outer boundaries slightly
+      const innerR = 100 + 5 * breathe;
+      innerCirc.setAttribute('r', innerR);
+      outerEll.setAttribute('rx', 280 - 8 * breathe);
+      outerEll.setAttribute('ry', 230 - 6 * breathe);
+
+      // Labels
+      if (breathe > 0.3) {
+        compLabel.setAttribute('opacity', (breathe - 0.3) / 0.7);
+        rareLabel.setAttribute('opacity', '0');
+      } else if (breathe < -0.3) {
+        rareLabel.setAttribute('opacity', (-breathe - 0.3) / 0.7);
+        compLabel.setAttribute('opacity', '0');
+      } else {
+        compLabel.setAttribute('opacity', '0');
+        rareLabel.setAttribute('opacity', '0');
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 6: MAGNETOSPHERE BREATHING (THE BIG ONE) =====
+(function initBreathing() {
+  const gField = document.getElementById('breathing-field-lines');
+  const gTail = document.getElementById('breathing-tail-lines');
+  const bowShock = document.getElementById('bow-shock');
+  const magnetopause = document.getElementById('magnetopause');
+  const swArrows = document.getElementById('solar-wind-arrows');
+  const pressureBar = document.getElementById('pressure-bar');
+  const bsLabel = document.getElementById('bow-shock-label');
+  const mpLabel = document.getElementById('mpause-label');
+  const swGlow = document.getElementById('sw-glow');
+
+  const earthX = 500, earthY = 300;
+
+  // Create solar wind arrows
+  const nArrows = 12;
+  const arrowEls = [];
+  for (let i = 0; i < nArrows; i++) {
+    const y = 60 + i * 45;
+    const arrow = createSVGElement('line', {
+      x1: 20, y1: y, x2: 80, y2: y,
+      stroke: '#cc8822', 'stroke-width': '2', opacity: '0.5'
+    });
+    swArrows.appendChild(arrow);
+    const head = createSVGElement('polygon', {
+      points: '0,0 -12,5 -12,-5', fill: '#cc8822', opacity: '0.5',
+      transform: `translate(80,${y})`
+    });
+    swArrows.appendChild(head);
+    arrowEls.push({ line: arrow, head: head, baseY: y });
+  }
+
+  // Create dipole field lines (dayside)
+  const fieldLinePaths = [];
+  const fieldLineLs = [2, 3, 4, 5.5, 7, 9];
+  for (const L of fieldLineLs) {
+    const path = createSVGElement('path', {
+      d: '', stroke: '#2288cc', 'stroke-width': '1.5', fill: 'none', opacity: '0.6'
+    });
+    gField.appendChild(path);
+    fieldLinePaths.push({ el: path, L: L });
+  }
+
+  // Create tail field lines
+  const tailPaths = [];
+  for (let i = 0; i < 4; i++) {
+    const path = createSVGElement('path', {
+      d: '', stroke: '#1a5588', 'stroke-width': '1.2', fill: 'none', opacity: '0.4'
+    });
+    gTail.appendChild(path);
+    tailPaths.push(path);
+  }
+
+  function drawBreathingFrame(compression) {
+    // compression: -1 (expanded) to +1 (compressed)
+    const compFactor = 1 - compression * 0.15;
+
+    // Bow shock (parabolic, closer when compressed)
+    const bsX = earthX - 280 * compFactor;
+    const bsPath = [];
+    for (let i = -12; i <= 12; i++) {
+      const frac = i / 12;
+      const y = earthY + frac * 250;
+      const x = bsX - 40 * frac * frac;
+      bsPath.push([x, y]);
+    }
+    bowShock.setAttribute('d', ptsToSmoothPath(bsPath));
+    bsLabel.setAttribute('x', bsX - 50);
+    bsLabel.setAttribute('y', 80);
+
+    // Magnetopause (closer to Earth when compressed)
+    const mpX = earthX - 200 * compFactor;
+    const mpPath = [];
+    for (let i = -12; i <= 12; i++) {
+      const frac = i / 12;
+      const y = earthY + frac * 220;
+      const x = mpX - 30 * frac * frac;
+      mpPath.push([x, y]);
+    }
+    magnetopause.setAttribute('d', ptsToSmoothPath(mpPath));
+    mpLabel.setAttribute('x', mpX - 30);
+    mpLabel.setAttribute('y', 100);
+
+    // Dipole field lines (compressed/expanded)
+    for (let i = 0; i < fieldLineLs.length; i++) {
+      const L = fieldLineLs[i] * compFactor;
+      const scale = 25; // pixels per R_E
+      const nPts = 50;
+      const pts = [];
+
+      // Only draw dayside half (theta from -70 to 70 degrees around equator)
+      for (let j = 0; j <= nPts; j++) {
+        const theta = (-70 + j * 140 / nPts) * Math.PI / 180;
+        const r = L * Math.cos(theta) * Math.cos(theta);
+        const x = earthX - r * scale * Math.sin(theta);
+        const y = earthY - r * scale * Math.cos(theta);
+
+        // Don't extend beyond magnetopause
+        if (x < mpX + 10) continue;
+        pts.push([x, y]);
+      }
+      if (pts.length > 1) {
+        fieldLinePaths[i].el.setAttribute('d', ptsToSmoothPath(pts));
+      }
+
+      // Color intensity: brighter when compressed
+      const brightness = 0.5 + compression * 0.2;
+      fieldLinePaths[i].el.setAttribute('opacity', String(brightness));
+    }
+
+    // Tail field lines
+    for (let i = 0; i < 4; i++) {
+      const yOff = (i - 1.5) * 40 * compFactor;
+      const pts = [];
+      for (let j = 0; j <= 20; j++) {
+        const x = earthX + 30 + j * 25;
+        const y = earthY + yOff * (1 + j * 0.03);
+        pts.push([x, y]);
+      }
+      tailPaths[i].setAttribute('d', ptsToPath(pts));
+    }
+
+    // Solar wind arrows
+    const arrowLength = 40 + compression * 20;
+    const arrowOpacity = 0.3 + compression * 0.2;
+    for (const a of arrowEls) {
+      const x2 = 30 + arrowLength;
+      a.line.setAttribute('x2', x2);
+      a.line.setAttribute('stroke-width', String(1.5 + compression * 0.8));
+      a.line.setAttribute('opacity', String(arrowOpacity));
+      a.head.setAttribute('transform', `translate(${x2},${a.baseY})`);
+      a.head.setAttribute('opacity', String(arrowOpacity));
+    }
+
+    // Pressure bar
+    const barWidth = 70 + compression * 50;
+    pressureBar.setAttribute('width', Math.max(10, barWidth));
+
+    // Solar wind glow
+    swGlow.setAttribute('opacity', String(0.2 + compression * 0.15));
+  }
+
+  function animate(t) {
+    if (!isPaused('breathing')) {
+      const period = 8000;
+      const compression = Math.sin(2 * Math.PI * t / period);
+      drawBreathingFrame(compression);
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 7: RECONNECTION =====
+(function initReconnection() {
+  const gDay = document.getElementById('reconnect-day-lines');
+  const gTail = document.getElementById('reconnect-tail-lines');
+
+  function animate(t) {
+    if (!isPaused('reconnection')) {
+      const period = 20000;
+      const phase = (t % period) / period;
+
+      // Clear previous
+      while (gDay.firstChild) gDay.removeChild(gDay.firstChild);
+      while (gTail.firstChild) gTail.removeChild(gTail.firstChild);
+
+      // === DAYSIDE RECONNECTION ===
+      // Phase 0-0.3: approach
+      // Phase 0.3-0.5: reconnect
+      // Phase 0.5-1.0: post-reconnection sweep
+
+      if (phase < 0.3) {
+        // Approaching: closed (blue) from right, IMF (green) from left
+        const approach = phase / 0.3;
+        const gap = 40 * (1 - approach);
+
+        // Closed field line (curves from Earth)
+        const closedPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 80 + frac * 340;
+          const x = 280 - gap + 60 * Math.sin(Math.PI * frac);
+          closedPts.push([x, y]);
+        }
+        const cl = createSVGElement('path', {
+          d: ptsToSmoothPath(closedPts), stroke: '#4488ff', 'stroke-width': '2.5', fill: 'none'
+        });
+        gDay.appendChild(cl);
+
+        // IMF line (straight from left)
+        const imfPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 80 + frac * 340;
+          const x = 280 + gap - 60 * Math.sin(Math.PI * frac);
+          imfPts.push([x, y]);
+        }
+        const imf = createSVGElement('path', {
+          d: ptsToSmoothPath(imfPts), stroke: '#44cc44', 'stroke-width': '2.5', fill: 'none'
+        });
+        gDay.appendChild(imf);
+
+      } else if (phase < 0.5) {
+        // Reconnecting: X-point forms, topology changes
+        const reconPhase = (phase - 0.3) / 0.2;
+
+        // Upper open line (north to solar wind)
+        const upperPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 80 + frac * (250 - reconPhase * 80);
+          const x = 280 + (frac < 0.5 ? 60 * Math.sin(Math.PI * frac) : -40 * (frac - 0.5) * reconPhase);
+          upperPts.push([x, y]);
+        }
+        const upper = createSVGElement('path', {
+          d: ptsToSmoothPath(upperPts), stroke: '#ff6644', 'stroke-width': '2.5', fill: 'none',
+          opacity: String(reconPhase)
+        });
+        gDay.appendChild(upper);
+
+        // Lower open line
+        const lowerPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 250 + reconPhase * 80 + frac * (420 - 250 - reconPhase * 80);
+          const x = 280 + (frac > 0.5 ? 60 * Math.sin(Math.PI * frac) : -40 * (0.5 - frac) * reconPhase);
+          lowerPts.push([x, y]);
+        }
+        const lower = createSVGElement('path', {
+          d: ptsToSmoothPath(lowerPts), stroke: '#ff6644', 'stroke-width': '2.5', fill: 'none',
+          opacity: String(reconPhase)
+        });
+        gDay.appendChild(lower);
+
+        // Fading originals
+        const closedPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 80 + frac * 340;
+          const x = 280 + 60 * Math.sin(Math.PI * frac);
+          closedPts.push([x, y]);
+        }
+        const cl = createSVGElement('path', {
+          d: ptsToSmoothPath(closedPts), stroke: '#4488ff', 'stroke-width': '2.5', fill: 'none',
+          opacity: String(1 - reconPhase)
+        });
+        gDay.appendChild(cl);
+
+        const imfPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 80 + frac * 340;
+          const x = 280 - 60 * Math.sin(Math.PI * frac);
+          imfPts.push([x, y]);
+        }
+        const imf = createSVGElement('path', {
+          d: ptsToSmoothPath(imfPts), stroke: '#44cc44', 'stroke-width': '2.5', fill: 'none',
+          opacity: String(1 - reconPhase)
+        });
+        gDay.appendChild(imf);
+
+      } else {
+        // Post-reconnection: open lines sweep poleward/tailward
+        const sweepPhase = (phase - 0.5) / 0.5;
+        const sweepDist = sweepPhase * 80;
+
+        // Upper open line sweeping poleward
+        const upperPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 80 - sweepDist + frac * 170;
+          const x = 280 + (frac < 0.5 ? 60 * Math.sin(Math.PI * frac) : -(40 + sweepDist * 0.5) * (frac - 0.5));
+          upperPts.push([x, y]);
+        }
+        const upper = createSVGElement('path', {
+          d: ptsToSmoothPath(upperPts), stroke: '#ff6644', 'stroke-width': '2.5', fill: 'none',
+          opacity: String(Math.max(0, 1 - sweepPhase * 0.5))
+        });
+        gDay.appendChild(upper);
+
+        // Lower open line sweeping equatorward
+        const lowerPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 330 + sweepDist + frac * 170;
+          const x = 280 + (frac > 0.5 ? 60 * Math.sin(Math.PI * frac) : -(40 + sweepDist * 0.5) * (0.5 - frac));
+          lowerPts.push([x, y]);
+        }
+        const lower = createSVGElement('path', {
+          d: ptsToSmoothPath(lowerPts), stroke: '#ff6644', 'stroke-width': '2.5', fill: 'none',
+          opacity: String(Math.max(0, 1 - sweepPhase * 0.5))
+        });
+        gDay.appendChild(lower);
+      }
+
+      // === TAIL RECONNECTION (simpler, simultaneous) ===
+      const tailPhase = ((phase + 0.5) % 1.0);
+
+      if (tailPhase < 0.3) {
+        // Two open (red) lines approaching from top and bottom
+        const approach = tailPhase / 0.3;
+        const gap = 60 * (1 - approach);
+
+        // Upper open line
+        const uPts = [];
+        for (let i = 0; i <= 20; i++) {
+          const x = 560 + i * 12;
+          const y = 250 - gap - 15;
+          uPts.push([x, y]);
+        }
+        const uLine = createSVGElement('path', {
+          d: ptsToPath(uPts), stroke: '#ff6644', 'stroke-width': '2', fill: 'none'
+        });
+        gTail.appendChild(uLine);
+
+        // Lower open line
+        const lPts = [];
+        for (let i = 0; i <= 20; i++) {
+          const x = 560 + i * 12;
+          const y = 250 + gap + 15;
+          lPts.push([x, y]);
+        }
+        const lLine = createSVGElement('path', {
+          d: ptsToPath(lPts), stroke: '#ff6644', 'stroke-width': '2', fill: 'none'
+        });
+        gTail.appendChild(lLine);
+
+      } else if (tailPhase < 0.5) {
+        // Reconnecting: closed line snaps earthward, plasmoid goes tailward
+        const rp = (tailPhase - 0.3) / 0.2;
+
+        // Closed line forming and snapping earthward
+        const closedPts = [];
+        const snapX = 680 - rp * 100;
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const y = 250 + 50 * Math.sin(Math.PI * frac) * (frac < 0.5 ? -1 : 1);
+          const x = snapX + 30 * Math.cos(Math.PI * frac);
+          closedPts.push([x, y]);
+        }
+        const closed = createSVGElement('path', {
+          d: ptsToSmoothPath(closedPts), stroke: '#4488ff', 'stroke-width': '2.5', fill: 'none',
+          opacity: String(rp)
+        });
+        gTail.appendChild(closed);
+
+        // Plasmoid ejecting tailward
+        const plasmoidX = 680 + rp * 60;
+        const plasmoid = createSVGElement('ellipse', {
+          cx: plasmoidX, cy: 250, rx: 15, ry: 10,
+          fill: 'none', stroke: '#44cc44', 'stroke-width': '2', opacity: String(rp)
+        });
+        gTail.appendChild(plasmoid);
+
+      } else {
+        // Post: closed line earthward, plasmoid gone
+        const postP = (tailPhase - 0.5) / 0.5;
+        const snapX = 580 - postP * 50;
+
+        const closedPts = [];
+        for (let i = 0; i <= 30; i++) {
+          const frac = i / 30;
+          const bulge = 50 * (1 - postP * 0.5);
+          const y = 250 + bulge * Math.sin(Math.PI * frac) * (frac < 0.5 ? -1 : 1);
+          const x = snapX + 30 * Math.cos(Math.PI * frac);
+          closedPts.push([x, y]);
+        }
+        const closed = createSVGElement('path', {
+          d: ptsToSmoothPath(closedPts), stroke: '#4488ff', 'stroke-width': '2.5', fill: 'none',
+          opacity: String(Math.max(0.3, 1 - postP * 0.7))
+        });
+        gTail.appendChild(closed);
+
+        // Plasmoid departing
+        const plasmoidX = 740 + postP * 80;
+        if (plasmoidX < 880) {
+          const plasmoid = createSVGElement('ellipse', {
+            cx: plasmoidX, cy: 250, rx: 15, ry: 10,
+            fill: 'none', stroke: '#44cc44', 'stroke-width': '2',
+            opacity: String(Math.max(0, 1 - postP))
+          });
+          gTail.appendChild(plasmoid);
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 8: SUBSTORM DYNAMICS =====
+(function initSubstorm() {
+  const gField = document.getElementById('substorm-field-lines');
+  const gCurrent = document.getElementById('cross-tail-current');
+  const plasmaSheet = document.getElementById('plasma-sheet');
+  const phaseLabel = document.getElementById('substorm-phase-label');
+  const nenlG = document.getElementById('nenl-xpoint');
+  const dipolFront = document.getElementById('dipolarization-front');
+
+  const earthX = 120, earthY = 225;
+
+  function animate(t) {
+    if (!isPaused('substorm')) {
+      const period = 20000;
+      const phase = (t % period) / period;
+
+      // Clear dynamic elements
+      while (gField.firstChild) gField.removeChild(gField.firstChild);
+      while (gCurrent.firstChild) gCurrent.removeChild(gCurrent.firstChild);
+
+      let stretchFactor, phaseText, currentIntensity;
+
+      if (phase < 0.5) {
+        // Growth phase: field stretches, plasma sheet thins
+        stretchFactor = phase / 0.5;
+        phaseText = 'Growth Phase — Field lines stretching, plasma sheet thinning';
+        currentIntensity = 0.3 + stretchFactor * 0.5;
+        nenlG.setAttribute('opacity', '0');
+        dipolFront.setAttribute('opacity', '0');
+      } else if (phase < 0.75) {
+        // Expansion: reconnection, dipolarization
+        const expPhase = (phase - 0.5) / 0.25;
+        stretchFactor = 1 - expPhase;
+        phaseText = 'Expansion Onset — Reconnection + Dipolarization';
+        currentIntensity = 0.8 * (1 - expPhase);
+
+        // NENL appears
+        nenlG.setAttribute('opacity', String(Math.min(1, expPhase * 3)));
+
+        // Dipolarization front surges earthward
+        const frontX = 550 - expPhase * 300;
+        dipolFront.setAttribute('opacity', String(Math.min(1, expPhase * 2)));
+        dipolFront.setAttribute('transform', `translate(${frontX}, 0)`);
+        const fl = dipolFront.querySelector('line');
+        if (fl) {
+          fl.setAttribute('x1', frontX);
+          fl.setAttribute('x2', frontX);
+        }
+        const t1 = dipolFront.querySelectorAll('text');
+        t1.forEach(te => te.setAttribute('x', frontX));
+      } else {
+        // Recovery
+        const recPhase = (phase - 0.75) / 0.25;
+        stretchFactor = recPhase * 0.1;
+        phaseText = 'Recovery Phase';
+        currentIntensity = 0.3;
+        nenlG.setAttribute('opacity', String(Math.max(0, 1 - recPhase * 3)));
+        dipolFront.setAttribute('opacity', String(Math.max(0, 1 - recPhase * 3)));
+      }
+
+      phaseLabel.textContent = phaseText;
+
+      // Draw field lines with varying stretch
+      const nLines = 6;
+      for (let i = 0; i < nLines; i++) {
+        const baseL = 2 + i * 1.5;
+        const scale = 22;
+        const nPts = 50;
+        const pts = [];
+
+        for (let j = 0; j <= nPts; j++) {
+          const frac = j / nPts;
+          // Angle from north pole to south pole
+          const theta = (-60 + frac * 120) * Math.PI / 180;
+
+          let r, x, y;
+          if (i < 3) {
+            // Inner field lines: stay more dipolar
+            r = baseL * Math.cos(theta) * Math.cos(theta);
+            x = earthX + r * scale * Math.sin(theta);
+            y = earthY - r * scale * Math.cos(theta);
+          } else {
+            // Outer field lines: stretch more
+            r = baseL * Math.cos(theta) * Math.cos(theta);
+            // Add stretch in the tailward direction
+            const stretch = stretchFactor * (i - 2) * 15;
+            x = earthX + r * scale * Math.sin(theta) + (Math.sin(theta) > 0 ? stretch * Math.sin(theta) * Math.sin(theta) * 3 : 0);
+            y = earthY - r * scale * Math.cos(theta) * (1 - stretchFactor * 0.3 * Math.sin(theta) * Math.sin(theta));
+          }
+          pts.push([x, y]);
+        }
+
+        const color = i < 3 ? '#2288cc' : `rgba(34,${100 + 36 * i},204,${0.7 - stretchFactor * 0.2})`;
+        const path = createSVGElement('path', {
+          d: ptsToSmoothPath(pts), stroke: color, 'stroke-width': '1.8', fill: 'none'
+        });
+        gField.appendChild(path);
+      }
+
+      // Plasma sheet
+      const sheetThickness = 40 * (1 - stretchFactor * 0.6);
+      const sheetPath = `M ${earthX + 80} ${earthY - sheetThickness} ` +
+                        `L 800 ${earthY - sheetThickness * 0.8} ` +
+                        `L 800 ${earthY + sheetThickness * 0.8} ` +
+                        `L ${earthX + 80} ${earthY + sheetThickness} Z`;
+      plasmaSheet.setAttribute('d', sheetPath);
+      plasmaSheet.setAttribute('fill', `rgba(200,120,40,${0.1 + stretchFactor * 0.1})`);
+
+      // Cross-tail current arrows
+      const nArrows = 5;
+      for (let i = 0; i < nArrows; i++) {
+        const x = earthX + 150 + i * 100;
+        const arrowLen = 15 + currentIntensity * 10;
+        // Current flows into the page (shown as circles with X)
+        const circ = createSVGElement('circle', {
+          cx: x, cy: earthY, r: String(6 + currentIntensity * 4),
+          fill: 'none', stroke: '#ffcc44',
+          'stroke-width': String(1 + currentIntensity),
+          opacity: String(currentIntensity)
+        });
+        gCurrent.appendChild(circ);
+        // X inside circle (current into page)
+        const x1 = createSVGElement('line', {
+          x1: x - 3, y1: earthY - 3, x2: x + 3, y2: earthY + 3,
+          stroke: '#ffcc44', 'stroke-width': '1', opacity: String(currentIntensity)
+        });
+        gCurrent.appendChild(x1);
+        const x2 = createSVGElement('line', {
+          x1: x + 3, y1: earthY - 3, x2: x - 3, y2: earthY + 3,
+          stroke: '#ffcc44', 'stroke-width': '1', opacity: String(currentIntensity)
+        });
+        gCurrent.appendChild(x2);
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 9: 12-HOUR STATION ROTATION =====
+(function initRotation() {
+  const stationGroup = document.getElementById('image-station-group');
+  const dot = document.getElementById('image-station-dot');
+  const stationLabel = document.getElementById('image-station-label');
+  const mltTime = document.getElementById('mlt-time');
+  const mltCurrent = document.getElementById('mlt-current');
+  const mltSignal = document.getElementById('mlt-signal');
+
+  const cx = 450, cy = 275, orbitR = 120;
+
+  const mltInfo = [
+    { mlt: 0, label: '00:00 MLT (Midnight)', current: 'Tail current, SCW', signal: 'Strong dB_X, substorms' },
+    { mlt: 3, label: '03:00 MLT', current: 'Post-midnight R1 FACs', signal: 'Substorm recovery' },
+    { mlt: 6, label: '06:00 MLT (Dawn)', current: 'R2 currents, transition', signal: 'Mixed signatures' },
+    { mlt: 9, label: '09:00 MLT', current: 'Morning convection', signal: 'Pc5 FLR (pre-noon)' },
+    { mlt: 12, label: '12:00 MLT (Noon)', current: 'Magnetopause currents', signal: 'Compression, Pc3' },
+    { mlt: 15, label: '15:00 MLT', current: 'Afternoon sector', signal: 'Pc5 (post-noon peak)' },
+    { mlt: 18, label: '18:00 MLT (Dusk)', current: 'R1 FACs, Harang disc.', signal: 'dB_Y, shear' },
+    { mlt: 21, label: '21:00 MLT', current: 'Pre-midnight FACs', signal: 'Substorm onset region' }
+  ];
+
+  function animate(t) {
+    if (!isPaused('rotation')) {
+      // One full rotation in 24 seconds
+      const period = 24000;
+      const phase = (t % period) / period;
+      const angle = -Math.PI / 2 + phase * 2 * Math.PI; // Start at noon (top)
+
+      const sx = cx + orbitR * Math.cos(angle);
+      const sy = cy + orbitR * Math.sin(angle);
+
+      dot.setAttribute('cx', sx);
+      dot.setAttribute('cy', sy);
+      stationLabel.setAttribute('x', sx);
+      stationLabel.setAttribute('y', sy - 15);
+
+      // Determine MLT sector
+      const mltHour = ((phase * 24 + 12) % 24); // Start at noon
+      const sectorIdx = Math.floor(mltHour / 3) % 8;
+      const info = mltInfo[sectorIdx];
+
+      mltTime.textContent = info.label;
+      mltCurrent.textContent = info.current;
+      mltSignal.textContent = info.signal;
+
+      // Highlight the relevant sector arc
+      // (visual feedback through dot brightness)
+      const isKey = (sectorIdx === 0 || sectorIdx === 2 || sectorIdx === 4 || sectorIdx === 6);
+      dot.setAttribute('r', isKey ? '8' : '6');
+      dot.setAttribute('fill', isKey ? '#ffcc22' : '#ffaa00');
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== ANIMATION 10: CROSSOVER FREQUENCY =====
+(function initCrossover() {
+  const gEW = document.getElementById('crossover-ew-pattern');
+  const gNS = document.getElementById('crossover-ns-pattern');
+
+  // Create E-W pattern (electrojet: horizontal ellipse)
+  // and N-S pattern (FAC: vertical filaments)
+
+  function animate(t) {
+    if (!isPaused('crossover')) {
+      while (gEW.firstChild) gEW.removeChild(gEW.firstChild);
+      while (gNS.firstChild) gNS.removeChild(gNS.firstChild);
+
+      const period = 8000;
+      const phase = (t % period) / period;
+
+      // === LEFT PANEL: E-W pattern (electrojet) ===
+      const ewCx = 225, ewCy = 220;
+
+      // Background grid for context
+      for (let i = -3; i <= 3; i++) {
+        for (let j = -3; j <= 3; j++) {
+          const gDot = createSVGElement('circle', {
+            cx: ewCx + j * 30, cy: ewCy + i * 30, r: '2',
+            fill: '#334455', opacity: '0.3'
+          });
+          gEW.appendChild(gDot);
+        }
+      }
+
+      // E-W extended current sheet
+      const pulsePhase = Math.sin(2 * Math.PI * phase);
+      const sheetOpacity = 0.3 + 0.2 * Math.abs(pulsePhase);
+
+      // Draw E-W extended ellipse with current arrows
+      const ewEll = createSVGElement('ellipse', {
+        cx: ewCx, cy: ewCy,
+        rx: String(120 + 10 * pulsePhase), ry: String(25 + 5 * pulsePhase),
+        fill: `rgba(100,150,255,${sheetOpacity * 0.3})`,
+        stroke: '#6699cc', 'stroke-width': '1.5', opacity: '0.7'
+      });
+      gEW.appendChild(ewEll);
+
+      // Current direction arrows (E-W)
+      for (let i = -3; i <= 3; i++) {
+        const ax = ewCx + i * 30;
+        const ay = ewCy;
+        const arr = createSVGElement('line', {
+          x1: ax - 8, y1: ay, x2: ax + 8, y2: ay,
+          stroke: '#88aaff', 'stroke-width': '1.5', opacity: '0.6'
+        });
+        gEW.appendChild(arr);
+        // Arrowhead
+        const head = createSVGElement('polygon', {
+          points: `${ax + 8},${ay} ${ax + 4},${ay - 3} ${ax + 4},${ay + 3}`,
+          fill: '#88aaff', opacity: '0.6'
+        });
+        gEW.appendChild(head);
+      }
+
+      // Label
+      const ewLabel = createSVGElement('text', {
+        x: ewCx, y: ewCy + 75,
+        fill: '#6699cc', 'font-size': '11', 'text-anchor': 'middle'
+      });
+      ewLabel.textContent = 'E-W extended electrojet';
+      gEW.appendChild(ewLabel);
+
+      const ewLabel2 = createSVGElement('text', {
+        x: ewCx, y: ewCy + 92,
+        fill: '#557799', 'font-size': '10', 'text-anchor': 'middle'
+      });
+      ewLabel2.textContent = 'L ~ 2000 km';
+      gEW.appendChild(ewLabel2);
+
+      // === RIGHT PANEL: N-S pattern (FAC filaments) ===
+      const nsCx = 675, nsCy = 220;
+
+      // Background grid
+      for (let i = -3; i <= 3; i++) {
+        for (let j = -3; j <= 3; j++) {
+          const gDot = createSVGElement('circle', {
+            cx: nsCx + j * 30, cy: nsCy + i * 30, r: '2',
+            fill: '#334455', opacity: '0.3'
+          });
+          gNS.appendChild(gDot);
+        }
+      }
+
+      // N-S aligned FAC filaments
+      const nFilaments = 5;
+      for (let i = 0; i < nFilaments; i++) {
+        const fx = nsCx - 60 + i * 30;
+        const fPhase = Math.sin(2 * Math.PI * phase + i * 0.5);
+        const fOpacity = 0.3 + 0.3 * Math.abs(fPhase);
+
+        // Vertical filament
+        const fil = createSVGElement('rect', {
+          x: fx - 5, y: nsCy - 80, width: 10, height: 160,
+          rx: '3',
+          fill: i % 2 === 0 ? `rgba(255,100,80,${fOpacity * 0.4})` : `rgba(80,100,255,${fOpacity * 0.4})`,
+          stroke: i % 2 === 0 ? '#cc6644' : '#4466cc',
+          'stroke-width': '1', opacity: '0.7'
+        });
+        gNS.appendChild(fil);
+
+        // Current direction (vertical arrows, alternating up/down for R1/R2)
+        const dir = i % 2 === 0 ? -1 : 1;
+        for (let j = -2; j <= 2; j++) {
+          const ay = nsCy + j * 25;
+          const arr = createSVGElement('line', {
+            x1: fx, y1: ay + dir * 8, x2: fx, y2: ay - dir * 8,
+            stroke: i % 2 === 0 ? '#ff8866' : '#6688ff', 'stroke-width': '1.5', opacity: '0.5'
+          });
+          gNS.appendChild(arr);
+          const head = createSVGElement('polygon', {
+            points: `${fx},${ay - dir * 8} ${fx - 3},${ay - dir * 4} ${fx + 3},${ay - dir * 4}`,
+            fill: i % 2 === 0 ? '#ff8866' : '#6688ff', opacity: '0.5'
+          });
+          gNS.appendChild(head);
+        }
+      }
+
+      // Label
+      const nsLabel = createSVGElement('text', {
+        x: nsCx, y: nsCy + 75,
+        fill: '#cc8844', 'font-size': '11', 'text-anchor': 'middle'
+      });
+      nsLabel.textContent = 'N-S aligned FAC filaments';
+      gNS.appendChild(nsLabel);
+
+      const nsLabel2 = createSVGElement('text', {
+        x: nsCx, y: nsCy + 92,
+        fill: '#997755', 'font-size': '10', 'text-anchor': 'middle'
+      });
+      nsLabel2.textContent = 'L ~ 800 km';
+      gNS.appendChild(nsLabel2);
+
+      // Morphing arrow in center with pulsing
+      const arrowG = document.getElementById('crossover-morph-arrow');
+      const arrowOp = 0.4 + 0.3 * Math.abs(Math.sin(t * 0.002));
+      arrowG.setAttribute('opacity', arrowOp);
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+
+// ===== TOC ACTIVE STATE TRACKING =====
+(function initTOC() {
+  const sections = document.querySelectorAll('section[id]');
+  const tocLinks = document.querySelectorAll('#toc a');
+
+  function updateActive() {
+    let current = '';
+    for (const sec of sections) {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= 200) {
+        current = sec.id;
+      }
+    }
+    for (const link of tocLinks) {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    }
+  }
+
+  window.addEventListener('scroll', updateActive, { passive: true });
+  updateActive();
+})();
+</script>
+
+</body>
+</html>

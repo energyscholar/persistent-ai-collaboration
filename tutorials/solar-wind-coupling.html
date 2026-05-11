@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Wind-Magnetosphere Coupling: A Tutorial for the Spatial Statistician</title>
+<style>
+:root {
+  --bg: #0a0a1a;
+  --text: #e0e0e8;
+  --heading: #ffffff;
+  --solar: #ffb347;
+  --solar-dark: #cc8020;
+  --earth-blue: #4a9eff;
+  --earth-cyan: #00e5ff;
+  --imf-green: #66ff66;
+  --open-red: #ff4444;
+  --current-yellow: #ffdd44;
+  --accent: #8888cc;
+  --card-bg: #111130;
+  --connection-bg: #0d1a0d;
+  --connection-border: #2a5a2a;
+  --section-border: #222244;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.7;
+  font-size: 17px;
+}
+
+h1 {
+  font-size: 2.8em;
+  color: var(--heading);
+  text-align: center;
+  padding: 80px 20px 10px;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--accent);
+  font-size: 1.2em;
+  margin-bottom: 60px;
+  font-style: italic;
+}
+
+h2 {
+  font-size: 2em;
+  color: var(--heading);
+  margin: 0 0 30px 0;
+  padding-top: 30px;
+  border-bottom: 2px solid var(--section-border);
+  padding-bottom: 10px;
+}
+
+h3 {
+  font-size: 1.3em;
+  color: var(--earth-cyan);
+  margin: 25px 0 15px 0;
+}
+
+section {
+  max-width: 1100px;
+  margin: 0 auto 80px;
+  padding: 0 30px;
+}
+
+p { margin-bottom: 18px; }
+
+.diagram-container {
+  background: #050510;
+  border: 1px solid var(--section-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 30px 0;
+  position: relative;
+}
+
+.diagram-container svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+.diagram-label {
+  text-align: center;
+  color: var(--accent);
+  font-size: 0.9em;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.play-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85em;
+  z-index: 10;
+  transition: background 0.2s;
+}
+.play-btn:hover { background: rgba(255,255,255,0.2); }
+
+.connection-box {
+  background: var(--connection-bg);
+  border: 1px solid var(--connection-border);
+  border-radius: 10px;
+  padding: 20px 25px;
+  margin: 30px 0;
+}
+.connection-box h3 {
+  color: #88ff88;
+  margin-top: 0;
+  font-size: 1.15em;
+}
+.connection-box p:last-child { margin-bottom: 0; }
+
+.equation {
+  background: #0f0f2a;
+  border-left: 3px solid var(--accent);
+  padding: 12px 20px;
+  margin: 15px 0;
+  font-family: 'Cambria Math', 'Latin Modern Math', Georgia, serif;
+  font-size: 1.05em;
+  color: #ccccee;
+  overflow-x: auto;
+}
+
+strong { color: var(--heading); }
+em { color: #bbbbdd; }
+
+ul, ol {
+  margin: 10px 0 18px 25px;
+}
+li { margin-bottom: 8px; }
+
+/* Floating TOC */
+#toc {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(10,10,26,0.92);
+  border: 1px solid var(--section-border);
+  border-radius: 10px;
+  padding: 15px 18px;
+  z-index: 100;
+  max-width: 260px;
+  font-size: 0.82em;
+  backdrop-filter: blur(8px);
+}
+#toc a {
+  display: block;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+#toc a:hover, #toc a.active { color: var(--earth-cyan); }
+#toc .toc-title {
+  color: var(--heading);
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+}
+
+@media (max-width: 1400px) {
+  #toc { display: none; }
+}
+
+/* Stars background */
+.stars {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<canvas class="stars" id="starsCanvas"></canvas>
+
+<nav id="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#sec1">1. The Solar Wind</a>
+  <a href="#sec2">2. The IMF &mdash; Why Bz Controls Everything</a>
+  <a href="#sec3">3. Magnetic Reconnection</a>
+  <a href="#sec4">4. The Dungey Cycle</a>
+  <a href="#sec5">5. Energy Transfer</a>
+  <a href="#sec6">6. Coupling Functions</a>
+  <a href="#sec7">7. Substorms</a>
+  <a href="#sec8">8. Convection Patterns</a>
+  <a href="#sec9">9. Connection to Your Data</a>
+</nav>
+
+<h1>Solar Wind&ndash;Magnetosphere Coupling</h1>
+<p class="subtitle">A tutorial for the spatial statistician who already knows the ground truth</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: THE SOLAR WIND -->
+<!-- ============================================================ -->
+<section id="sec1">
+<h2>1. The Solar Wind</h2>
+
+<p>In 1958, Eugene Parker made a prediction that startled the solar physics community: the Sun's corona is so hot (1&ndash;2 million K) that it cannot be in hydrostatic equilibrium. The thermal pressure gradient overwhelms gravity, and the corona must be continuously expanding outward as a <strong>supersonic plasma wind</strong>. His colleagues were skeptical. The paper was initially rejected. Then Mariner 2 flew past Venus in 1962 and measured exactly what Parker predicted.</p>
+
+<p>The solar wind is a fully ionized hydrogen-helium plasma (roughly 95% protons, 5% He++) streaming outward from the Sun at <strong>400&ndash;800 km/s</strong>. At Earth's orbit (1 AU = 215 solar radii), typical parameters are:</p>
+
+<ul>
+  <li><strong>Speed:</strong> 400 km/s (slow wind) to 800 km/s (fast wind from coronal holes)</li>
+  <li><strong>Density:</strong> ~5 cm<sup>&minus;3</sup> (roughly 5 protons per cubic centimeter)</li>
+  <li><strong>Magnetic field:</strong> ~5 nT (embedded "frozen-in" solar magnetic field)</li>
+  <li><strong>Temperature:</strong> ~10<sup>5</sup> K (protons; electrons somewhat hotter)</li>
+  <li><strong>Alfv&eacute;n Mach number:</strong> ~8 (highly super-Alfv&eacute;nic &mdash; the flow outruns its own magnetic wave speed)</li>
+</ul>
+
+<p>The solar wind carries the Sun's magnetic field outward. Because the Sun rotates (once every ~25 days at the equator) while the wind moves radially, the magnetic field lines form <strong>Archimedean spirals</strong> &mdash; the "Parker spiral." At Earth, the field makes roughly a 45&deg; angle to the radial direction. The solar magnetic field reverses polarity across the heliospheric current sheet, creating sectors of alternating field direction that sweep past Earth as the Sun rotates.</p>
+
+<p>The <strong>slow wind</strong> (~400 km/s) originates from the streamer belt near the solar equator &mdash; dense, variable, structured. The <strong>fast wind</strong> (~700 km/s) pours out of coronal holes &mdash; tenuous, steady, magnetically open. Where fast wind overtakes slow wind, compression regions form (CIRs &mdash; co-rotating interaction regions), often driving recurrent geomagnetic activity with a 27-day period.</p>
+
+<div class="diagram-container" id="diagram1-container">
+  <button class="play-btn" id="btn-parker" onclick="toggleAnim('parker')">Pause</button>
+  <svg id="svg-parker" viewBox="0 0 900 700" width="900" height="700">
+    <defs>
+      <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fff8e0"/>
+        <stop offset="40%" stop-color="#ffcc33"/>
+        <stop offset="100%" stop-color="#ff8800"/>
+      </radialGradient>
+      <radialGradient id="coronaGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(255,200,50,0.3)"/>
+        <stop offset="100%" stop-color="rgba(255,200,50,0)"/>
+      </radialGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <!-- Background labels -->
+    <text x="450" y="30" fill="#667" font-size="14" text-anchor="middle">Top-Down View of the Ecliptic Plane</text>
+    <!-- Corona glow -->
+    <circle cx="450" cy="350" r="80" fill="url(#coronaGrad)"/>
+    <!-- Sun -->
+    <circle cx="450" cy="350" r="30" fill="url(#sunGrad)" filter="url(#glow)"/>
+    <text x="450" y="355" fill="#553300" font-size="11" text-anchor="middle" font-weight="bold">Sun</text>
+    <!-- Spiral arms will be drawn by JS -->
+    <g id="parker-spirals"></g>
+    <!-- Earth orbit -->
+    <circle cx="450" cy="350" r="280" fill="none" stroke="#224" stroke-width="1" stroke-dasharray="4,8"/>
+    <!-- Earth -->
+    <circle id="earth-parker" cx="730" cy="350" r="7" fill="var(--earth-blue)" filter="url(#glow)"/>
+    <text id="earth-parker-label" x="730" y="370" fill="var(--earth-cyan)" font-size="12" text-anchor="middle">Earth</text>
+    <!-- Legends -->
+    <g transform="translate(30, 610)">
+      <line x1="0" y1="0" x2="30" y2="0" stroke="#ff9944" stroke-width="2"/>
+      <text x="38" y="4" fill="var(--text)" font-size="12">Slow wind (~400 km/s) &mdash; tightly wound</text>
+    </g>
+    <g transform="translate(30, 635)">
+      <line x1="0" y1="0" x2="30" y2="0" stroke="#ffdd88" stroke-width="2" stroke-dasharray="8,4"/>
+      <text x="38" y="4" fill="var(--text)" font-size="12">Fast wind (~700 km/s) &mdash; loosely wound</text>
+    </g>
+    <g transform="translate(30, 660)">
+      <text x="0" y="4" fill="#888" font-size="12">Spiral rotation period: ~25 days (animated to ~20s)</text>
+    </g>
+    <text x="450" y="690" fill="#556" font-size="11" text-anchor="middle">The Parker Spiral: Solar magnetic field frozen into the outflowing solar wind</text>
+  </svg>
+  <div class="diagram-label">Parker Spiral &mdash; the Sun's magnetic field carried outward by the solar wind, wound into spirals by solar rotation.</div>
+</div>
+
+<div class="connection-box">
+  <h3>Connection to your data</h3>
+  <p>The Parker spiral geometry means the IMF at Earth is usually near the ecliptic plane, with a roughly 45&deg; angle. The Bz component you filter on in OMNI is mostly determined by the <em>tilt</em> of the heliospheric current sheet and transient structures (CMEs, CIRs). The 45-year OMNI dataset you work with is the L1-propagated measurement of this wind &mdash; every data point is a snapshot of this spiral sweeping past.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: THE IMF - WHY Bz CONTROLS EVERYTHING -->
+<!-- ============================================================ -->
+<section id="sec2">
+<h2>2. The IMF &mdash; Why Bz Controls Everything</h2>
+
+<p>The interplanetary magnetic field (IMF) is described in <strong>GSM coordinates</strong> (Geocentric Solar Magnetospheric):</p>
+<ul>
+  <li><strong>Bx:</strong> along the Sun-Earth line (positive toward Sun)</li>
+  <li><strong>By:</strong> perpendicular, in the ecliptic plane (positive toward dusk)</li>
+  <li><strong>Bz:</strong> perpendicular to the ecliptic, aligned with Earth's magnetic dipole axis (positive northward)</li>
+</ul>
+
+<p>Earth's magnetic field points <strong>northward</strong> at the equator and at the subsolar magnetopause. This is the key geometric fact. When the IMF Bz is <strong>northward</strong> (positive), it is <em>parallel</em> to Earth's field at the nose of the magnetosphere. Parallel fields do not reconnect efficiently. The magnetosphere remains closed &mdash; a magnetic shield deflecting the solar wind around it.</p>
+
+<p>When Bz turns <strong>southward</strong> (negative), the IMF becomes <em>antiparallel</em> to Earth's field at the subsolar point. Antiparallel fields can <strong>reconnect</strong> &mdash; the magnetic topology changes, field lines open, and solar wind energy pours in. This is the switch. It is not gradual: the reconnection rate is a highly nonlinear function of the IMF clock angle, with a sharp threshold near Bz &asymp; 0.</p>
+
+<p>This is why your OMNI Bz filter at &minus;2 nT is physically meaningful: it selects intervals when the reconnection switch is decisively ON.</p>
+
+<div class="diagram-container" id="diagram2-container">
+  <button class="play-btn" id="btn-bzswitch" onclick="toggleAnim('bzswitch')">Pause</button>
+  <svg id="svg-bzswitch" viewBox="0 0 900 500" width="900" height="500">
+    <defs>
+      <linearGradient id="calmGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(0,200,100,0.15)"/>
+        <stop offset="100%" stop-color="rgba(0,200,100,0)"/>
+      </linearGradient>
+      <linearGradient id="stormGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,50,50,0.15)"/>
+        <stop offset="100%" stop-color="rgba(255,50,50,0)"/>
+      </linearGradient>
+    </defs>
+    <text x="450" y="25" fill="#889" font-size="14" text-anchor="middle">The Bz Switch: How IMF Orientation Controls Magnetospheric State</text>
+    <!-- Scene rendered by JS -->
+    <g id="bz-scene"></g>
+    <!-- Traffic light -->
+    <g id="bz-traffic" transform="translate(450,430)">
+      <rect x="-25" y="-20" width="50" height="45" rx="8" fill="#222"/>
+      <circle id="bz-green" cx="0" cy="-5" r="10" fill="#115511" stroke="#338833" stroke-width="1"/>
+      <circle id="bz-red" cx="0" cy="15" r="10" fill="#331111" stroke="#883333" stroke-width="1"/>
+      <text x="35" y="0" fill="#888" font-size="11" id="bz-status">Bz &gt; 0: Closed</text>
+    </g>
+    <text x="450" y="490" fill="#556" font-size="12" text-anchor="middle" font-style="italic">Earth's field points NORTH at equator. When IMF points SOUTH, they can merge.</text>
+  </svg>
+  <div class="diagram-label">The magnetopause as a magnetically-controlled gate. Northward IMF = closed shield. Southward IMF = reconnection and energy input.</div>
+</div>
+
+<div class="connection-box">
+  <h3>Connection to your data</h3>
+  <p>When you condition your variograms on Bz &lt; &minus;2 nT, you are selecting intervals when this switch is ON &mdash; when the magnetosphere is actively driven and the Dungey cycle (Section 4) is operating vigorously. The ground magnetic perturbations you measure are downstream consequences of this switch being thrown. The fact that L* changes systematically with storm intensity is a direct consequence of how <em>hard</em> this switch is being driven.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: MAGNETIC RECONNECTION -->
+<!-- ============================================================ -->
+<section id="sec3">
+<h2>3. Magnetic Reconnection &mdash; The Engine</h2>
+
+<p>Magnetic reconnection is the fundamental process that allows solar wind energy to enter the magnetosphere. It is not merely a metaphor &mdash; it is a specific plasma physics process with well-understood (if still actively researched) microphysics.</p>
+
+<p>Here is what happens at the subsolar magnetopause when Bz is southward:</p>
+
+<ol>
+  <li><strong>Approach:</strong> Earth's northward-pointing field lines and the IMF's southward-pointing field lines are pressed together by the solar wind dynamic pressure. A thin current sheet (the magnetopause) separates them.</li>
+  <li><strong>Diffusion region:</strong> In a narrow region (~10 ion inertial lengths, or about 100 km), the "frozen-in" condition breaks down. Magnetic field lines are no longer tied to the plasma. They can slip, break, and re-form.</li>
+  <li><strong>Topology change:</strong> One closed Earth field line and one IMF field line merge at an X-point. The result: two <strong>open field lines</strong>, each with one foot on Earth and one end in the solar wind. This topology change is irreversible without another reconnection event.</li>
+  <li><strong>Outflow:</strong> Magnetic tension in the newly reconnected field lines accelerates plasma in jets away from the X-point at the Alfv&eacute;n speed (~200 km/s). This is the energy conversion &mdash; magnetic energy &rarr; kinetic energy + heat.</li>
+</ol>
+
+<p>The reconnection rate at the dayside magnetopause is roughly 0.1 times the upstream Alfv&eacute;n speed &mdash; the so-called "fast reconnection" rate. For typical solar wind conditions, this corresponds to an electric field of about 1&ndash;3 mV/m along the X-line, mapping to a cross-polar-cap potential of 50&ndash;150 kV during active times.</p>
+
+<div class="diagram-container" id="diagram3-container">
+  <button class="play-btn" id="btn-reconnection" onclick="toggleAnim('reconnection')">Pause</button>
+  <svg id="svg-reconnection" viewBox="0 0 900 600" width="900" height="600">
+    <defs>
+      <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="var(--earth-blue)" opacity="0.7"/>
+      </marker>
+      <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="var(--imf-green)" opacity="0.7"/>
+      </marker>
+      <marker id="arrowRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="var(--open-red)" opacity="0.7"/>
+      </marker>
+    </defs>
+    <text x="450" y="25" fill="#889" font-size="14" text-anchor="middle">Dayside Magnetic Reconnection (Noon-Midnight Meridian View)</text>
+    <!-- Earth -->
+    <circle cx="500" cy="300" r="40" fill="#112244" stroke="var(--earth-blue)" stroke-width="2"/>
+    <text x="500" y="304" fill="var(--earth-cyan)" font-size="10" text-anchor="middle">Earth</text>
+    <!-- Magnetopause (dashed) -->
+    <path id="magnetopause" d="M 250,80 Q 200,300 250,520" fill="none" stroke="#445" stroke-width="2" stroke-dasharray="6,4"/>
+    <text x="215" y="65" fill="#556" font-size="11">Magnetopause</text>
+    <!-- Dynamic elements drawn by JS -->
+    <g id="reconnection-scene"></g>
+    <!-- Legend -->
+    <g transform="translate(30, 540)">
+      <line x1="0" y1="0" x2="25" y2="0" stroke="var(--earth-blue)" stroke-width="3"/>
+      <text x="32" y="4" fill="var(--text)" font-size="12">Closed Earth field (both feet on Earth)</text>
+    </g>
+    <g transform="translate(30, 560)">
+      <line x1="0" y1="0" x2="25" y2="0" stroke="var(--imf-green)" stroke-width="3"/>
+      <text x="32" y="4" fill="var(--text)" font-size="12">IMF (both ends in solar wind)</text>
+    </g>
+    <g transform="translate(30, 580)">
+      <line x1="0" y1="0" x2="25" y2="0" stroke="var(--open-red)" stroke-width="3"/>
+      <text x="32" y="4" fill="var(--text)" font-size="12">Open field (one foot on Earth, one in solar wind)</text>
+    </g>
+    <g transform="translate(500, 560)">
+      <text x="0" y="0" fill="var(--current-yellow)" font-size="12">&#x2716; = X-point (reconnection site)</text>
+    </g>
+  </svg>
+  <div class="diagram-label">Reconnection at the dayside magnetopause: closed (blue) + IMF (green) merge at the X-point to create open field lines (red).</div>
+</div>
+
+<div class="connection-box">
+  <h3>Connection to your data</h3>
+  <p>Every open field line created by dayside reconnection maps to a point inside the <strong>polar cap</strong>. The polar cap boundary is the open-closed field line boundary. When reconnection is vigorous, the polar cap expands equatorward &mdash; which pushes the auroral oval (and the electrojet, and the FACs) to lower latitudes. This is one reason your L* depends on storm intensity: stronger reconnection &rarr; larger polar cap &rarr; auroral currents at different (lower) latitudes &rarr; different spatial correlation structure as seen by IMAGE.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: THE DUNGEY CYCLE -->
+<!-- ============================================================ -->
+<section id="sec4">
+<h2>4. The Dungey Cycle &mdash; How the Magnetosphere Breathes</h2>
+
+<p>In 1961, James Dungey proposed the circulation pattern that bears his name. It is the <strong>fundamental mode</strong> of the magnetosphere's response to southward IMF &mdash; the organizing principle behind everything your magnetometers measure.</p>
+
+<p>The cycle has six stages:</p>
+
+<ol>
+  <li><strong>Dayside reconnection:</strong> Closed field lines at the nose of the magnetosphere reconnect with the southward IMF, creating open field lines (Section 3).</li>
+  <li><strong>Polar cap transport:</strong> The solar wind flow drags the newly-open field lines antisunward over the polar caps. This takes ~10&ndash;15 minutes. The antisunward flow is what drives the two-cell convection pattern (Section 8).</li>
+  <li><strong>Lobe accumulation:</strong> Open flux piles up in the magnetotail lobes &mdash; the north lobe (field pointing earthward) and south lobe (field pointing tailward). The lobes are nearly empty of plasma; they store magnetic energy.</li>
+  <li><strong>Tail reconnection:</strong> When enough open flux accumulates, the tail current sheet (separating the two lobes) becomes thin enough to reconnect. This occurs at the <strong>near-Earth neutral line (NENL)</strong>, typically 20&ndash;30 R<sub>E</sub> downtail. Open lobe field lines from north and south merge, creating newly-closed field lines earthward and a plasmoid (disconnected magnetic island) tailward.</li>
+  <li><strong>Dipolarization:</strong> The newly-closed field lines snap earthward under magnetic tension (like a released rubber band). This "dipolarization" is the explosive energy release of substorms (Section 7). The earthward flow carries energized plasma that feeds the ring current.</li>
+  <li><strong>Return flow:</strong> Closed flux tubes return sunward through the dawn and dusk flanks, completing the circuit. This return flow takes ~1&ndash;3 hours.</li>
+</ol>
+
+<p>The full Dungey cycle takes <strong>1&ndash;4 hours</strong> depending on driving strength. During strong southward IMF, the cycle runs faster &mdash; more reconnection on the dayside forces faster cycling. During northward IMF, the cycle nearly stalls. This is the magnetosphere breathing.</p>
+
+<div class="diagram-container" id="diagram4-container" style="padding:10px;">
+  <button class="play-btn" id="btn-dungey" onclick="toggleAnim('dungey')">Pause</button>
+  <svg id="svg-dungey" viewBox="0 0 1000 650" width="1000" height="650">
+    <defs>
+      <radialGradient id="earthGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#3366aa"/>
+        <stop offset="100%" stop-color="#112244"/>
+      </radialGradient>
+      <marker id="arrowWhite" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+        <path d="M0,0 L7,2.5 L0,5" fill="rgba(255,255,255,0.5)"/>
+      </marker>
+      <marker id="arrowSolar" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+        <path d="M0,0 L7,2.5 L0,5" fill="var(--solar)"/>
+      </marker>
+    </defs>
+    <text x="500" y="25" fill="#889" font-size="14" text-anchor="middle">The Dungey Cycle: Complete Magnetospheric Circulation (Noon-Midnight Meridian)</text>
+    <!-- Solar wind arrows -->
+    <g id="dungey-sw-arrows">
+      <line x1="30" y1="150" x2="130" y2="150" stroke="var(--solar)" stroke-width="2" marker-end="url(#arrowSolar)"/>
+      <line x1="30" y1="250" x2="130" y2="250" stroke="var(--solar)" stroke-width="2" marker-end="url(#arrowSolar)"/>
+      <line x1="30" y1="350" x2="130" y2="350" stroke="var(--solar)" stroke-width="2" marker-end="url(#arrowSolar)"/>
+      <line x1="30" y1="450" x2="130" y2="450" stroke="var(--solar)" stroke-width="2" marker-end="url(#arrowSolar)"/>
+    </g>
+    <text x="40" y="130" fill="var(--solar)" font-size="12">Solar wind</text>
+    <!-- Earth -->
+    <circle cx="350" cy="325" r="35" fill="url(#earthGrad)" stroke="var(--earth-blue)" stroke-width="1.5"/>
+    <text x="350" y="329" fill="white" font-size="9" text-anchor="middle">Earth</text>
+    <!-- Static field structure -->
+    <g id="dungey-static"></g>
+    <!-- Animated tracer -->
+    <g id="dungey-tracer"></g>
+    <!-- Labels -->
+    <text x="220" y="220" fill="var(--earth-cyan)" font-size="11">Dayside</text>
+    <text x="220" y="235" fill="var(--earth-cyan)" font-size="11">X-line</text>
+    <text x="700" y="310" fill="var(--open-red)" font-size="11">Tail X-line</text>
+    <text x="700" y="325" fill="var(--open-red)" font-size="11">(NENL)</text>
+    <text x="550" y="195" fill="#667" font-size="11">North lobe</text>
+    <text x="550" y="475" fill="#667" font-size="11">South lobe</text>
+    <text x="350" y="178" fill="#88aacc" font-size="10">Polar cap</text>
+    <text x="350" y="493" fill="#88aacc" font-size="10">Polar cap</text>
+    <text x="450" y="600" fill="#aaa" font-size="11">Return flow (closed flux tubes drift sunward through dawn/dusk flanks)</text>
+    <!-- Cycle stage indicator -->
+    <rect x="30" y="560" width="200" height="55" rx="8" fill="#111128" stroke="#333" stroke-width="1"/>
+    <text x="45" y="580" fill="#aaa" font-size="11">Cycle stage:</text>
+    <text id="dungey-stage" x="45" y="600" fill="var(--earth-cyan)" font-size="13" font-weight="bold">Dayside reconnection</text>
+  </svg>
+  <div class="diagram-label">The Dungey cycle: the magnetosphere's fundamental circulation, driven by magnetic reconnection. Follow the glowing tracer through all six stages.</div>
+</div>
+
+<div class="connection-box">
+  <h3>Connection to your data</h3>
+  <p>The Dungey cycle is the engine behind <em>everything</em> IMAGE measures at the ground. The antisunward polar cap flow drives ionospheric convection currents. The return flow drives the electrojet. The substorm dipolarization (stage 5) creates the substorm current wedge &mdash; intense, localized FACs that dominate your variograms during active times. The cycle timescale (1&ndash;4 hours) sets the fundamental timescale of magnetospheric variability you see in your time series.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: ENERGY TRANSFER -->
+<!-- ============================================================ -->
+<section id="sec5">
+<h2>5. Energy Transfer &mdash; Following the Watts</h2>
+
+<p>The solar wind carries enormous power past the magnetosphere. The kinetic energy flux is:</p>
+
+<div class="equation">P<sub>sw</sub> = &frac12; &rho; V<sup>3</sup> &middot; A<sub>cross</sub> &approx; 3 &times; 10<sup>13</sup> W</div>
+
+<p>where the effective cross-section A<sub>cross</sub> &asymp; &pi;(15 R<sub>E</sub>)<sup>2</sup>. Of this ~30 TW, only a few percent actually enters the magnetosphere. The entry mechanism is <strong>Poynting flux</strong> at the reconnection site &mdash; electromagnetic energy flowing inward through the newly-opened magnetic topology. During moderate storms, roughly 10<sup>11</sup>&ndash;10<sup>12</sup> W enters.</p>
+
+<p>Akasofu's <strong>epsilon parameter</strong> estimates this input rate:</p>
+
+<div class="equation">&epsilon; = (4&pi;/&mu;<sub>0</sub>) &middot; V &middot; B<sup>2</sup> &middot; sin<sup>4</sup>(&theta;/2) &middot; l<sub>0</sub><sup>2</sup></div>
+
+<p>where &theta; is the IMF clock angle (arctan(By/Bz) in GSM), V is solar wind speed, B is total transverse IMF, and l<sub>0</sub> &asymp; 7 R<sub>E</sub> is an empirical length scale. The sin<sup>4</sup>(&theta;/2) factor encodes the reconnection geometry: zero for northward IMF, maximum for southward.</p>
+
+<h3>Energy Partition</h3>
+<p>Once inside the magnetosphere, energy is partitioned approximately as:</p>
+<ul>
+  <li><strong>Joule heating in the ionosphere: ~50%</strong> &mdash; Pedersen currents dissipate energy as heat in the E-region (100&ndash;130 km altitude). This is the <em>largest</em> energy sink.</li>
+  <li><strong>Ring current: ~30%</strong> &mdash; Energetic ions (10&ndash;100 keV) trapped on closed drift paths. Their westward drift current produces the Dst depression you know as the storm main phase.</li>
+  <li><strong>Particle precipitation: ~10%</strong> &mdash; Electrons (1&ndash;30 keV) precipitating along field lines into the auroral oval, producing optical aurora and enhancing ionospheric conductivity.</li>
+  <li><strong>Radiation belts: ~10%</strong> &mdash; Very energetic particles (&gt;100 keV to MeV) trapped in the inner magnetosphere.</li>
+</ul>
+
+<p>The critical point for your work: <strong>Joule heating is the dominant energy sink, and it occurs in the ionosphere through the same Pedersen currents that close the FACs.</strong> Ground magnetometers see the Hall currents associated with this dissipation. AE measures the electrojet, which is the Hall current. Your magnetometers and AE are looking at two aspects of the same dissipation process.</p>
+
+<div class="diagram-container" id="diagram5-container">
+  <svg id="svg-energy" viewBox="0 0 900 500" width="900" height="500">
+    <text x="450" y="30" fill="#889" font-size="14" text-anchor="middle">Energy Flow: Solar Wind to Ground Magnetic Perturbations</text>
+    <!-- Sankey-style flow -->
+    <!-- Solar wind input -->
+    <rect x="30" y="140" width="140" height="200" rx="8" fill="none" stroke="var(--solar)" stroke-width="2"/>
+    <text x="100" y="215" fill="var(--solar)" font-size="13" text-anchor="middle" font-weight="bold">Solar Wind</text>
+    <text x="100" y="235" fill="var(--solar)" font-size="11" text-anchor="middle">Kinetic Energy</text>
+    <text x="100" y="255" fill="var(--solar-dark)" font-size="15" text-anchor="middle">~3&times;10&#xb9;&#xb3; W</text>
+    <text x="100" y="280" fill="#886633" font-size="10" text-anchor="middle">(30 TW)</text>
+    <!-- Reconnection gate -->
+    <polygon points="210,200 260,220 260,260 210,280" fill="none" stroke="var(--open-red)" stroke-width="2"/>
+    <text x="235" y="200" fill="var(--open-red)" font-size="10" text-anchor="middle">Reconnection</text>
+    <text x="235" y="188" fill="var(--open-red)" font-size="10" text-anchor="middle">gate</text>
+    <!-- Narrowed flow -->
+    <path d="M170,200 L210,220 M170,280 L210,260" stroke="var(--solar)" stroke-width="3" fill="none"/>
+    <!-- Magnetospheric input -->
+    <rect x="290" y="180" width="130" height="120" rx="8" fill="none" stroke="#8866cc" stroke-width="2"/>
+    <text x="355" y="220" fill="#aa88ee" font-size="13" text-anchor="middle" font-weight="bold">Magnetosphere</text>
+    <text x="355" y="240" fill="#aa88ee" font-size="11" text-anchor="middle">Input</text>
+    <text x="355" y="262" fill="#8866cc" font-size="14" text-anchor="middle">10&#xb9;&#xb9;&ndash;10&#xb9;&#xb2; W</text>
+    <path d="M260,240 L290,240" stroke="#aa66cc" stroke-width="3" fill="none"/>
+    <!-- Branches -->
+    <!-- Joule heating - largest -->
+    <path d="M420,210 Q500,140 580,130" stroke="#ff8844" stroke-width="8" fill="none" opacity="0.7"/>
+    <rect x="580" y="100" width="200" height="70" rx="8" fill="rgba(255,136,68,0.1)" stroke="#ff8844" stroke-width="1.5"/>
+    <text x="680" y="125" fill="#ff8844" font-size="13" text-anchor="middle" font-weight="bold">Joule Heating ~50%</text>
+    <text x="680" y="145" fill="#cc6633" font-size="11" text-anchor="middle">Pedersen currents &rarr; E-region</text>
+    <text x="680" y="160" fill="#cc6633" font-size="10" text-anchor="middle">= what ground magnetometers see</text>
+    <!-- Ring current -->
+    <path d="M420,230 Q500,220 580,220" stroke="#aa44cc" stroke-width="5" fill="none" opacity="0.7"/>
+    <rect x="580" y="195" width="200" height="55" rx="8" fill="rgba(170,68,204,0.1)" stroke="#aa44cc" stroke-width="1.5"/>
+    <text x="680" y="218" fill="#aa44cc" font-size="13" text-anchor="middle" font-weight="bold">Ring Current ~30%</text>
+    <text x="680" y="238" fill="#8833aa" font-size="11" text-anchor="middle">10-100 keV ions &rarr; Dst index</text>
+    <!-- Precipitation -->
+    <path d="M420,260 Q500,300 580,310" stroke="#44cc44" stroke-width="3" fill="none" opacity="0.7"/>
+    <rect x="580" y="290" width="200" height="50" rx="8" fill="rgba(68,204,68,0.1)" stroke="#44cc44" stroke-width="1.5"/>
+    <text x="680" y="312" fill="#44cc44" font-size="13" text-anchor="middle" font-weight="bold">Precipitation ~10%</text>
+    <text x="680" y="328" fill="#339933" font-size="11" text-anchor="middle">Auroral electrons &rarr; light + conductance</text>
+    <!-- Radiation belts -->
+    <path d="M420,280 Q500,370 580,380" stroke="#4488ff" stroke-width="2" fill="none" opacity="0.7"/>
+    <rect x="580" y="360" width="200" height="50" rx="8" fill="rgba(68,136,255,0.1)" stroke="#4488ff" stroke-width="1.5"/>
+    <text x="680" y="382" fill="#4488ff" font-size="13" text-anchor="middle" font-weight="bold">Radiation Belts ~10%</text>
+    <text x="680" y="398" fill="#3366cc" font-size="11" text-anchor="middle">MeV particles, Van Allen belts</text>
+    <!-- Emphasis arrow to "your data" -->
+    <path d="M780,165 Q820,180 830,220" stroke="var(--current-yellow)" stroke-width="2" stroke-dasharray="5,3" fill="none"/>
+    <rect x="790" y="220" width="100" height="40" rx="6" fill="rgba(255,221,68,0.1)" stroke="var(--current-yellow)" stroke-width="1.5"/>
+    <text x="840" y="237" fill="var(--current-yellow)" font-size="10" text-anchor="middle" font-weight="bold">YOUR</text>
+    <text x="840" y="251" fill="var(--current-yellow)" font-size="10" text-anchor="middle" font-weight="bold">MAGNETOMETERS</text>
+    <!-- Bottom note -->
+    <text x="450" y="470" fill="#667" font-size="12" text-anchor="middle">Only ~1-3% of the solar wind's kinetic energy enters the magnetosphere.</text>
+    <text x="450" y="488" fill="#667" font-size="12" text-anchor="middle">But half of what enters is dissipated as Joule heating &mdash; the signal ground magnetometers detect.</text>
+  </svg>
+  <div class="diagram-label">Energy flow from the solar wind to the ionosphere. Joule heating (the dominant sink) produces the currents your magnetometers measure.</div>
+</div>
+
+<div class="connection-box">
+  <h3>Connection to your data</h3>
+  <p>The energy partition explains a key fact about your research: ground magnetometers are not measuring a minor side effect. They are measuring the <strong>primary energy dissipation channel</strong> of the magnetosphere. When you compute variograms of ground dB, you are characterizing the spatial structure of the single largest energy sink in the entire solar wind-magnetosphere system. This is why ground magnetometer data is so scientifically valuable &mdash; and why your spatial statistical approach reveals physical structure.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: COUPLING FUNCTIONS -->
+<!-- ============================================================ -->
+<section id="sec6">
+<h2>6. Coupling Functions &mdash; Predicting Ground Response</h2>
+
+<p>Since the 1970s, researchers have developed empirical functions that predict geomagnetic activity indices from upstream solar wind parameters. These coupling functions encode the physics of reconnection and energy transfer into simple formulas. They are why OMNI data predicts AE so well.</p>
+
+<h3>The Major Coupling Functions</h3>
+
+<p><strong>1. VBs (simplest):</strong> Just the product of solar wind speed and the southward component of Bz.</p>
+<div class="equation">VBs = V &middot; max(&minus;Bz, 0)</div>
+<p>This captures the two essential ingredients: how fast the solar wind hits, and whether reconnection is on. It works surprisingly well (r &asymp; 0.7&ndash;0.8 with AE) for how simple it is.</p>
+
+<p><strong>2. Epsilon parameter (Akasofu 1981):</strong> Motivated by Poynting flux at the magnetopause.</p>
+<div class="equation">&epsilon; = (4&pi;/&mu;<sub>0</sub>) &middot; V &middot; B<sub>T</sub><sup>2</sup> &middot; sin<sup>4</sup>(&theta;/2) &middot; l<sub>0</sub><sup>2</sup></div>
+<p>where B<sub>T</sub> = &radic;(By<sup>2</sup> + Bz<sup>2</sup>) and &theta; = arctan(|By|/Bz). The sin<sup>4</sup> clock angle dependence is steeper than sin<sup>2</sup> &mdash; it says reconnection turns on sharply.</p>
+
+<p><strong>3. Newell universal coupling (2007):</strong> Derived from correlations with 10 different geomagnetic indices simultaneously.</p>
+<div class="equation">d&Phi;<sub>MP</sub>/dt &propto; V<sup>4/3</sup> &middot; B<sub>T</sub><sup>2/3</sup> &middot; sin<sup>8/3</sup>(&theta;/2)</div>
+<p>The fractional exponents come from fitting, but have physical justification: the 4/3 power on V reflects the role of both dynamic pressure (controlling magnetopause standoff) and motional electric field. The sin<sup>8/3</sup> function is the steepest of all &mdash; the sharpest "switch."</p>
+
+<p><strong>4. Borovsky (2013):</strong> Physically motivated, includes magnetosheath processing of the solar wind (the bow shock modifies B and V before they reach the magnetopause). More complex but captures effects the simpler functions miss.</p>
+
+<p>All of these functions share a common shape: <strong>zero for northward IMF, rising steeply as the field turns southward.</strong> They differ in how sharply the transition occurs and how they weight V versus B.</p>
+
+<div class="diagram-container" id="diagram6-container">
+  <svg id="svg-coupling" viewBox="0 0 900 500" width="900" height="500">
+    <text x="450" y="30" fill="#889" font-size="14" text-anchor="middle">Coupling Function Response vs. IMF Clock Angle</text>
+    <!-- Axes -->
+    <line x1="120" y1="420" x2="820" y2="420" stroke="#555" stroke-width="1.5"/>
+    <line x1="120" y1="420" x2="120" y2="80" stroke="#555" stroke-width="1.5"/>
+    <!-- X axis labels -->
+    <text x="120" y="445" fill="#888" font-size="11" text-anchor="middle">0&deg;</text>
+    <text x="295" y="445" fill="#888" font-size="11" text-anchor="middle">45&deg;</text>
+    <text x="470" y="445" fill="#888" font-size="11" text-anchor="middle">90&deg;</text>
+    <text x="645" y="445" fill="#888" font-size="11" text-anchor="middle">135&deg;</text>
+    <text x="820" y="445" fill="#888" font-size="11" text-anchor="middle">180&deg;</text>
+    <text x="470" y="470" fill="#aaa" font-size="12" text-anchor="middle">IMF Clock Angle &theta; (0&deg; = pure northward, 180&deg; = pure southward)</text>
+    <!-- Y axis -->
+    <text x="60" y="250" fill="#aaa" font-size="12" text-anchor="middle" transform="rotate(-90,60,250)">Coupling Function (normalized)</text>
+    <text x="115" y="425" fill="#888" font-size="10" text-anchor="end">0</text>
+    <text x="115" y="255" fill="#888" font-size="10" text-anchor="end">0.5</text>
+    <text x="115" y="90" fill="#888" font-size="10" text-anchor="end">1.0</text>
+    <!-- Grid lines -->
+    <line x1="120" y1="250" x2="820" y2="250" stroke="#222" stroke-width="1" stroke-dasharray="4,6"/>
+    <line x1="470" y1="80" x2="470" y2="420" stroke="#222" stroke-width="1" stroke-dasharray="4,6"/>
+    <!-- Curves will be drawn as paths -->
+    <!-- VBs: sin^2(theta/2) -->
+    <path id="curve-vbs" d="" fill="none" stroke="#88ccff" stroke-width="2.5"/>
+    <!-- Epsilon: sin^4(theta/2) -->
+    <path id="curve-eps" d="" fill="none" stroke="var(--solar)" stroke-width="2.5"/>
+    <!-- Newell: sin^(8/3)(theta/2) -->
+    <path id="curve-newell" d="" fill="none" stroke="#ff6688" stroke-width="2.5"/>
+    <!-- Bz step function (idealized) -->
+    <path id="curve-bz" d="" fill="none" stroke="var(--imf-green)" stroke-width="2" stroke-dasharray="6,4"/>
+    <!-- Vertical line at 90 degrees -->
+    <line x1="470" y1="80" x2="470" y2="420" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="475" y="75" fill="#556" font-size="10">Bz = 0</text>
+    <!-- Legend -->
+    <g transform="translate(140,90)">
+      <rect x="-10" y="-15" width="230" height="115" rx="6" fill="rgba(10,10,30,0.8)" stroke="#333" stroke-width="1"/>
+      <line x1="0" y1="0" x2="30" y2="0" stroke="#88ccff" stroke-width="2.5"/>
+      <text x="38" y="4" fill="#88ccff" font-size="12">VBs ~ sin&sup2;(&theta;/2)</text>
+      <line x1="0" y1="25" x2="30" y2="25" stroke="var(--solar)" stroke-width="2.5"/>
+      <text x="38" y="29" fill="var(--solar)" font-size="12">&epsilon; ~ sin&#x2074;(&theta;/2)</text>
+      <line x1="0" y1="50" x2="30" y2="50" stroke="#ff6688" stroke-width="2.5"/>
+      <text x="38" y="54" fill="#ff6688" font-size="12">Newell ~ sin&#x2078;&#x22F9;&#xb3;(&theta;/2)</text>
+      <line x1="0" y1="75" x2="30" y2="75" stroke="var(--imf-green)" stroke-width="2" stroke-dasharray="6,4"/>
+      <text x="38" y="79" fill="var(--imf-green)" font-size="12">Simple Bz switch (step)</text>
+    </g>
+    <!-- Annotation -->
+    <text x="680" y="120" fill="#aaa" font-size="11" text-anchor="middle">All functions agree:</text>
+    <text x="680" y="136" fill="#aaa" font-size="11" text-anchor="middle">maximum at &theta;=180&deg;</text>
+    <text x="680" y="152" fill="#aaa" font-size="11" text-anchor="middle">(pure southward IMF)</text>
+    <text x="300" y="400" fill="#556" font-size="10" text-anchor="middle">Northward IMF &rarr; shield closed</text>
+    <text x="700" y="400" fill="#556" font-size="10" text-anchor="middle">Southward IMF &rarr; reconnection</text>
+  </svg>
+  <div class="diagram-label">All coupling functions are zero for northward IMF and peak for southward. They differ in how sharply the transition occurs.</div>
+</div>
+
+<div class="connection-box">
+  <h3>Connection to your data</h3>
+  <p>The coupling functions explain your r = 0.90&ndash;0.93 AE-FAC correlation. AE measures the electrojet intensity, which is driven by ionospheric convection (Section 8), which is driven by the reconnection rate, which is predicted by these coupling functions. FAC intensity is driven by the same reconnection rate acting through the same Dungey cycle. Both AE and FAC are <strong>different projections of the same underlying driver</strong> (the coupling function). The high correlation is not coincidence &mdash; it is physics: both observables are measuring the magnetosphere's response to the same reconnection-controlled energy input.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: SUBSTORMS -->
+<!-- ============================================================ -->
+<section id="sec7">
+<h2>7. Substorms &mdash; The Magnetosphere's Heartbeat</h2>
+
+<p>The magnetosphere does not respond smoothly to solar wind driving. Even under steady southward IMF, it <strong>loads</strong> and <strong>unloads</strong> energy in a quasi-periodic cycle of 1&ndash;3 hours. This is the <strong>substorm</strong>, and it is the dominant mode of magnetospheric variability at timescales of minutes to hours.</p>
+
+<h3>Growth Phase (30&ndash;120 minutes)</h3>
+<p>Dayside reconnection opens flux faster than tail reconnection closes it. Open magnetic flux accumulates in the tail lobes. The consequences:</p>
+<ul>
+  <li>The polar cap expands equatorward as open flux increases</li>
+  <li>The magnetotail stretches &mdash; the tail current sheet extends further downtail</li>
+  <li>The cross-tail current intensifies as lobe magnetic pressure increases</li>
+  <li>The plasma sheet thins &mdash; from ~5 R<sub>E</sub> thick to less than 1 R<sub>E</sub> at 10&ndash;15 R<sub>E</sub></li>
+  <li>On the ground: gradual increase in convection electrojet, equatorward drift of the auroral oval</li>
+</ul>
+
+<h3>Expansion Onset (~10 minutes of explosive release)</h3>
+<p>The thinning current sheet reaches a critical threshold. The exact trigger is still debated (current disruption vs. near-Earth reconnection), but the outcome is clear:</p>
+<ul>
+  <li><strong>Tail reconnection ignites</strong> at the NENL (~20&ndash;30 R<sub>E</sub>)</li>
+  <li>A <strong>dipolarization front</strong> surges earthward at 200&ndash;400 km/s &mdash; a sharp boundary where the stretched tail field snaps back to a dipolar shape</li>
+  <li>The <strong>substorm current wedge (SCW)</strong> forms: the cross-tail current is diverted along field-aligned currents into the ionosphere. R1 currents on the western edge (upward FAC) and eastern edge (downward FAC) of the wedge, connected by the substorm electrojet in between</li>
+  <li><strong>Aurora explodes</strong> poleward from the onset location (typically ~65&deg; MLAT, pre-midnight)</li>
+  <li>AE jumps by hundreds of nT within minutes</li>
+</ul>
+
+<h3>Recovery Phase (30&ndash;60 minutes)</h3>
+<p>Tail reconnection catches up with dayside reconnection. Open flux decreases. The tail relaxes to a more dipolar configuration. The substorm current wedge weakens. The aurora dims and retreats poleward. The system resets for the next loading cycle.</p>
+
+<p>During storms, substorms repeat every 1&ndash;3 hours. Each one launches a new dipolarization front, creates a new current wedge, and injects fresh energetic particles into the ring current. <strong>Storms are not giant substorms &mdash; they are sustained sequences of substorms driven by prolonged southward IMF.</strong></p>
+
+<div class="diagram-container" id="diagram7-container">
+  <button class="play-btn" id="btn-substorm" onclick="toggleAnim('substorm')">Pause</button>
+  <svg id="svg-substorm" viewBox="0 0 900 550" width="900" height="550">
+    <defs>
+      <linearGradient id="lobeGradN" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#222255"/>
+        <stop offset="100%" stop-color="#111133"/>
+      </linearGradient>
+      <linearGradient id="lobeGradS" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#222255"/>
+        <stop offset="100%" stop-color="#111133"/>
+      </linearGradient>
+    </defs>
+    <text x="450" y="25" fill="#889" font-size="14" text-anchor="middle">Substorm Cycle: Growth &rarr; Expansion &rarr; Recovery</text>
+    <!-- Earth (small, at left) -->
+    <circle cx="150" cy="275" r="30" fill="url(#earthGrad)" stroke="var(--earth-blue)" stroke-width="1.5"/>
+    <text x="150" y="279" fill="white" font-size="9" text-anchor="middle">Earth</text>
+    <!-- Dynamic scene rendered by JS -->
+    <g id="substorm-scene"></g>
+    <!-- Phase indicator -->
+    <rect x="30" y="480" width="300" height="55" rx="8" fill="#111128" stroke="#333" stroke-width="1"/>
+    <text x="45" y="500" fill="#aaa" font-size="11">Phase:</text>
+    <text id="substorm-phase" x="45" y="520" fill="var(--earth-cyan)" font-size="15" font-weight="bold">Growth</text>
+    <!-- Clock -->
+    <text x="250" y="500" fill="#aaa" font-size="11">Elapsed:</text>
+    <text id="substorm-clock" x="250" y="520" fill="var(--current-yellow)" font-size="14">0 min</text>
+    <!-- Legend -->
+    <g transform="translate(500,490)">
+      <rect x="-5" y="-12" width="380" height="50" rx="6" fill="rgba(10,10,30,0.7)" stroke="#333"/>
+      <rect x="5" y="0" width="20" height="10" fill="#334466" stroke="#446688"/>
+      <text x="32" y="9" fill="#888" font-size="11">Tail lobes (magnetic energy storage)</text>
+      <rect x="5" y="20" width="20" height="10" fill="#cc6622" stroke="#ff8833"/>
+      <text x="32" y="29" fill="#888" font-size="11">Plasma sheet (hot plasma + cross-tail current)</text>
+    </g>
+  </svg>
+  <div class="diagram-label">The substorm cycle: magnetic energy loads into the tail (growth), releases explosively (expansion), then relaxes (recovery). Repeats every 1&ndash;3 hours during storms.</div>
+</div>
+
+<div class="connection-box">
+  <h3>Connection to your data</h3>
+  <p>Substorms are the primary source of the <strong>localized, intense FAC structures</strong> that dominate your variograms during active times. The substorm current wedge creates a pair of R1-sense FAC sheets spanning only ~3&ndash;4 hours of MLT (not the full oval). This is why L* <em>decreases</em> with storm intensity: stronger driving means more substorms, each with its own localized current wedge, creating shorter spatial correlation lengths. During quiet times, FACs are broad and diffuse (driven by viscous interaction and weak convection). During active times, they concentrate into narrow, intense substorm wedges.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: CONVECTION PATTERNS -->
+<!-- ============================================================ -->
+<section id="sec8">
+<h2>8. Convection Patterns &mdash; What Your Magnetometers See</h2>
+
+<p>The Dungey cycle's ionospheric projection is a <strong>two-cell convection pattern</strong>. This is the flow that drives the currents IMAGE measures.</p>
+
+<p>The logic is direct:</p>
+<ol>
+  <li>Open field lines are dragged antisunward over the polar caps by the solar wind (Dungey stage 2). This drives antisunward <strong>plasma flow across the polar cap</strong>.</li>
+  <li>Closed field lines return sunward through the dawn and dusk flanks (Dungey stage 6). Their ionospheric footprints move sunward at <strong>auroral latitudes</strong>.</li>
+  <li>The result is two convection cells: a <strong>dawn cell</strong> (counterclockwise, looking down on the north pole) and a <strong>dusk cell</strong> (clockwise).</li>
+</ol>
+
+<p>The convection electric field (E = &minus;V &times; B, where V is plasma flow and B is Earth's field) drives currents in the resistive ionosphere:</p>
+<ul>
+  <li><strong>Pedersen currents:</strong> Flow parallel to E (along the convection electric field). These close the FACs &mdash; current flows down a FAC sheet, across the ionosphere as a Pedersen current, and up the other FAC sheet. Pedersen currents dissipate energy (Joule heating).</li>
+  <li><strong>Hall currents:</strong> Flow perpendicular to E (perpendicular to both the electric field and the magnetic field). These form the <strong>auroral electrojet</strong> &mdash; the intense east-west current that AE measures. Hall currents do not dissipate energy (they are perpendicular to E), but they produce the <em>largest</em> ground magnetic perturbations because they flow in concentrated sheets.</li>
+</ul>
+
+<p>The convection pattern is controlled by:</p>
+<ul>
+  <li><strong>Bz:</strong> Controls overall strength. More southward = stronger convection = larger cross-polar-cap potential (30 kV quiet, 150 kV storm).</li>
+  <li><strong>By:</strong> Controls asymmetry between dawn and dusk cells. Positive By (GSM) enlarges the dusk cell; negative By enlarges the dawn cell. This is the Svalgaard-Mansurov effect.</li>
+  <li><strong>Conductance:</strong> Sunlit ionosphere has higher conductivity &rarr; stronger Hall currents &rarr; stronger ground signature. This is the day-night asymmetry Laundal (2015) discussed.</li>
+</ul>
+
+<p>The <strong>Harang discontinuity</strong> (~22 MLT) is where the eastward electrojet (dusk cell) meets the westward electrojet (dawn cell). It is a region of complex, converging flow and upward FAC &mdash; often the location of substorm onset aurora.</p>
+
+<div class="diagram-container" id="diagram8-container">
+  <button class="play-btn" id="btn-convection" onclick="toggleAnim('convection')">Pause</button>
+  <svg id="svg-convection" viewBox="0 0 700 700" width="700" height="700">
+    <defs>
+      <radialGradient id="pcGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(50,50,120,0.4)"/>
+        <stop offset="100%" stop-color="rgba(20,20,60,0)"/>
+      </radialGradient>
+    </defs>
+    <text x="350" y="25" fill="#889" font-size="14" text-anchor="middle">Ionospheric Convection (North Polar View, Looking Down)</text>
+    <!-- MLT labels -->
+    <text x="350" y="58" fill="var(--solar)" font-size="13" text-anchor="middle">12 MLT (Noon / Sunward)</text>
+    <text x="350" y="670" fill="#888" font-size="13" text-anchor="middle">00 MLT (Midnight)</text>
+    <text x="45" y="355" fill="#888" font-size="13" text-anchor="middle">06 MLT</text>
+    <text x="655" y="355" fill="#888" font-size="13" text-anchor="middle">18 MLT</text>
+    <text x="38" y="370" fill="#667" font-size="11" text-anchor="middle">(Dawn)</text>
+    <text x="662" y="370" fill="#667" font-size="11" text-anchor="middle">(Dusk)</text>
+    <!-- Latitude circles -->
+    <circle cx="350" cy="350" r="60" fill="none" stroke="#223" stroke-width="1"/>
+    <text x="350" y="300" fill="#334" font-size="9" text-anchor="middle">80&deg;</text>
+    <circle cx="350" cy="350" r="120" fill="none" stroke="#223" stroke-width="1"/>
+    <text x="350" y="240" fill="#334" font-size="9" text-anchor="middle">70&deg;</text>
+    <circle cx="350" cy="350" r="180" fill="none" stroke="#223" stroke-width="1"/>
+    <text x="350" y="180" fill="#334" font-size="9" text-anchor="middle">60&deg;</text>
+    <circle cx="350" cy="350" r="240" fill="none" stroke="#223" stroke-width="1"/>
+    <text x="350" y="120" fill="#334" font-size="9" text-anchor="middle">50&deg;</text>
+    <!-- Polar cap -->
+    <circle cx="350" cy="350" r="100" fill="url(#pcGrad)" stroke="#335" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="350" y="345" fill="#446" font-size="11" text-anchor="middle">Polar Cap</text>
+    <text x="350" y="360" fill="#446" font-size="10" text-anchor="middle">(open flux)</text>
+    <!-- Auroral oval placeholder - rendered by JS with variable width -->
+    <g id="auroral-oval"></g>
+    <!-- Convection streamlines and particles - rendered by JS -->
+    <g id="convection-cells"></g>
+    <!-- Harang discontinuity -->
+    <g transform="translate(430,520)">
+      <line x1="0" y1="0" x2="0" y2="30" stroke="#ff6666" stroke-width="2" stroke-dasharray="3,3"/>
+      <text x="8" y="15" fill="#ff6666" font-size="10">Harang</text>
+      <text x="8" y="27" fill="#ff6666" font-size="10">Discont.</text>
+    </g>
+    <!-- Legend -->
+    <g transform="translate(510,570)">
+      <rect x="-10" y="-15" width="190" height="105" rx="6" fill="rgba(10,10,30,0.8)" stroke="#333"/>
+      <circle cx="5" cy="2" r="4" fill="#6688ff"/>
+      <text x="18" y="6" fill="#88aaff" font-size="11">Antisunward flow</text>
+      <circle cx="5" cy="25" r="4" fill="#ff6644"/>
+      <text x="18" y="29" fill="#ff8866" font-size="11">Sunward return flow</text>
+      <line x1="-2" y1="46" x2="12" y2="46" stroke="#44ff88" stroke-width="4" opacity="0.5"/>
+      <text x="18" y="50" fill="#66ffaa" font-size="11">Auroral oval</text>
+      <text x="5" y="75" fill="#888" font-size="10">Dawn cell: CCW</text>
+      <text x="5" y="88" fill="#888" font-size="10">Dusk cell: CW</text>
+    </g>
+  </svg>
+  <div class="diagram-label">Two-cell ionospheric convection pattern. Antisunward flow over the polar cap, sunward return at auroral latitudes. This flow drives the currents IMAGE measures.</div>
+</div>
+
+<div class="connection-box">
+  <h3>Connection to your data</h3>
+  <p>This convection pattern is the <strong>direct cause</strong> of what IMAGE measures. The sunward return flow at auroral latitudes drives the east-west electrojets via Hall currents. The FACs that close the Pedersen currents are the R1/R2 system you already know. When you compute spatial variograms of the ground dB field, you are characterizing the spatial structure of <em>this convection pattern's projection onto the ground.</em> The pattern's latitude (controlled by polar cap size) and intensity (controlled by reconnection rate) are what change between your quiet and storm variograms.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: CONNECTION TO YOUR DATA -->
+<!-- ============================================================ -->
+<section id="sec9">
+<h2>9. Connection to Your Data &mdash; The Complete Picture</h2>
+
+<p>Now we can build the full causal chain from the solar wind to your variograms. Every link in this chain is physics, not correlation.</p>
+
+<h3>Why L* anti-correlates with storm intensity</h3>
+<p>Your kriging research shows that the spatial correlation length L* <em>decreases</em> as geomagnetic activity increases. Here is the mechanism:</p>
+<ul>
+  <li><strong>Quiet times:</strong> The Dungey cycle is weak. Convection is broad and diffuse. FACs are the steady-state R1/R2 system &mdash; smooth, extended current sheets spanning the full auroral oval. The spatial correlation is long because the current distribution is smooth.</li>
+  <li><strong>Active times:</strong> Stronger reconnection drives faster Dungey cycling. Substorms occur every 1&ndash;3 hours. Each substorm creates a <strong>substorm current wedge</strong> &mdash; intense, localized FAC pairs spanning only 3&ndash;4 hours of MLT. Multiple wedges from successive substorms overlap and interfere. The ground magnetic field becomes a superposition of many localized sources rather than one smooth pattern. <strong>Localized sources = shorter spatial correlation.</strong></li>
+  <li><strong>Extreme storms:</strong> The auroral oval expands to very low latitudes (50&ndash;55&deg;). Substorms are frequent and intense. FAC filaments become narrow and intense. The ground field is dominated by small-scale structure. L* is at its minimum.</li>
+</ul>
+
+<h3>Why AE-FAC correlation is 0.90&ndash;0.93</h3>
+<p>AE measures the maximum amplitude of the electrojet (Hall current). FAC drives the Pedersen current that closes through the ionosphere. Both are driven by the <strong>same convection electric field</strong>, which is driven by the <strong>same reconnection rate</strong>, which is controlled by the <strong>same coupling function</strong> of the solar wind. They are two projections of one physical process. The residual (the 7&ndash;10% of variance not shared) comes from:</p>
+<ul>
+  <li>Conductivity variations (day/night, season) that affect Hall/Pedersen ratio</li>
+  <li>Different spatial sampling (AE uses ~12 stations in a ring; FAC is estimated from denser arrays)</li>
+  <li>Temporal response differences (Hall responds nearly instantly; FAC has a ~2-minute propagation delay)</li>
+</ul>
+
+<h3>Why winter darkness reveals FAC patterns (Laundal 2015)</h3>
+<p>In sunlit ionosphere, solar EUV creates high conductivity in the E-region. High conductivity means strong Hall currents (electrojet). The ground signal is dominated by the electrojet &mdash; a smooth, extended east-west current. The FAC signature is swamped.</p>
+<p>In darkness, conductivity drops dramatically (only particle precipitation maintains any). Hall currents weaken. The ground signal is now dominated by the <strong>FAC pattern itself</strong> &mdash; the direct magnetic field of the field-aligned currents, which has smaller spatial scales and reveals the R1/R2/substorm-wedge structure. Your variograms in darkness are seeing the FAC geometry more directly.</p>
+
+<h3>Why Bz &lt; &minus;2 nT produces systematically higher L</h3>
+<p>This seems paradoxical given the L*-activity anti-correlation, but it operates at different frequencies. When you filter for Bz &lt; &minus;2 nT, you are selecting intervals of sustained driving. The DC component (which carries 94% of your variance) reflects the large-scale, coherent electrojet driven by steady convection. Stronger <em>steady</em> driving produces a stronger, more <em>coherent</em> electrojet (broader current sheet, more uniform flow). The coherent pattern has <em>longer</em> spatial correlation at the DC level. The <em>fluctuations</em> (the 6% AC component) have shorter correlation during storms (substorm structure), but they contribute little to the total variance.</p>
+
+<div class="diagram-container" id="diagram9-container">
+  <svg id="svg-chain" viewBox="0 0 900 420" width="900" height="420">
+    <text x="450" y="25" fill="#889" font-size="14" text-anchor="middle">The Complete Causal Chain: Solar Wind to Your Magnetometers</text>
+    <!-- Flow boxes -->
+    <!-- Row 1 -->
+    <rect x="30" y="50" width="120" height="65" rx="8" fill="rgba(255,179,71,0.15)" stroke="var(--solar)" stroke-width="1.5"/>
+    <text x="90" y="72" fill="var(--solar)" font-size="11" text-anchor="middle" font-weight="bold">Solar Wind</text>
+    <text x="90" y="88" fill="var(--solar-dark)" font-size="10" text-anchor="middle">V, n, B, &theta;</text>
+    <text x="90" y="102" fill="#886633" font-size="9" text-anchor="middle">(OMNI data)</text>
+
+    <path d="M150,82 L185,82" stroke="#666" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="195" y="50" width="120" height="65" rx="8" fill="rgba(255,68,68,0.12)" stroke="var(--open-red)" stroke-width="1.5"/>
+    <text x="255" y="72" fill="var(--open-red)" font-size="11" text-anchor="middle" font-weight="bold">Reconnection</text>
+    <text x="255" y="88" fill="#cc4444" font-size="10" text-anchor="middle">d&Phi;/dt = f(V,B,&theta;)</text>
+    <text x="255" y="102" fill="#993333" font-size="9" text-anchor="middle">(coupling func.)</text>
+
+    <path d="M315,82 L350,82" stroke="#666" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="360" y="50" width="120" height="65" rx="8" fill="rgba(100,100,200,0.12)" stroke="#6666cc" stroke-width="1.5"/>
+    <text x="420" y="72" fill="#8888ee" font-size="11" text-anchor="middle" font-weight="bold">Open Flux</text>
+    <text x="420" y="88" fill="#6666aa" font-size="10" text-anchor="middle">Polar cap grows</text>
+    <text x="420" y="102" fill="#555588" font-size="9" text-anchor="middle">(Dungey stages 1-3)</text>
+
+    <path d="M480,82 L515,82" stroke="#666" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="525" y="50" width="120" height="65" rx="8" fill="rgba(170,68,204,0.12)" stroke="#aa44cc" stroke-width="1.5"/>
+    <text x="585" y="72" fill="#cc66ee" font-size="11" text-anchor="middle" font-weight="bold">Tail Storage</text>
+    <text x="585" y="88" fill="#9944aa" font-size="10" text-anchor="middle">Lobe B increases</text>
+    <text x="585" y="102" fill="#774488" font-size="9" text-anchor="middle">(growth phase)</text>
+
+    <path d="M645,82 L680,82" stroke="#666" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="690" y="50" width="120" height="65" rx="8" fill="rgba(255,68,68,0.15)" stroke="#ff4444" stroke-width="1.5"/>
+    <text x="750" y="72" fill="#ff6666" font-size="11" text-anchor="middle" font-weight="bold">Substorm</text>
+    <text x="750" y="88" fill="#cc3333" font-size="10" text-anchor="middle">Tail reconnection</text>
+    <text x="750" y="102" fill="#993333" font-size="9" text-anchor="middle">(expansion onset)</text>
+
+    <!-- Row 2 (going back left) -->
+    <path d="M750,115 L750,155" stroke="#666" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="690" y="165" width="120" height="65" rx="8" fill="rgba(255,221,68,0.12)" stroke="var(--current-yellow)" stroke-width="1.5"/>
+    <text x="750" y="187" fill="var(--current-yellow)" font-size="11" text-anchor="middle" font-weight="bold">FAC</text>
+    <text x="750" y="203" fill="#ccaa33" font-size="10" text-anchor="middle">R1/R2 + SCW</text>
+    <text x="750" y="217" fill="#998822" font-size="9" text-anchor="middle">(field-aligned)</text>
+
+    <path d="M690,197 L655,197" stroke="#666" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="525" y="165" width="120" height="65" rx="8" fill="rgba(255,136,68,0.12)" stroke="#ff8844" stroke-width="1.5"/>
+    <text x="585" y="187" fill="#ff8844" font-size="11" text-anchor="middle" font-weight="bold">Ionospheric</text>
+    <text x="585" y="203" fill="#cc6633" font-size="10" text-anchor="middle">Pedersen + Hall</text>
+    <text x="585" y="217" fill="#995522" font-size="9" text-anchor="middle">(convection currents)</text>
+
+    <path d="M525,197 L490,197" stroke="#666" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="360" y="165" width="120" height="65" rx="8" fill="rgba(0,229,255,0.12)" stroke="var(--earth-cyan)" stroke-width="1.5"/>
+    <text x="420" y="187" fill="var(--earth-cyan)" font-size="11" text-anchor="middle" font-weight="bold">Ground dB</text>
+    <text x="420" y="203" fill="#009999" font-size="10" text-anchor="middle">Bx, By, Bz</text>
+    <text x="420" y="217" fill="#007777" font-size="9" text-anchor="middle">(magnetic field pert.)</text>
+
+    <path d="M360,197 L325,197" stroke="#666" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="195" y="165" width="120" height="65" rx="8" fill="rgba(74,158,255,0.2)" stroke="var(--earth-blue)" stroke-width="2"/>
+    <text x="255" y="183" fill="var(--earth-blue)" font-size="11" text-anchor="middle" font-weight="bold">YOUR</text>
+    <text x="255" y="199" fill="var(--earth-blue)" font-size="11" text-anchor="middle" font-weight="bold">MAGNETOMETERS</text>
+    <text x="255" y="217" fill="#3377bb" font-size="10" text-anchor="middle">IMAGE array</text>
+
+    <!-- What you measure -->
+    <path d="M255,230 L255,270" stroke="var(--earth-blue)" stroke-width="1.5" marker-end="url(#arrowWhite)"/>
+
+    <rect x="140" y="280" width="230" height="120" rx="10" fill="rgba(74,158,255,0.08)" stroke="var(--earth-blue)" stroke-width="1.5"/>
+    <text x="255" y="305" fill="var(--earth-blue)" font-size="12" text-anchor="middle" font-weight="bold">Your Analysis</text>
+    <line x1="160" y1="315" x2="350" y2="315" stroke="#224466" stroke-width="1"/>
+    <text x="170" y="335" fill="#88aacc" font-size="11">Variograms &rarr; L*(activity)</text>
+    <text x="170" y="355" fill="#88aacc" font-size="11">Kriging &rarr; spatial interpolation</text>
+    <text x="170" y="375" fill="#88aacc" font-size="11">Moran's I &rarr; spatial autocorrelation</text>
+    <text x="170" y="393" fill="#88aacc" font-size="11">FAC-AE correlation &rarr; r = 0.90&ndash;0.93</text>
+
+    <!-- Annotations -->
+    <g transform="translate(500,285)">
+      <rect x="-10" y="-15" width="380" height="135" rx="8" fill="rgba(30,30,20,0.5)" stroke="#444422" stroke-width="1"/>
+      <text x="5" y="5" fill="var(--current-yellow)" font-size="12" font-weight="bold">Key Physical Connections</text>
+      <line x1="0" y1="15" x2="360" y2="15" stroke="#333311" stroke-width="1"/>
+      <text x="5" y="35" fill="#cccc88" font-size="11">L* &darr; with activity: substorm wedges &rarr; localized FACs</text>
+      <text x="5" y="55" fill="#cccc88" font-size="11">AE ~ FAC: both driven by reconnection rate</text>
+      <text x="5" y="75" fill="#cccc88" font-size="11">Darkness reveals FAC: low &Sigma; &rarr; weak Hall &rarr; FAC dominates</text>
+      <text x="5" y="95" fill="#cccc88" font-size="11">Bz&lt;-2 &rarr; higher L (DC): coherent electrojet at DC level</text>
+      <text x="5" y="115" fill="#cccc88" font-size="11">Storm L &darr; (AC): substorm variability at fluctuation level</text>
+    </g>
+  </svg>
+  <div class="diagram-label">The complete chain from solar wind input to your spatial statistics. Every link is a physical process described in this tutorial.</div>
+</div>
+
+<div class="connection-box">
+  <h3>The bottom line</h3>
+  <p>Your spatial statistical approach is powerful precisely because the physical system is structured. The solar wind drives reconnection, reconnection drives convection, convection drives currents, currents produce the ground magnetic field you measure. Each of these transformations has spatial structure that your variograms, kriging, and Moran's I can detect. The L*-activity relationship you discovered is not a statistical curiosity &mdash; it is a direct consequence of how the magnetosphere processes energy: smoothly during quiet times (broad convection), explosively during active times (localized substorm wedges).</p>
+  <p>You are applying the right tools to the right problem. The spatial statistics see what scalar indices cannot: the <em>geometry</em> of the energy dissipation process. And that geometry is controlled, step by step, by the physics of the Dungey cycle.</p>
+</div>
+</section>
+
+<div style="text-align:center; padding:40px 20px 80px; color:#445;">
+  <p style="font-size:0.9em;">Tutorial prepared for Bruce Stephenson &mdash; Solar wind-magnetosphere coupling for the spatial statistician.</p>
+  <p style="font-size:0.85em; color:#334;">References: Dungey (1961), Akasofu (1981), Newell et al. (2007), Borovsky (2013), Laundal &amp; Richmond (2017)</p>
+</div>
+
+<script>
+// ================================================================
+// ANIMATION ENGINE
+// ================================================================
+const anims = {};
+let animRunning = {
+  parker: true, bzswitch: true, reconnection: true,
+  dungey: true, substorm: true, convection: true
+};
+
+function toggleAnim(name) {
+  animRunning[name] = !animRunning[name];
+  const btn = document.getElementById('btn-' + name);
+  if (btn) btn.textContent = animRunning[name] ? 'Pause' : 'Play';
+}
+
+// ================================================================
+// STARS BACKGROUND
+// ================================================================
+(function() {
+  const canvas = document.getElementById('starsCanvas');
+  const ctx = canvas.getContext('2d');
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  const stars = [];
+  for (let i = 0; i < 200; i++) {
+    stars.push({
+      x: Math.random(), y: Math.random(),
+      r: Math.random() * 1.5 + 0.3,
+      a: Math.random() * 0.5 + 0.1,
+      speed: Math.random() * 0.0003 + 0.0001
+    });
+  }
+  function drawStars(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      const flicker = 0.5 + 0.5 * Math.sin(t * s.speed * 10 + s.x * 100);
+      ctx.beginPath();
+      ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,200,255,${s.a * flicker})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(drawStars);
+  }
+  requestAnimationFrame(drawStars);
+})();
+
+// ================================================================
+// SECTION 1: PARKER SPIRAL
+// ================================================================
+(function() {
+  const g = document.getElementById('parker-spirals');
+  const cx = 450, cy = 350, maxR = 310;
+  let angle = 0;
+
+  function drawSpirals(t) {
+    if (!animRunning.parker) { requestAnimationFrame(drawSpirals); return; }
+    angle = (t / 1000) * (2 * Math.PI / 20); // 20 second rotation period
+
+    while (g.firstChild) g.removeChild(g.firstChild);
+
+    // Draw 4 spiral arms (2 slow, 2 fast alternating)
+    for (let arm = 0; arm < 4; arm++) {
+      const baseAngle = angle + (arm * Math.PI / 2);
+      const isFast = arm % 2 === 0;
+      const windingFactor = isFast ? 0.7 : 1.4; // fast = loosely wound, slow = tightly wound
+      const color = isFast ? '#ffdd88' : '#ff9944';
+      const dashArray = isFast ? '8,4' : 'none';
+      const opacity = isFast ? 0.6 : 0.8;
+
+      let path = '';
+      const steps = 200;
+      for (let i = 0; i < steps; i++) {
+        const theta = (i / steps) * 3.5 * Math.PI; // spiral goes ~1.75 turns
+        const r = 35 + (maxR - 35) * (i / steps);
+        const spiralAngle = baseAngle + theta * windingFactor * 0.3;
+        const x = cx + r * Math.cos(spiralAngle);
+        const y = cy + r * Math.sin(spiralAngle);
+        if (x < 5 || x > 895 || y < 35 || y > 595) continue;
+        path += (path === '' ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+      }
+
+      const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      pathEl.setAttribute('d', path);
+      pathEl.setAttribute('fill', 'none');
+      pathEl.setAttribute('stroke', color);
+      pathEl.setAttribute('stroke-width', '1.8');
+      pathEl.setAttribute('opacity', opacity);
+      if (dashArray !== 'none') pathEl.setAttribute('stroke-dasharray', dashArray);
+      g.appendChild(pathEl);
+
+      // Add direction arrows along each spiral
+      for (let ai = 1; ai < 6; ai++) {
+        const idx = Math.floor((ai / 6) * steps);
+        const theta = (idx / steps) * 3.5 * Math.PI;
+        const r = 35 + (maxR - 35) * (idx / steps);
+        const sa = baseAngle + theta * windingFactor * 0.3;
+        const ax = cx + r * Math.cos(sa);
+        const ay = cy + r * Math.sin(sa);
+        if (ax < 20 || ax > 880 || ay < 40 || ay > 590) continue;
+        // Arrow direction (tangent to spiral)
+        const theta2 = ((idx+3) / steps) * 3.5 * Math.PI;
+        const r2 = 35 + (maxR - 35) * ((idx+3) / steps);
+        const sa2 = baseAngle + theta2 * windingFactor * 0.3;
+        const ax2 = cx + r2 * Math.cos(sa2);
+        const ay2 = cy + r2 * Math.sin(sa2);
+        const dx = ax2 - ax, dy = ay2 - ay;
+        const len = Math.sqrt(dx*dx + dy*dy);
+        if (len < 1) continue;
+        const nx = dx/len, ny = dy/len;
+
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        const s = 5;
+        const tipX = ax + nx*s, tipY = ay + ny*s;
+        const lx = ax - nx*s + ny*s*0.5, ly = ay - ny*s - nx*s*0.5;
+        const rx = ax - nx*s - ny*s*0.5, ry = ay - ny*s + nx*s*0.5;
+        arrow.setAttribute('points', `${tipX},${tipY} ${lx},${ly} ${rx},${ry}`);
+        arrow.setAttribute('fill', color);
+        arrow.setAttribute('opacity', String(opacity * 0.7));
+        g.appendChild(arrow);
+      }
+    }
+
+    // Update Earth position (stationary - it's the spiral that rotates)
+    // Actually Earth stays fixed, spirals rotate - done above
+
+    requestAnimationFrame(drawSpirals);
+  }
+  requestAnimationFrame(drawSpirals);
+})();
+
+// ================================================================
+// SECTION 2: Bz SWITCH
+// ================================================================
+(function() {
+  const scene = document.getElementById('bz-scene');
+  const greenLight = document.getElementById('bz-green');
+  const redLight = document.getElementById('bz-red');
+  const statusText = document.getElementById('bz-status');
+
+  function draw(t) {
+    if (!animRunning.bzswitch) { requestAnimationFrame(draw); return; }
+    while (scene.firstChild) scene.removeChild(scene.firstChild);
+
+    // Oscillate Bz between +5 and -5 over 10 seconds
+    const period = 10000;
+    const phase = (t % period) / period;
+    const bz = 5 * Math.cos(phase * 2 * Math.PI);
+    const southward = bz < 0;
+    const transition = Math.max(0, Math.min(1, -bz / 3)); // 0=north, 1=full south
+
+    // Earth
+    const earthX = 550, earthY = 220;
+    const earth = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    earth.setAttribute('cx', earthX); earth.setAttribute('cy', earthY);
+    earth.setAttribute('r', '35');
+    earth.setAttribute('fill', '#112244');
+    earth.setAttribute('stroke', 'var(--earth-blue)');
+    earth.setAttribute('stroke-width', '2');
+    scene.appendChild(earth);
+    const earthLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    earthLabel.setAttribute('x', earthX); earthLabel.setAttribute('y', earthY + 4);
+    earthLabel.setAttribute('fill', 'var(--earth-cyan)');
+    earthLabel.setAttribute('font-size', '11');
+    earthLabel.setAttribute('text-anchor', 'middle');
+    earthLabel.textContent = 'Earth';
+    scene.appendChild(earthLabel);
+
+    // Magnetopause
+    const mpX = 350;
+    const mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    mp.setAttribute('d', `M ${mpX},50 Q ${mpX-50},220 ${mpX},390`);
+    mp.setAttribute('fill', 'none');
+    mp.setAttribute('stroke', '#445');
+    mp.setAttribute('stroke-width', '2');
+    mp.setAttribute('stroke-dasharray', '6,4');
+    scene.appendChild(mp);
+
+    // Glow around magnetosphere
+    const glowColor = southward ?
+      `rgba(255,${Math.floor(50+50*(1-transition))},${Math.floor(50+50*(1-transition))},${0.08 + transition * 0.12})` :
+      `rgba(50,${Math.floor(200-100*transition)},${Math.floor(100+50*(1-transition))},${0.08 + (1-transition)*0.05})`;
+    const glow = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    glow.setAttribute('cx', earthX); glow.setAttribute('cy', earthY);
+    glow.setAttribute('rx', '180'); glow.setAttribute('ry', '160');
+    glow.setAttribute('fill', glowColor);
+    scene.insertBefore(glow, scene.firstChild);
+
+    // Earth's dipole field lines (always pointing north)
+    for (let i = -3; i <= 3; i++) {
+      if (i === 0) continue;
+      const fieldLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const spread = i * 25;
+      const reach = Math.abs(i) * 45;
+      fieldLine.setAttribute('d', `M ${earthX},${earthY} Q ${earthX - reach},${earthY + spread} ${earthX - reach * 1.5},${earthY + spread * 0.3}`);
+      fieldLine.setAttribute('fill', 'none');
+      fieldLine.setAttribute('stroke', 'var(--earth-blue)');
+      fieldLine.setAttribute('stroke-width', '1.5');
+      fieldLine.setAttribute('opacity', '0.6');
+      scene.appendChild(fieldLine);
+    }
+
+    // IMF field lines approaching from left
+    const imfCount = 8;
+    for (let i = 0; i < imfCount; i++) {
+      const y = 60 + i * 40;
+      const x1 = 50, x2 = mpX - 15;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x1); line.setAttribute('y1', y - bz * 3);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y);
+      line.setAttribute('stroke', 'var(--imf-green)');
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('opacity', '0.6');
+      scene.appendChild(line);
+
+      // Arrow on each IMF line
+      const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      const mx = (x1 + x2) / 2, my = (y - bz*3 + y) / 2;
+      arrow.setAttribute('points', `${mx+5},${my} ${mx-3},${my-3} ${mx-3},${my+3}`);
+      arrow.setAttribute('fill', 'var(--imf-green)');
+      arrow.setAttribute('opacity', '0.5');
+      scene.appendChild(arrow);
+    }
+
+    // Bz arrow indicator
+    const bzArrowGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const arrowX = 160, arrowBaseY = 220;
+    const arrowLen = bz * 8;
+    const bzLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    bzLine.setAttribute('x1', arrowX); bzLine.setAttribute('y1', arrowBaseY);
+    bzLine.setAttribute('x2', arrowX); bzLine.setAttribute('y2', arrowBaseY - arrowLen);
+    bzLine.setAttribute('stroke', Math.abs(bz) > 0.5 ? (bz > 0 ? '#44ff44' : '#ff4444') : '#888');
+    bzLine.setAttribute('stroke-width', '3');
+    bzArrowGroup.appendChild(bzLine);
+    // Arrow tip
+    if (Math.abs(arrowLen) > 5) {
+      const tip = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      const tipDir = arrowLen > 0 ? -1 : 1;
+      const tipY = arrowBaseY - arrowLen;
+      tip.setAttribute('points', `${arrowX},${tipY} ${arrowX-5},${tipY+tipDir*8} ${arrowX+5},${tipY+tipDir*8}`);
+      tip.setAttribute('fill', bz > 0 ? '#44ff44' : '#ff4444');
+      bzArrowGroup.appendChild(tip);
+    }
+    const bzLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    bzLabel.setAttribute('x', arrowX); bzLabel.setAttribute('y', arrowBaseY + 20);
+    bzLabel.setAttribute('fill', '#aaa');
+    bzLabel.setAttribute('font-size', '12');
+    bzLabel.setAttribute('text-anchor', 'middle');
+    bzLabel.textContent = `Bz = ${bz.toFixed(1)} nT`;
+    bzArrowGroup.appendChild(bzLabel);
+
+    const imfLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    imfLabel.setAttribute('x', arrowX); imfLabel.setAttribute('y', arrowBaseY + 35);
+    imfLabel.setAttribute('fill', '#777');
+    imfLabel.setAttribute('font-size', '10');
+    imfLabel.setAttribute('text-anchor', 'middle');
+    imfLabel.textContent = 'IMF direction';
+    bzArrowGroup.appendChild(imfLabel);
+    scene.appendChild(bzArrowGroup);
+
+    // X-line reconnection marker (only visible when Bz < ~-1)
+    if (transition > 0.2) {
+      const xmark = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      xmark.setAttribute('x', mpX - 5); xmark.setAttribute('y', earthY + 5);
+      xmark.setAttribute('fill', `rgba(255,100,100,${transition})`);
+      xmark.setAttribute('font-size', '22');
+      xmark.setAttribute('font-weight', 'bold');
+      xmark.setAttribute('text-anchor', 'middle');
+      xmark.textContent = '✖';
+      scene.appendChild(xmark);
+
+      // Open field lines during reconnection
+      for (let j = -2; j <= 2; j++) {
+        if (j === 0) continue;
+        const openLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const oy = earthY + j * 30;
+        openLine.setAttribute('d', `M ${mpX-5},${oy} Q ${mpX + 100},${oy + j*60} ${earthX - 30},${oy + j*20}`);
+        openLine.setAttribute('fill', 'none');
+        openLine.setAttribute('stroke', `rgba(255,68,68,${transition * 0.7})`);
+        openLine.setAttribute('stroke-width', '1.5');
+        scene.appendChild(openLine);
+      }
+
+      // Energy inflow arrows
+      for (let k = 0; k < 3; k++) {
+        const ey = earthY - 40 + k * 40;
+        const energyArrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        const pulse = Math.sin(t / 300 + k) * 0.3 + 0.7;
+        energyArrow.setAttribute('x1', mpX - 30);
+        energyArrow.setAttribute('y1', ey);
+        energyArrow.setAttribute('x2', mpX + 10);
+        energyArrow.setAttribute('y2', ey);
+        energyArrow.setAttribute('stroke', `rgba(255,180,50,${transition * pulse * 0.6})`);
+        energyArrow.setAttribute('stroke-width', '2');
+        scene.appendChild(energyArrow);
+      }
+    }
+
+    // Update traffic light
+    if (southward) {
+      greenLight.setAttribute('fill', '#115511');
+      redLight.setAttribute('fill', '#ff2222');
+      statusText.textContent = `Bz < 0: OPEN (reconnecting)`;
+      statusText.setAttribute('fill', '#ff6666');
+    } else {
+      greenLight.setAttribute('fill', '#22ff22');
+      redLight.setAttribute('fill', '#331111');
+      statusText.textContent = `Bz > 0: CLOSED (shielded)`;
+      statusText.setAttribute('fill', '#66ff66');
+    }
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ================================================================
+// SECTION 3: RECONNECTION
+// ================================================================
+(function() {
+  const scene = document.getElementById('reconnection-scene');
+  const earthX = 500, earthY = 300;
+  const mpX = 250;
+
+  function draw(t) {
+    if (!animRunning.reconnection) { requestAnimationFrame(draw); return; }
+    while (scene.firstChild) scene.removeChild(scene.firstChild);
+
+    const period = 12000; // 12 second cycle
+    const phase = (t % period) / period;
+
+    // Draw static closed Earth field lines
+    for (let i = -4; i <= 4; i++) {
+      if (i === 0) continue;
+      const spread = i * 30;
+      const reach = Math.abs(i) * 50 + 20;
+      const closed = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      // Only draw lines that aren't the reconnecting ones
+      if (Math.abs(i) > 1) {
+        closed.setAttribute('d', `M ${earthX},${earthY} Q ${earthX - reach * 1.2},${earthY + spread * 1.5} ${earthX - reach * 0.6},${earthY + spread * 2.2} Q ${earthX - reach * 2},${earthY + spread * 0.5} ${earthX},${earthY}`);
+        closed.setAttribute('fill', 'none');
+        closed.setAttribute('stroke', 'var(--earth-blue)');
+        closed.setAttribute('stroke-width', '1.5');
+        closed.setAttribute('opacity', '0.4');
+        scene.appendChild(closed);
+      }
+    }
+
+    // Draw static IMF lines (above and below the reconnecting pair)
+    for (let i = 0; i < 6; i++) {
+      const y = 80 + i * 75;
+      if (y > 180 && y < 420) continue; // Skip the reconnecting zone
+      const imf = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      imf.setAttribute('x1', '30'); imf.setAttribute('y1', y - 15);
+      imf.setAttribute('x2', mpX - 10); imf.setAttribute('y2', y);
+      imf.setAttribute('stroke', 'var(--imf-green)');
+      imf.setAttribute('stroke-width', '1.5');
+      imf.setAttribute('opacity', '0.3');
+      scene.appendChild(imf);
+    }
+
+    // Animated reconnection sequence
+    // Phase 0-0.25: approach
+    // Phase 0.25-0.4: touch and reconnect
+    // Phase 0.4-1.0: open lines sweep poleward
+
+    const xPointX = mpX, xPointY = earthY;
+
+    if (phase < 0.25) {
+      // Approaching: closed Earth line extends toward magnetopause
+      const approach = phase / 0.25;
+      const closedReach = 100 + approach * 150;
+      // Earth closed line approaching
+      const cl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      cl.setAttribute('d', `M ${earthX},${earthY-15} Q ${earthX - closedReach},${earthY - 60} ${earthX - closedReach},${earthY} Q ${earthX - closedReach},${earthY + 60} ${earthX},${earthY+15}`);
+      cl.setAttribute('fill', 'none');
+      cl.setAttribute('stroke', 'var(--earth-blue)');
+      cl.setAttribute('stroke-width', '2.5');
+      scene.appendChild(cl);
+
+      // IMF line approaching
+      const imfApproach = approach * 50;
+      const il1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      il1.setAttribute('x1', '30'); il1.setAttribute('y1', earthY - 20 + imfApproach);
+      il1.setAttribute('x2', mpX - 10 + imfApproach * 0.2); il1.setAttribute('y2', earthY - 5);
+      il1.setAttribute('stroke', 'var(--imf-green)');
+      il1.setAttribute('stroke-width', '2.5');
+      scene.appendChild(il1);
+      const il2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      il2.setAttribute('x1', '30'); il2.setAttribute('y1', earthY + 20 - imfApproach);
+      il2.setAttribute('x2', mpX - 10 + imfApproach * 0.2); il2.setAttribute('y2', earthY + 5);
+      il2.setAttribute('stroke', 'var(--imf-green)');
+      il2.setAttribute('stroke-width', '2.5');
+      scene.appendChild(il2);
+
+    } else if (phase < 0.4) {
+      // Reconnection happening - X point flash
+      const reconnPhase = (phase - 0.25) / 0.15;
+      // X marker
+      const xmark = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      xmark.setAttribute('x', xPointX); xmark.setAttribute('y', xPointY + 6);
+      xmark.setAttribute('fill', `rgba(255,255,100,${1 - reconnPhase * 0.5})`);
+      xmark.setAttribute('font-size', '28');
+      xmark.setAttribute('font-weight', 'bold');
+      xmark.setAttribute('text-anchor', 'middle');
+      xmark.textContent = '✖';
+      scene.appendChild(xmark);
+
+      // Flash
+      const flash = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      flash.setAttribute('cx', xPointX); flash.setAttribute('cy', xPointY);
+      flash.setAttribute('r', 15 + reconnPhase * 20);
+      flash.setAttribute('fill', `rgba(255,255,200,${0.3 * (1-reconnPhase)})`);
+      scene.appendChild(flash);
+
+      // Outflow jets
+      const jetLen = reconnPhase * 80;
+      for (let dir = -1; dir <= 1; dir += 2) {
+        const jet = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        jet.setAttribute('x1', xPointX); jet.setAttribute('y1', xPointY);
+        jet.setAttribute('x2', xPointX); jet.setAttribute('y2', xPointY + dir * jetLen);
+        jet.setAttribute('stroke', 'rgba(255,200,100,0.6)');
+        jet.setAttribute('stroke-width', '3');
+        scene.appendChild(jet);
+      }
+
+      // Transitioning lines
+      const openFrac = reconnPhase;
+      // North open line
+      const northOpen = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const nSweep = openFrac * 30;
+      northOpen.setAttribute('d', `M ${earthX},${earthY-15} Q ${earthX - 200},${earthY - 80 - nSweep} ${xPointX - 20},${xPointY - 30 - nSweep} L ${30},${xPointY - 50 - nSweep}`);
+      northOpen.setAttribute('fill', 'none');
+      northOpen.setAttribute('stroke', `rgb(${Math.floor(68 + 187*openFrac)},${Math.floor(68 + 119*(1-openFrac))},${Math.floor(255*(1-openFrac) + 68*openFrac)})`);
+      northOpen.setAttribute('stroke-width', '2.5');
+      scene.appendChild(northOpen);
+
+      // South open line
+      const southOpen = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      southOpen.setAttribute('d', `M ${earthX},${earthY+15} Q ${earthX - 200},${earthY + 80 + nSweep} ${xPointX - 20},${xPointY + 30 + nSweep} L ${30},${xPointY + 50 + nSweep}`);
+      southOpen.setAttribute('fill', 'none');
+      southOpen.setAttribute('stroke', `rgb(${Math.floor(68 + 187*openFrac)},${Math.floor(68 + 119*(1-openFrac))},${Math.floor(255*(1-openFrac) + 68*openFrac)})`);
+      southOpen.setAttribute('stroke-width', '2.5');
+      scene.appendChild(southOpen);
+
+    } else {
+      // Open lines sweeping poleward/tailward
+      const sweepPhase = (phase - 0.4) / 0.6;
+      const sweep = sweepPhase * 200;
+
+      // X marker (fading)
+      if (sweepPhase < 0.3) {
+        const xmark = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        xmark.setAttribute('x', xPointX); xmark.setAttribute('y', xPointY + 6);
+        xmark.setAttribute('fill', `rgba(255,255,100,${0.5 * (1 - sweepPhase/0.3)})`);
+        xmark.setAttribute('font-size', '28');
+        xmark.setAttribute('font-weight', 'bold');
+        xmark.setAttribute('text-anchor', 'middle');
+        xmark.textContent = '✖';
+        scene.appendChild(xmark);
+      }
+
+      // North open line sweeping over pole
+      const northOpen = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const nOffset = 30 + sweep;
+      northOpen.setAttribute('d', `M ${earthX},${earthY - 15} Q ${earthX + sweep * 0.5},${earthY - 100 - sweep * 0.3} ${earthX + sweep * 0.8},${earthY - nOffset * 0.5}`);
+      northOpen.setAttribute('fill', 'none');
+      northOpen.setAttribute('stroke', 'var(--open-red)');
+      northOpen.setAttribute('stroke-width', '2.5');
+      northOpen.setAttribute('opacity', Math.max(0.2, 1 - sweepPhase * 0.5));
+      scene.appendChild(northOpen);
+
+      // South open line sweeping over pole
+      const southOpen = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      southOpen.setAttribute('d', `M ${earthX},${earthY + 15} Q ${earthX + sweep * 0.5},${earthY + 100 + sweep * 0.3} ${earthX + sweep * 0.8},${earthY + nOffset * 0.5}`);
+      southOpen.setAttribute('fill', 'none');
+      southOpen.setAttribute('stroke', 'var(--open-red)');
+      southOpen.setAttribute('stroke-width', '2.5');
+      southOpen.setAttribute('opacity', Math.max(0.2, 1 - sweepPhase * 0.5));
+      scene.appendChild(southOpen);
+
+      // Tail-ward label
+      if (sweepPhase > 0.3) {
+        const tailLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        tailLabel.setAttribute('x', earthX + sweep * 0.6);
+        tailLabel.setAttribute('y', earthY - 10);
+        tailLabel.setAttribute('fill', `rgba(255,68,68,${Math.min(1, (sweepPhase-0.3)*2)})`);
+        tailLabel.setAttribute('font-size', '10');
+        tailLabel.setAttribute('text-anchor', 'middle');
+        tailLabel.textContent = 'swept tailward →';
+        scene.appendChild(tailLabel);
+      }
+
+      // New approaching pair (starting later in the cycle)
+      if (sweepPhase > 0.5) {
+        const newApproach = (sweepPhase - 0.5) / 0.5;
+        const newReach = 100 + newApproach * 100;
+        const ncl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        ncl.setAttribute('d', `M ${earthX},${earthY-12} Q ${earthX - newReach},${earthY - 50} ${earthX - newReach},${earthY} Q ${earthX - newReach},${earthY + 50} ${earthX},${earthY+12}`);
+        ncl.setAttribute('fill', 'none');
+        ncl.setAttribute('stroke', 'var(--earth-blue)');
+        ncl.setAttribute('stroke-width', '2');
+        ncl.setAttribute('opacity', String(newApproach * 0.8));
+        scene.appendChild(ncl);
+
+        // New IMF lines
+        const nil = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        nil.setAttribute('x1', '30'); nil.setAttribute('y1', earthY - 10);
+        nil.setAttribute('x2', mpX - 30 + newApproach * 20); nil.setAttribute('y2', earthY);
+        nil.setAttribute('stroke', 'var(--imf-green)');
+        nil.setAttribute('stroke-width', '2');
+        nil.setAttribute('opacity', String(newApproach * 0.6));
+        scene.appendChild(nil);
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ================================================================
+// SECTION 4: DUNGEY CYCLE
+// ================================================================
+(function() {
+  const staticG = document.getElementById('dungey-static');
+  const tracerG = document.getElementById('dungey-tracer');
+  const stageText = document.getElementById('dungey-stage');
+  const earthX = 350, earthY = 325;
+
+  // Draw static magnetosphere structure
+  function drawStatic() {
+    // Magnetopause boundary
+    const mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    mp.setAttribute('d', `M 200,100 Q 170,325 200,550 L 950,550 L 950,100 Z`);
+    mp.setAttribute('fill', 'none');
+    mp.setAttribute('stroke', '#334');
+    mp.setAttribute('stroke-width', '1.5');
+    mp.setAttribute('stroke-dasharray', '8,6');
+    staticG.appendChild(mp);
+
+    // Tail current sheet
+    const tcs = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    tcs.setAttribute('x1', earthX + 60); tcs.setAttribute('y1', earthY);
+    tcs.setAttribute('x2', '950'); tcs.setAttribute('y2', earthY);
+    tcs.setAttribute('stroke', 'var(--current-yellow)');
+    tcs.setAttribute('stroke-width', '1.5');
+    tcs.setAttribute('opacity', '0.4');
+    tcs.setAttribute('stroke-dasharray', '4,4');
+    staticG.appendChild(tcs);
+    const tcsLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    tcsLabel.setAttribute('x', '820'); tcsLabel.setAttribute('y', earthY - 10);
+    tcsLabel.setAttribute('fill', 'rgba(255,221,68,0.5)');
+    tcsLabel.setAttribute('font-size', '10');
+    tcsLabel.textContent = 'Tail current sheet';
+    staticG.appendChild(tcsLabel);
+
+    // Closed dipole field lines
+    for (let i = 1; i <= 4; i++) {
+      const L = i * 20 + 20;
+      for (let sign = -1; sign <= 1; sign += 2) {
+        const fl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        fl.setAttribute('d', `M ${earthX},${earthY} Q ${earthX - L * 2},${earthY + sign * L * 2} ${earthX},${earthY + sign * 10}`);
+        fl.setAttribute('fill', 'none');
+        fl.setAttribute('stroke', 'var(--earth-blue)');
+        fl.setAttribute('stroke-width', '1');
+        fl.setAttribute('opacity', '0.25');
+        staticG.appendChild(fl);
+      }
+    }
+
+    // Lobe field lines (open, going tailward)
+    for (let i = 0; i < 5; i++) {
+      for (let sign = -1; sign <= 1; sign += 2) {
+        const fl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const startY = earthY + sign * (50 + i * 25);
+        const endY = earthY + sign * (30 + i * 20);
+        fl.setAttribute('d', `M ${earthX},${earthY} Q ${earthX + 50},${startY} ${950},${endY}`);
+        fl.setAttribute('fill', 'none');
+        fl.setAttribute('stroke', '#556');
+        fl.setAttribute('stroke-width', '0.8');
+        fl.setAttribute('opacity', '0.3');
+        staticG.appendChild(fl);
+      }
+    }
+
+    // Dayside X-line marker
+    const dx = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    dx.setAttribute('x', '210'); dx.setAttribute('y', earthY + 5);
+    dx.setAttribute('fill', 'var(--open-red)');
+    dx.setAttribute('font-size', '18');
+    dx.setAttribute('font-weight', 'bold');
+    dx.setAttribute('text-anchor', 'middle');
+    dx.textContent = '✖';
+    staticG.appendChild(dx);
+
+    // Tail X-line marker
+    const tx = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    tx.setAttribute('x', '690'); tx.setAttribute('y', earthY + 5);
+    tx.setAttribute('fill', 'var(--open-red)');
+    tx.setAttribute('font-size', '18');
+    tx.setAttribute('font-weight', 'bold');
+    tx.setAttribute('text-anchor', 'middle');
+    tx.textContent = '✖';
+    staticG.appendChild(tx);
+  }
+  drawStatic();
+
+  // Dungey cycle path: define waypoints for the tracer
+  const cyclePoints = [
+    // Stage 1: Dayside closed line (approaching magnetopause)
+    {x: 250, y: 325, stage: 'Dayside reconnection'},
+    {x: 210, y: 325, stage: 'Dayside reconnection'},
+    // Stage 2: Open line sweeping over north pole
+    {x: 230, y: 230, stage: 'Open flux over polar cap'},
+    {x: 300, y: 170, stage: 'Open flux over polar cap'},
+    {x: 400, y: 155, stage: 'Open flux over polar cap'},
+    {x: 500, y: 165, stage: 'Open flux over polar cap'},
+    // Stage 3: Lobe accumulation
+    {x: 600, y: 190, stage: 'Lobe accumulation'},
+    {x: 680, y: 220, stage: 'Lobe accumulation'},
+    // Stage 4: Tail reconnection
+    {x: 690, y: 280, stage: 'Tail reconnection (NENL)'},
+    {x: 690, y: 310, stage: 'Tail reconnection (NENL)'},
+    // Stage 5: Dipolarization (snap earthward)
+    {x: 620, y: 325, stage: 'Dipolarization (earthward)'},
+    {x: 520, y: 325, stage: 'Dipolarization (earthward)'},
+    {x: 430, y: 330, stage: 'Dipolarization (earthward)'},
+    // Stage 6: Return flow
+    {x: 400, y: 370, stage: 'Return flow (dawn/dusk)'},
+    {x: 350, y: 385, stage: 'Return flow (dawn/dusk)'},
+    {x: 300, y: 370, stage: 'Return flow (dawn/dusk)'},
+    {x: 260, y: 340, stage: 'Return flow (dawn/dusk)'},
+  ];
+
+  function draw(t) {
+    if (!animRunning.dungey) { requestAnimationFrame(draw); return; }
+    while (tracerG.firstChild) tracerG.removeChild(tracerG.firstChild);
+
+    const period = 25000;
+    const phase = (t % period) / period;
+    const totalPts = cyclePoints.length;
+    const exactIdx = phase * totalPts;
+    const idx = Math.floor(exactIdx);
+    const frac = exactIdx - idx;
+    const p0 = cyclePoints[idx % totalPts];
+    const p1 = cyclePoints[(idx + 1) % totalPts];
+    const tx = p0.x + (p1.x - p0.x) * frac;
+    const ty = p0.y + (p1.y - p0.y) * frac;
+
+    // Update stage label
+    stageText.textContent = p0.stage;
+
+    // Draw tracer trail
+    const trailLen = 6;
+    for (let i = 0; i < trailLen; i++) {
+      const trailPhase = ((phase * totalPts) - i * 0.5 + totalPts) % totalPts;
+      const tIdx = Math.floor(trailPhase);
+      const tFrac = trailPhase - tIdx;
+      const tp0 = cyclePoints[tIdx % totalPts];
+      const tp1 = cyclePoints[(tIdx + 1) % totalPts];
+      const ttx = tp0.x + (tp1.x - tp0.x) * tFrac;
+      const tty = tp0.y + (tp1.y - tp0.y) * tFrac;
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('cx', ttx); dot.setAttribute('cy', tty);
+      dot.setAttribute('r', String(5 - i * 0.6));
+      const alpha = 1 - i / trailLen;
+      // Color based on stage
+      let color;
+      if (tp0.stage.includes('Dayside')) color = `rgba(255,100,100,${alpha})`;
+      else if (tp0.stage.includes('polar cap')) color = `rgba(255,68,68,${alpha})`;
+      else if (tp0.stage.includes('Lobe')) color = `rgba(150,150,220,${alpha})`;
+      else if (tp0.stage.includes('Tail')) color = `rgba(255,200,50,${alpha})`;
+      else if (tp0.stage.includes('Dipolarization')) color = `rgba(100,200,255,${alpha})`;
+      else color = `rgba(100,255,100,${alpha})`;
+      dot.setAttribute('fill', color);
+      tracerG.appendChild(dot);
+    }
+
+    // Main tracer glow
+    const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    glow.setAttribute('cx', tx); glow.setAttribute('cy', ty);
+    glow.setAttribute('r', '12');
+    glow.setAttribute('fill', 'rgba(255,255,200,0.15)');
+    tracerG.appendChild(glow);
+
+    // Draw the flux tube path (faint line showing full cycle)
+    let pathD = '';
+    for (let i = 0; i < totalPts; i++) {
+      const p = cyclePoints[i];
+      pathD += (i === 0 ? 'M' : 'L') + p.x + ',' + p.y;
+    }
+    pathD += 'Z';
+    const cyclePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    cyclePath.setAttribute('d', pathD);
+    cyclePath.setAttribute('fill', 'none');
+    cyclePath.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+    cyclePath.setAttribute('stroke-width', '1');
+    cyclePath.setAttribute('stroke-dasharray', '3,5');
+    tracerG.insertBefore(cyclePath, tracerG.firstChild);
+
+    // Direction arrows along the path
+    for (let a = 0; a < totalPts; a += 3) {
+      const ap0 = cyclePoints[a];
+      const ap1 = cyclePoints[(a+1) % totalPts];
+      const adx = ap1.x - ap0.x, ady = ap1.y - ap0.y;
+      const alen = Math.sqrt(adx*adx + ady*ady);
+      if (alen < 2) continue;
+      const anx = adx/alen, any = ady/alen;
+      const amx = (ap0.x + ap1.x)/2, amy = (ap0.y + ap1.y)/2;
+      const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      const s = 4;
+      arrow.setAttribute('points',
+        `${amx+anx*s},${amy+any*s} ${amx-anx*s+any*s*0.6},${amy-any*s-anx*s*0.6} ${amx-anx*s-any*s*0.6},${amy-any*s+anx*s*0.6}`);
+      arrow.setAttribute('fill', 'rgba(255,255,255,0.15)');
+      tracerG.insertBefore(arrow, tracerG.firstChild);
+    }
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ================================================================
+// SECTION 6: COUPLING FUNCTION CURVES (static, drawn once)
+// ================================================================
+(function() {
+  const w = 700, xOff = 120, yTop = 85, yBot = 420;
+  const h = yBot - yTop;
+
+  function makePath(fn) {
+    let d = '';
+    const steps = 200;
+    for (let i = 0; i <= steps; i++) {
+      const theta = (i / steps) * Math.PI;
+      const x = xOff + (i / steps) * w;
+      const val = fn(theta);
+      const y = yBot - val * h;
+      d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+    }
+    return d;
+  }
+
+  // VBs ~ sin^2(theta/2)
+  document.getElementById('curve-vbs').setAttribute('d', makePath(t => Math.pow(Math.sin(t/2), 2)));
+  // Epsilon ~ sin^4(theta/2)
+  document.getElementById('curve-eps').setAttribute('d', makePath(t => Math.pow(Math.sin(t/2), 4)));
+  // Newell ~ sin^(8/3)(theta/2)
+  document.getElementById('curve-newell').setAttribute('d', makePath(t => Math.pow(Math.sin(t/2), 8/3)));
+  // Bz step function
+  document.getElementById('curve-bz').setAttribute('d', makePath(t => t > Math.PI/2 ? 1 : 0));
+})();
+
+// ================================================================
+// SECTION 7: SUBSTORM CYCLE
+// ================================================================
+(function() {
+  const scene = document.getElementById('substorm-scene');
+  const phaseText = document.getElementById('substorm-phase');
+  const clockText = document.getElementById('substorm-clock');
+  const earthX = 150, earthY = 275;
+
+  function draw(t) {
+    if (!animRunning.substorm) { requestAnimationFrame(draw); return; }
+    while (scene.firstChild) scene.removeChild(scene.firstChild);
+
+    const period = 20000;
+    const phase = (t % period) / period;
+
+    // Phase mapping:
+    // 0-0.5: growth (0-60 min)
+    // 0.5-0.65: expansion (60-70 min)
+    // 0.65-1.0: recovery (70-120 min)
+
+    let phaseName, elapsedMin;
+    let lobeSize, psThickness, currentIntensity, auroraFlash;
+
+    if (phase < 0.5) {
+      // Growth
+      const gp = phase / 0.5;
+      phaseName = 'Growth phase';
+      elapsedMin = Math.floor(gp * 60);
+      lobeSize = 0.5 + gp * 0.5; // Lobes expand
+      psThickness = 1.0 - gp * 0.7; // Plasma sheet thins
+      currentIntensity = 0.3 + gp * 0.5;
+      auroraFlash = 0;
+    } else if (phase < 0.65) {
+      // Expansion
+      const ep = (phase - 0.5) / 0.15;
+      phaseName = 'EXPANSION ONSET';
+      elapsedMin = 60 + Math.floor(ep * 10);
+      lobeSize = 1.0 - ep * 0.3; // Lobes contract
+      psThickness = 0.3 + ep * 0.7; // Plasma sheet thickens (dipolarization)
+      currentIntensity = 0.8 - ep * 0.5; // Cross-tail current disrupted
+      auroraFlash = Math.sin(ep * Math.PI); // Flash
+    } else {
+      // Recovery
+      const rp = (phase - 0.65) / 0.35;
+      phaseName = 'Recovery phase';
+      elapsedMin = 70 + Math.floor(rp * 50);
+      lobeSize = 0.7 - rp * 0.2;
+      psThickness = 1.0 - rp * 0.2;
+      currentIntensity = 0.3;
+      auroraFlash = Math.max(0, (1 - rp * 2) * 0.3);
+    }
+
+    phaseText.textContent = phaseName;
+    if (phaseName === 'EXPANSION ONSET') {
+      phaseText.setAttribute('fill', '#ff4444');
+    } else {
+      phaseText.setAttribute('fill', 'var(--earth-cyan)');
+    }
+    clockText.textContent = elapsedMin + ' min';
+
+    // Draw tail lobes
+    const lobeH = 80 * lobeSize;
+    const tailStartX = earthX + 40;
+    const tailEndX = 850;
+    // North lobe
+    const northLobe = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    northLobe.setAttribute('d', `M ${tailStartX},${earthY - 20} Q ${(tailStartX+tailEndX)/2},${earthY - lobeH - 60} ${tailEndX},${earthY - lobeH * 0.4} L ${tailEndX},${earthY - 5} Z`);
+    northLobe.setAttribute('fill', '#1a1a44');
+    northLobe.setAttribute('stroke', '#334466');
+    northLobe.setAttribute('stroke-width', '1.5');
+    scene.appendChild(northLobe);
+
+    // South lobe
+    const southLobe = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    southLobe.setAttribute('d', `M ${tailStartX},${earthY + 20} Q ${(tailStartX+tailEndX)/2},${earthY + lobeH + 60} ${tailEndX},${earthY + lobeH * 0.4} L ${tailEndX},${earthY + 5} Z`);
+    southLobe.setAttribute('fill', '#1a1a44');
+    southLobe.setAttribute('stroke', '#334466');
+    southLobe.setAttribute('stroke-width', '1.5');
+    scene.appendChild(southLobe);
+
+    // Lobe field line arrows (showing direction)
+    for (let i = 0; i < 5; i++) {
+      const lx = tailStartX + 80 + i * 120;
+      // North lobe: earthward
+      const nArrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      const ny = earthY - 30 - lobeH * 0.4 * (1 - i/8);
+      nArrow.setAttribute('points', `${lx-8},${ny} ${lx+2},${ny-5} ${lx+2},${ny+5}`);
+      nArrow.setAttribute('fill', 'rgba(100,150,200,0.4)');
+      scene.appendChild(nArrow);
+      // South lobe: tailward
+      const sArrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      const sy = earthY + 30 + lobeH * 0.4 * (1 - i/8);
+      sArrow.setAttribute('points', `${lx+8},${sy} ${lx-2},${sy-5} ${lx-2},${sy+5}`);
+      sArrow.setAttribute('fill', 'rgba(100,150,200,0.4)');
+      scene.appendChild(sArrow);
+    }
+
+    // Plasma sheet
+    const psH = 15 * psThickness;
+    const ps = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    ps.setAttribute('x', tailStartX + 30);
+    ps.setAttribute('y', earthY - psH);
+    ps.setAttribute('width', tailEndX - tailStartX - 50);
+    ps.setAttribute('height', psH * 2);
+    ps.setAttribute('rx', '4');
+    ps.setAttribute('fill', `rgba(200,100,30,${0.3 + psThickness * 0.3})`);
+    ps.setAttribute('stroke', `rgba(255,140,50,${0.3 + psThickness * 0.3})`);
+    ps.setAttribute('stroke-width', '1');
+    scene.appendChild(ps);
+
+    // Cross-tail current arrows
+    for (let i = 0; i < 4; i++) {
+      const cx = tailStartX + 80 + i * 140;
+      const cArrow = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      cArrow.setAttribute('x', cx); cArrow.setAttribute('y', earthY + 5);
+      cArrow.setAttribute('fill', `rgba(255,221,68,${currentIntensity})`);
+      cArrow.setAttribute('font-size', '16');
+      cArrow.setAttribute('text-anchor', 'middle');
+      cArrow.textContent = '⊙'; // Current out of screen (duskward)
+      scene.appendChild(cArrow);
+    }
+
+    // NENL marker
+    const nenlX = 650;
+    if (phase >= 0.45) {
+      const nenlVis = phase < 0.65 ? Math.min(1, (phase - 0.45) / 0.05) : Math.max(0, 1 - (phase - 0.65) / 0.15);
+      const nenl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      nenl.setAttribute('x', nenlX); nenl.setAttribute('y', earthY + 5);
+      nenl.setAttribute('fill', `rgba(255,100,100,${nenlVis})`);
+      nenl.setAttribute('font-size', '22');
+      nenl.setAttribute('font-weight', 'bold');
+      nenl.setAttribute('text-anchor', 'middle');
+      nenl.textContent = '✖';
+      scene.appendChild(nenl);
+
+      const nenlLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      nenlLabel.setAttribute('x', nenlX); nenlLabel.setAttribute('y', earthY + 25);
+      nenlLabel.setAttribute('fill', `rgba(255,100,100,${nenlVis * 0.7})`);
+      nenlLabel.setAttribute('font-size', '10');
+      nenlLabel.setAttribute('text-anchor', 'middle');
+      nenlLabel.textContent = 'NENL (~20 RE)';
+      scene.appendChild(nenlLabel);
+    }
+
+    // Aurora flash near Earth during expansion
+    if (auroraFlash > 0) {
+      const aurora = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      aurora.setAttribute('cx', earthX + 20); aurora.setAttribute('cy', earthY);
+      aurora.setAttribute('rx', '25'); aurora.setAttribute('ry', '40');
+      aurora.setAttribute('fill', `rgba(100,255,150,${auroraFlash * 0.4})`);
+      scene.appendChild(aurora);
+
+      // Dipolarization front
+      if (phase >= 0.5 && phase < 0.65) {
+        const dpFrac = (phase - 0.5) / 0.15;
+        const dpX = nenlX - dpFrac * (nenlX - earthX - 50);
+        const dpFront = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        dpFront.setAttribute('x1', dpX); dpFront.setAttribute('y1', earthY - 30);
+        dpFront.setAttribute('x2', dpX); dpFront.setAttribute('y2', earthY + 30);
+        dpFront.setAttribute('stroke', `rgba(100,200,255,${0.8 * (1-dpFrac)})`);
+        dpFront.setAttribute('stroke-width', '3');
+        scene.appendChild(dpFront);
+
+        const dpLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        dpLabel.setAttribute('x', dpX); dpLabel.setAttribute('y', earthY - 38);
+        dpLabel.setAttribute('fill', `rgba(100,200,255,${0.8 * (1-dpFrac * 0.5)})`);
+        dpLabel.setAttribute('font-size', '9');
+        dpLabel.setAttribute('text-anchor', 'middle');
+        dpLabel.textContent = 'Dipolarization front ←';
+        scene.appendChild(dpLabel);
+      }
+
+      // SCW label
+      const scwLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      scwLabel.setAttribute('x', earthX + 60); scwLabel.setAttribute('y', earthY - 50);
+      scwLabel.setAttribute('fill', `rgba(255,221,68,${auroraFlash})`);
+      scwLabel.setAttribute('font-size', '10');
+      scwLabel.setAttribute('text-anchor', 'middle');
+      scwLabel.textContent = 'Substorm Current Wedge';
+      scene.appendChild(scwLabel);
+    }
+
+    // AE index mini-plot
+    const aeX = 450, aeY = 450, aeW = 300, aeH = 60;
+    const aeBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    aeBox.setAttribute('x', aeX); aeBox.setAttribute('y', aeY);
+    aeBox.setAttribute('width', aeW); aeBox.setAttribute('height', aeH);
+    aeBox.setAttribute('rx', '4');
+    aeBox.setAttribute('fill', '#0a0a15');
+    aeBox.setAttribute('stroke', '#333');
+    scene.appendChild(aeBox);
+
+    const aeLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    aeLabel.setAttribute('x', aeX + 5); aeLabel.setAttribute('y', aeY + 15);
+    aeLabel.setAttribute('fill', '#888');
+    aeLabel.setAttribute('font-size', '10');
+    aeLabel.textContent = 'AE index';
+    scene.appendChild(aeLabel);
+
+    // AE trace
+    let aePath = '';
+    for (let i = 0; i <= 100; i++) {
+      const pp = i / 100;
+      let aeVal;
+      if (pp < 0.5) {
+        aeVal = 0.2 + pp * 0.6; // Gradual rise during growth
+      } else if (pp < 0.65) {
+        aeVal = 0.5 + ((pp - 0.5) / 0.15) * 0.5; // Sharp rise during expansion
+      } else {
+        aeVal = 1.0 - ((pp - 0.65) / 0.35) * 0.7; // Decay during recovery
+      }
+      const ax = aeX + pp * aeW;
+      const ay = aeY + aeH - aeVal * (aeH - 5);
+      aePath += (i === 0 ? 'M' : 'L') + ax.toFixed(1) + ',' + ay.toFixed(1);
+    }
+    const aeTrace = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    aeTrace.setAttribute('d', aePath);
+    aeTrace.setAttribute('fill', 'none');
+    aeTrace.setAttribute('stroke', '#66ffaa');
+    aeTrace.setAttribute('stroke-width', '1.5');
+    scene.appendChild(aeTrace);
+
+    // Phase marker on AE plot
+    const markerX = aeX + phase * aeW;
+    const aeMarker = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    aeMarker.setAttribute('x1', markerX); aeMarker.setAttribute('y1', aeY);
+    aeMarker.setAttribute('x2', markerX); aeMarker.setAttribute('y2', aeY + aeH);
+    aeMarker.setAttribute('stroke', 'rgba(255,255,255,0.5)');
+    aeMarker.setAttribute('stroke-width', '1');
+    scene.appendChild(aeMarker);
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ================================================================
+// SECTION 8: CONVECTION PATTERN
+// ================================================================
+(function() {
+  const cellsG = document.getElementById('convection-cells');
+  const ovalG = document.getElementById('auroral-oval');
+  const cx = 350, cy = 350;
+
+  // Define streamlines for two-cell pattern
+  // Dawn cell (left, counterclockwise) and dusk cell (right, clockwise)
+  function getStreamlinePoint(cellSide, streamIdx, angle) {
+    // cellSide: -1 = dawn (left), 1 = dusk (right)
+    const cellCx = cx + cellSide * 70;
+    const cellCy = cy - 30; // Slightly sunward
+    const r = 60 + streamIdx * 25;
+    const x = cellCx + r * Math.cos(angle);
+    const y = cellCy + r * Math.sin(angle) * 1.3; // Elliptical
+    return {x, y};
+  }
+
+  // Draw auroral oval (static)
+  function drawOval() {
+    while (ovalG.firstChild) ovalG.removeChild(ovalG.firstChild);
+    const oval = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    oval.setAttribute('cx', cx); oval.setAttribute('cy', cy + 10);
+    oval.setAttribute('rx', '140'); oval.setAttribute('ry', '145');
+    oval.setAttribute('fill', 'none');
+    oval.setAttribute('stroke', 'rgba(68,255,136,0.3)');
+    oval.setAttribute('stroke-width', '20');
+    ovalG.appendChild(oval);
+
+    const ovalInner = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    ovalInner.setAttribute('cx', cx); ovalInner.setAttribute('cy', cy + 10);
+    ovalInner.setAttribute('rx', '120'); ovalInner.setAttribute('ry', '125');
+    ovalInner.setAttribute('fill', 'none');
+    ovalInner.setAttribute('stroke', 'rgba(68,255,136,0.15)');
+    ovalInner.setAttribute('stroke-width', '8');
+    ovalG.appendChild(ovalInner);
+  }
+  drawOval();
+
+  // Particles along streamlines
+  const particles = [];
+  const numPerStream = 4;
+  for (let cell = -1; cell <= 1; cell += 2) {
+    for (let s = 0; s < 3; s++) {
+      for (let p = 0; p < numPerStream; p++) {
+        particles.push({
+          cell: cell,
+          stream: s,
+          angle: (p / numPerStream) * Math.PI * 2,
+          speed: 0.0008 + s * 0.0001
+        });
+      }
+    }
+  }
+
+  // Also add polar cap antisunward flow particles
+  const pcParticles = [];
+  for (let i = 0; i < 8; i++) {
+    pcParticles.push({
+      x: cx - 60 + (i % 4) * 40,
+      startY: cy - 80,
+      phase: (i / 8) * 1.0,
+      speed: 0.0004
+    });
+  }
+
+  function draw(t) {
+    if (!animRunning.convection) { requestAnimationFrame(draw); return; }
+    while (cellsG.firstChild) cellsG.removeChild(cellsG.firstChild);
+
+    // Draw streamline paths (faint)
+    for (let cell = -1; cell <= 1; cell += 2) {
+      for (let s = 0; s < 3; s++) {
+        let pathD = '';
+        const steps = 60;
+        const cellCx = cx + cell * 70;
+        const cellCy = cy - 30;
+        const r = 60 + s * 25;
+        for (let i = 0; i <= steps; i++) {
+          const a = (i / steps) * Math.PI * 2;
+          const x = cellCx + r * Math.cos(a);
+          const y = cellCy + r * Math.sin(a) * 1.3;
+          pathD += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+        }
+        pathD += 'Z';
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', pathD);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'rgba(255,255,255,0.06)');
+        path.setAttribute('stroke-width', '1');
+        cellsG.appendChild(path);
+      }
+    }
+
+    // Cell labels
+    const dawnLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    dawnLabel.setAttribute('x', cx - 70); dawnLabel.setAttribute('y', cy - 30);
+    dawnLabel.setAttribute('fill', 'rgba(100,150,255,0.5)');
+    dawnLabel.setAttribute('font-size', '11');
+    dawnLabel.setAttribute('text-anchor', 'middle');
+    dawnLabel.textContent = 'Dawn cell (CCW)';
+    cellsG.appendChild(dawnLabel);
+
+    const duskLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    duskLabel.setAttribute('x', cx + 70); duskLabel.setAttribute('y', cy - 30);
+    duskLabel.setAttribute('fill', 'rgba(255,100,100,0.5)');
+    duskLabel.setAttribute('font-size', '11');
+    duskLabel.setAttribute('text-anchor', 'middle');
+    duskLabel.textContent = 'Dusk cell (CW)';
+    cellsG.appendChild(duskLabel);
+
+    // Animate particles along streamlines
+    particles.forEach(p => {
+      p.angle += p.speed * 16 * p.cell; // direction depends on cell
+      const cellCx = cx + p.cell * 70;
+      const cellCy = cy - 30;
+      const r = 60 + p.stream * 25;
+      const px = cellCx + r * Math.cos(p.angle);
+      const py = cellCy + r * Math.sin(p.angle) * 1.3;
+
+      // Determine if in antisunward (top/north = sunward in polar view) or sunward return
+      const isSunward = py > cy + 20; // Bottom half = nightside = return flow
+      const color = isSunward ? '#ff6644' : '#6688ff';
+
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('cx', px); dot.setAttribute('cy', py);
+      dot.setAttribute('r', '3');
+      dot.setAttribute('fill', color);
+      dot.setAttribute('opacity', '0.8');
+      cellsG.appendChild(dot);
+
+      // Small trail
+      const trailAngle = p.angle - p.cell * 0.3;
+      const trx = cellCx + r * Math.cos(trailAngle);
+      const try_ = cellCy + r * Math.sin(trailAngle) * 1.3;
+      const trail = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      trail.setAttribute('x1', trx); trail.setAttribute('y1', try_);
+      trail.setAttribute('x2', px); trail.setAttribute('y2', py);
+      trail.setAttribute('stroke', color);
+      trail.setAttribute('stroke-width', '1.5');
+      trail.setAttribute('opacity', '0.3');
+      cellsG.appendChild(trail);
+    });
+
+    // Polar cap antisunward flow (particles moving from noon to midnight over the cap)
+    pcParticles.forEach(p => {
+      p.phase = (p.phase + p.speed * 16) % 1.0;
+      const py = (cy - 80) + p.phase * 160; // Move from sunward to nightside
+      const px = p.x + Math.sin(p.phase * Math.PI) * 15; // Slight curve
+
+      if (py < cy + 80 && py > cy - 80) {
+        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dot.setAttribute('cx', px); dot.setAttribute('cy', py);
+        dot.setAttribute('r', '2.5');
+        dot.setAttribute('fill', '#6688ff');
+        dot.setAttribute('opacity', '0.6');
+        cellsG.appendChild(dot);
+      }
+    });
+
+    // Electrojet arrows (east-west currents at auroral latitudes)
+    // Eastward electrojet (dusk side)
+    const ejE = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const ejPulse = 0.5 + 0.2 * Math.sin(t / 1500);
+    ejE.setAttribute('d', `M ${cx + 30},${cy + 135} Q ${cx + 100},${cy + 120} ${cx + 140},${cy + 50}`);
+    ejE.setAttribute('fill', 'none');
+    ejE.setAttribute('stroke', `rgba(255,221,68,${ejPulse})`);
+    ejE.setAttribute('stroke-width', '3');
+    ejE.setAttribute('stroke-dasharray', '8,4');
+    cellsG.appendChild(ejE);
+
+    const ejELabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    ejELabel.setAttribute('x', cx + 155); ejELabel.setAttribute('y', cy + 100);
+    ejELabel.setAttribute('fill', 'rgba(255,221,68,0.6)');
+    ejELabel.setAttribute('font-size', '9');
+    ejELabel.textContent = 'Eastward EJ';
+    cellsG.appendChild(ejELabel);
+
+    // Westward electrojet (dawn side, extending through midnight)
+    const ejW = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    ejW.setAttribute('d', `M ${cx - 140},${cy + 50} Q ${cx - 100},${cy + 120} ${cx - 30},${cy + 135}`);
+    ejW.setAttribute('fill', 'none');
+    ejW.setAttribute('stroke', `rgba(255,221,68,${ejPulse})`);
+    ejW.setAttribute('stroke-width', '3');
+    ejW.setAttribute('stroke-dasharray', '8,4');
+    cellsG.appendChild(ejW);
+
+    const ejWLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    ejWLabel.setAttribute('x', cx - 175); ejWLabel.setAttribute('y', cy + 100);
+    ejWLabel.setAttribute('fill', 'rgba(255,221,68,0.6)');
+    ejWLabel.setAttribute('font-size', '9');
+    ejWLabel.textContent = 'Westward EJ';
+    cellsG.appendChild(ejWLabel);
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ================================================================
+// TOC ACTIVE STATE
+// ================================================================
+(function() {
+  const links = document.querySelectorAll('#toc a');
+  const sections = [];
+  links.forEach(link => {
+    const id = link.getAttribute('href').substring(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({link, el});
+  });
+
+  function updateActive() {
+    const scrollY = window.scrollY + 200;
+    let current = sections[0];
+    sections.forEach(s => {
+      if (s.el.offsetTop <= scrollY) current = s;
+    });
+    links.forEach(l => l.classList.remove('active'));
+    if (current) current.link.classList.add('active');
+  }
+
+  window.addEventListener('scroll', updateActive);
+  updateActive();
+})();
+</script>
+
+</body>
+</html>

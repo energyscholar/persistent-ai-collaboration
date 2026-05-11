@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial: Moran's I Decomposition of SWMF Output</title>
+<style>
+  :root {
+    --bg: #f8f6f1;
+    --text: #2c2c2c;
+    --accent: #1a5276;
+    --highlight: #d4ac0d;
+    --fac-color: #7d3c98;
+    --hall-color: #00bcd4;
+    --mhd-color: #e67e22;
+    --ped-color: #27ae60;
+    --obs-color: #2471a3;
+    --swmf-color: #c0392b;
+    --card-bg: #fff;
+    --subtle: #888;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2em 1.5em;
+    line-height: 1.7;
+  }
+  h1 {
+    font-size: 1.8em;
+    color: var(--accent);
+    border-bottom: 3px solid var(--highlight);
+    padding-bottom: 0.3em;
+    margin-bottom: 0.5em;
+  }
+  .subtitle {
+    color: var(--subtle);
+    font-style: italic;
+    margin-bottom: 2em;
+  }
+  h2 {
+    font-size: 1.3em;
+    color: var(--accent);
+    margin: 2em 0 0.5em 0;
+    border-left: 4px solid var(--highlight);
+    padding-left: 0.6em;
+  }
+  p { margin: 0.8em 0; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.2em 1.5em;
+    margin: 1.5em 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  .card.key-result {
+    border-left: 5px solid var(--swmf-color);
+    background: #fdf2f2;
+  }
+  .card.insight {
+    border-left: 5px solid var(--highlight);
+    background: #fef9e7;
+  }
+  .diagram-container {
+    text-align: center;
+    margin: 1.5em 0;
+  }
+  .diagram-caption {
+    font-size: 0.85em;
+    color: var(--subtle);
+    margin-top: 0.5em;
+    font-style: italic;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    font-size: 0.95em;
+  }
+  th {
+    background: var(--accent);
+    color: white;
+    padding: 0.5em 0.8em;
+    text-align: right;
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 0.4em 0.8em;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: right;
+    font-family: 'Courier New', monospace;
+  }
+  td:first-child {
+    text-align: left;
+    font-family: Georgia, serif;
+    font-weight: bold;
+  }
+  tr:nth-child(even) { background: #f5f5f5; }
+  tr.highlight-row { background: #e8f6e8; }
+  tr.bad-row { background: #fde8e8; }
+  .legend-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .result-figure {
+    width: 100%;
+    max-width: 850px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 1em 0;
+  }
+  .term {
+    font-weight: bold;
+    color: var(--accent);
+  }
+  .footnote {
+    font-size: 0.8em;
+    color: var(--subtle);
+    border-top: 1px solid #ddd;
+    margin-top: 3em;
+    padding-top: 1em;
+  }
+</style>
+</head>
+<body>
+
+<h1>Why SWMF Can't See What SuperMAG Sees</h1>
+<p class="subtitle">
+  A tutorial on decomposing spatial autocorrelation in MHD model output<br>
+  Bruce Stephenson &amp; Argus &mdash; Session 70, May 2026
+</p>
+
+<!-- ============================================================ -->
+<h2>1. The Question in One Sentence</h2>
+
+<p>
+When a geomagnetic storm hits, ground magnetometers across the auroral zone
+all swing in roughly the same direction at roughly the same time. Our Moran's I
+analysis quantifies this: <strong>I &asymp; +0.35 to +0.40</strong> during storms. The
+question is: <em>can the leading global MHD model (SWMF) reproduce this spatial
+coherence?</em>
+</p>
+
+<p>The answer is <strong>no</strong> &mdash; and the decomposition tells us exactly where the model breaks.</p>
+
+<!-- ============================================================ -->
+<h2>2. Quick Refresher: What Moran's I Measures</h2>
+
+<div class="diagram-container">
+<svg width="750" height="200" viewBox="0 0 750 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- HIGH I panel -->
+  <rect x="10" y="10" width="230" height="180" rx="10" fill="#e8f4fd" stroke="#2471a3" stroke-width="1.5"/>
+  <text x="125" y="35" text-anchor="middle" font-size="14" font-weight="bold" fill="#2471a3">High I (+0.35)</text>
+  <text x="125" y="52" text-anchor="middle" font-size="11" fill="#666">"Nearby stations agree"</text>
+  <!-- Stations with similar arrows -->
+  <circle cx="60" cy="90" r="8" fill="#2471a3"/>
+  <line x1="68" y1="85" x2="95" y2="70" stroke="#2471a3" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+  <circle cx="140" cy="80" r="8" fill="#2471a3"/>
+  <line x1="148" y1="75" x2="175" y2="60" stroke="#2471a3" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+  <circle cx="100" cy="130" r="8" fill="#2471a3"/>
+  <line x1="108" y1="125" x2="135" y2="110" stroke="#2471a3" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+  <circle cx="180" cy="130" r="8" fill="#2471a3"/>
+  <line x1="188" y1="125" x2="215" y2="110" stroke="#2471a3" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+  <circle cx="60" cy="160" r="8" fill="#2471a3"/>
+  <line x1="68" y1="155" x2="95" y2="140" stroke="#2471a3" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+  <text x="125" y="185" text-anchor="middle" font-size="11" fill="#2471a3">Spatially coherent</text>
+
+  <!-- ZERO I panel -->
+  <rect x="260" y="10" width="230" height="180" rx="10" fill="#fef5e7" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="375" y="35" text-anchor="middle" font-size="14" font-weight="bold" fill="#e67e22">Zero I (~0.00)</text>
+  <text x="375" y="52" text-anchor="middle" font-size="11" fill="#666">"No spatial pattern"</text>
+  <!-- Stations with random arrows -->
+  <circle cx="310" cy="90" r="8" fill="#e67e22"/>
+  <line x1="318" y1="85" x2="340" y2="70" stroke="#e67e22" stroke-width="2.5" marker-end="url(#arr-orange)"/>
+  <circle cx="390" cy="80" r="8" fill="#e67e22"/>
+  <line x1="382" y1="80" x2="360" y2="85" stroke="#e67e22" stroke-width="2.5" marker-end="url(#arr-orange)"/>
+  <circle cx="340" cy="130" r="8" fill="#e67e22"/>
+  <line x1="340" y1="122" x2="340" y2="100" stroke="#e67e22" stroke-width="2.5" marker-end="url(#arr-orange)"/>
+  <circle cx="420" cy="130" r="8" fill="#e67e22"/>
+  <line x1="428" y1="135" x2="450" y2="150" stroke="#e67e22" stroke-width="2.5" marker-end="url(#arr-orange)"/>
+  <circle cx="310" cy="160" r="8" fill="#e67e22"/>
+  <line x1="310" y1="152" x2="310" y2="130" stroke="#e67e22" stroke-width="2.5" marker-end="url(#arr-orange)"/>
+  <text x="375" y="185" text-anchor="middle" font-size="11" fill="#e67e22">Spatially random</text>
+
+  <!-- NEGATIVE I panel -->
+  <rect x="510" y="10" width="230" height="180" rx="10" fill="#fde8e8" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="625" y="35" text-anchor="middle" font-size="14" font-weight="bold" fill="#c0392b">Negative I (-0.3)</text>
+  <text x="625" y="52" text-anchor="middle" font-size="11" fill="#666">"Neighbors disagree"</text>
+  <!-- Stations with alternating arrows -->
+  <circle cx="560" cy="90" r="8" fill="#c0392b"/>
+  <line x1="568" y1="85" x2="590" y2="70" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr-red)"/>
+  <circle cx="640" cy="80" r="8" fill="#c0392b"/>
+  <line x1="632" y1="85" x2="610" y2="100" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr-red)"/>
+  <circle cx="590" cy="130" r="8" fill="#c0392b"/>
+  <line x1="598" y1="125" x2="620" y2="110" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr-red)"/>
+  <circle cx="670" cy="130" r="8" fill="#c0392b"/>
+  <line x1="662" y1="135" x2="640" y2="150" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr-red)"/>
+  <circle cx="560" cy="160" r="8" fill="#c0392b"/>
+  <line x1="552" y1="155" x2="530" y2="140" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arr-red)"/>
+  <text x="625" y="185" text-anchor="middle" font-size="11" fill="#c0392b">Checkerboard</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#2471a3"/></marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#e67e22"/></marker>
+    <marker id="arr-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#c0392b"/></marker>
+  </defs>
+</svg>
+<div class="diagram-caption">
+  Each dot is a magnetometer station. Arrows represent the magnetic perturbation vector.
+  Moran's I measures whether nearby stations point the same way (high I) or not (low/negative I).
+</div>
+</div>
+
+<p>
+Moran's I is computed using <strong>inverse-distance weights</strong>: stations 500 km apart
+influence each other more than stations 5000 km apart. The formula is essentially
+"the correlation of each station's deviation from the mean with the
+distance-weighted average of its neighbors' deviations." Range: roughly &minus;1 to +1.
+</p>
+
+<!-- ============================================================ -->
+<h2>3. The Four Current Systems Under Your Feet</h2>
+
+<p>
+When a storm hits, the ground magnetic field is perturbed by <em>four</em> distinct
+current systems, each at a different altitude. The SWMF model computes all four
+separately, which is what makes this decomposition possible.
+</p>
+
+<div class="diagram-container">
+<svg width="780" height="420" viewBox="0 0 780 420" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background layers -->
+  <!-- Magnetosphere -->
+  <rect x="30" y="15" width="720" height="95" rx="12" fill="#eae0f5" stroke="#7d3c98" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="50" y="38" font-size="13" font-weight="bold" fill="#7d3c98">MAGNETOSPHERE (60,000+ km altitude)</text>
+
+  <!-- Field-aligned gap -->
+  <rect x="30" y="120" width="720" height="70" rx="12" fill="#f3e5f5" stroke="#9b59b6" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="50" y="143" font-size="13" font-weight="bold" fill="#7d3c98">FIELD LINES (connecting region)</text>
+
+  <!-- Ionosphere -->
+  <rect x="30" y="200" width="720" height="100" rx="12" fill="#e0f2f1" stroke="#00897b" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="50" y="223" font-size="13" font-weight="bold" fill="#00897b">IONOSPHERE (~110 km altitude)</text>
+
+  <!-- Ground -->
+  <rect x="30" y="310" width="720" height="95" rx="12" fill="#efebe9" stroke="#795548" stroke-width="1.5"/>
+  <text x="50" y="333" font-size="13" font-weight="bold" fill="#795548">GROUND (magnetometer stations)</text>
+
+  <!-- === MHD current === -->
+  <g transform="translate(90, 55)">
+    <rect x="0" y="0" width="145" height="44" rx="8" fill="#e67e22" opacity="0.15" stroke="#e67e22" stroke-width="1.5"/>
+    <text x="72" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#e67e22">MHD Currents</text>
+    <text x="72" y="33" text-anchor="middle" font-size="10" fill="#b7590a">Ring current, tail, magnetopause</text>
+  </g>
+  <!-- MHD arrow to ground -->
+  <line x1="163" y1="103" x2="163" y2="340" stroke="#e67e22" stroke-width="2" stroke-dasharray="5,5" opacity="0.5"/>
+  <text x="175" y="355" font-size="11" fill="#e67e22">dB<tspan font-size="8" dy="3">MHD</tspan></text>
+  <!-- MHD spatial character -->
+  <rect x="85" y="360" width="155" height="35" rx="6" fill="#fdebd0" stroke="#e67e22" stroke-width="1"/>
+  <text x="163" y="376" text-anchor="middle" font-size="10" fill="#e67e22">Spatially smooth</text>
+  <text x="163" y="389" text-anchor="middle" font-size="11" font-weight="bold" fill="#e67e22">I = +0.10</text>
+
+  <!-- === FAC === -->
+  <g transform="translate(280, 130)">
+    <rect x="0" y="0" width="145" height="44" rx="8" fill="#7d3c98" opacity="0.15" stroke="#7d3c98" stroke-width="1.5"/>
+    <text x="72" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#7d3c98">FAC (Birkeland)</text>
+    <text x="72" y="33" text-anchor="middle" font-size="10" fill="#6c3483">Along field lines, large-scale sheets</text>
+  </g>
+  <!-- FAC vertical arrows -->
+  <line x1="325" y1="62" x2="325" y2="127" stroke="#7d3c98" stroke-width="2.5" marker-end="url(#arr-fac)"/>
+  <line x1="380" y1="127" x2="380" y2="62" stroke="#7d3c98" stroke-width="2.5" marker-end="url(#arr-fac)"/>
+  <text x="353" y="77" text-anchor="middle" font-size="9" fill="#7d3c98">R1</text>
+  <text x="353" y="120" text-anchor="middle" font-size="9" fill="#7d3c98">R2</text>
+  <!-- FAC to ground -->
+  <line x1="353" y1="178" x2="353" y2="340" stroke="#7d3c98" stroke-width="2" stroke-dasharray="5,5" opacity="0.5"/>
+  <text x="365" y="355" font-size="11" fill="#7d3c98">dB<tspan font-size="8" dy="3">FAC</tspan></text>
+  <!-- FAC spatial character -->
+  <rect x="275" y="360" width="155" height="35" rx="6" fill="#e8daef" stroke="#7d3c98" stroke-width="1"/>
+  <text x="353" y="376" text-anchor="middle" font-size="10" fill="#7d3c98">Large-scale structure</text>
+  <text x="353" y="389" text-anchor="middle" font-size="11" font-weight="bold" fill="#7d3c98">I = +0.19</text>
+
+  <!-- === Hall === -->
+  <g transform="translate(470, 210)">
+    <rect x="0" y="0" width="130" height="44" rx="8" fill="#00bcd4" opacity="0.15" stroke="#00bcd4" stroke-width="1.5"/>
+    <text x="65" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#00838f">Hall Currents</text>
+    <text x="65" y="33" text-anchor="middle" font-size="10" fill="#00838f">Horizontal, &perp; to E-field</text>
+  </g>
+  <!-- Hall horizontal arrows (jagged/noisy) -->
+  <line x1="476" y1="243" x2="495" y2="238" stroke="#00bcd4" stroke-width="2"/>
+  <line x1="505" y1="248" x2="520" y2="235" stroke="#00bcd4" stroke-width="2"/>
+  <line x1="530" y1="240" x2="548" y2="248" stroke="#00bcd4" stroke-width="2"/>
+  <line x1="558" y1="235" x2="575" y2="245" stroke="#00bcd4" stroke-width="2"/>
+  <line x1="585" y1="248" x2="595" y2="235" stroke="#00bcd4" stroke-width="2"/>
+  <!-- Hall to ground -->
+  <line x1="535" y1="260" x2="535" y2="340" stroke="#00bcd4" stroke-width="2" stroke-dasharray="5,5" opacity="0.5"/>
+  <text x="547" y="355" font-size="11" fill="#00838f">dB<tspan font-size="8" dy="3">Hall</tspan></text>
+  <!-- Hall spatial character -->
+  <rect x="460" y="360" width="155" height="35" rx="6" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1"/>
+  <text x="538" y="376" text-anchor="middle" font-size="10" fill="#00838f">Spatially NOISY</text>
+  <text x="538" y="389" text-anchor="middle" font-size="11" font-weight="bold" fill="#c0392b">I = +0.02</text>
+
+  <!-- === Pedersen === -->
+  <g transform="translate(620, 255)">
+    <rect x="0" y="0" width="120" height="44" rx="8" fill="#27ae60" opacity="0.15" stroke="#27ae60" stroke-width="1.5"/>
+    <text x="60" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e8449">Pedersen</text>
+    <text x="60" y="33" text-anchor="middle" font-size="10" fill="#1e8449">Horizontal, &parallel; to E-field</text>
+  </g>
+
+  <!-- Station dots at ground level -->
+  <circle cx="120" cy="340" r="5" fill="#795548"/>
+  <circle cx="220" cy="345" r="5" fill="#795548"/>
+  <circle cx="350" cy="338" r="5" fill="#795548"/>
+  <circle cx="460" cy="342" r="5" fill="#795548"/>
+  <circle cx="580" cy="340" r="5" fill="#795548"/>
+  <circle cx="680" cy="344" r="5" fill="#795548"/>
+
+  <defs>
+    <marker id="arr-fac" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#7d3c98"/></marker>
+  </defs>
+</svg>
+<div class="diagram-caption">
+  The ground perturbation <strong>dB<sub>total</sub> = dB<sub>MHD</sub> + dB<sub>FAC</sub> + dB<sub>Hall</sub> + dB<sub>Pedersen</sub></strong>.
+  SWMF computes each term separately. A magnetometer on the ground sees only the sum.
+</div>
+</div>
+
+<div class="card">
+<p><strong>What each current system is:</strong></p>
+<p>
+<span class="legend-dot" style="background:#e67e22"></span>
+<strong style="color:#e67e22">MHD currents</strong> flow in the magnetosphere itself &mdash;
+the ring current circling Earth at ~4 R<sub>E</sub>, the cross-tail current, magnetopause
+currents. These are far away and spatially smooth. They're why all stations see
+the field drop during a storm (negative Dst).
+</p>
+<p>
+<span class="legend-dot" style="background:#7d3c98"></span>
+<strong style="color:#7d3c98">FAC (Birkeland currents)</strong> flow <em>along</em>
+magnetic field lines, connecting the magnetosphere to the ionosphere.
+Region 1 currents flow in on one side of the auroral oval and out the other;
+Region 2 close the circuit at lower latitude. These are large-scale <em>sheets</em>
+thousands of km across &mdash; they produce spatially coherent ground signatures.
+</p>
+<p>
+<span class="legend-dot" style="background:#00bcd4"></span>
+<strong style="color:#00838f">Hall currents</strong> flow horizontally in the
+ionosphere (at ~110 km altitude), <em>perpendicular</em> to the electric field.
+They form the auroral electrojet. Critically, Hall currents depend on
+<em>local</em> ionospheric conductance &mdash; which varies sharply with particle
+precipitation, solar illumination, and composition. This makes them the
+most spatially variable current system.
+</p>
+<p>
+<span class="legend-dot" style="background:#27ae60"></span>
+<strong style="color:#1e8449">Pedersen currents</strong> also flow horizontally
+in the ionosphere, but <em>parallel</em> to the electric field. They directly
+close the FAC circuit, so they inherit some of FAC's large-scale structure.
+</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>4. The Experiment</h2>
+
+<p>We did something nobody has done before: applied Moran's I spatial
+autocorrelation to the <em>individual current-source components</em> of SWMF output.</p>
+
+<p><strong>Data source:</strong> SWPCTEST validation repository
+(SWMFsoftware/SWPCTEST, Event 1: Halloween storm Oct 29&ndash;30, 2003).
+12 real stations, 2863 timesteps, full 15-column decomposed output
+(dB<sub>N</sub>, dB<sub>E</sub>, dB<sub>D</sub> for each of 5 sources: total,
+MHD, FAC, Hall, Pedersen).</p>
+
+<p><strong>Comparison data:</strong> SuperMAG ground magnetometer observations
+for the same storm. 7 stations overlap between SWMF and SuperMAG
+(YKC, MEA, NEW, OTT, FRD, ABK, KIR). We also have a 42-station baseline
+from our earlier work.</p>
+
+<p><strong>Method:</strong> Same Moran's I computation on each: inverse-distance
+spatial weight matrix, computed at each timestep, producing an I(t) timeseries
+for each component.</p>
+
+<!-- ============================================================ -->
+<h2>5. The Result</h2>
+
+<div class="card key-result">
+<p style="font-size: 1.1em; font-weight: bold; color: var(--swmf-color); margin-bottom: 0.5em;">
+The model produces zero spatial correlation where observations show strong positive correlation.
+</p>
+
+<table>
+  <tr>
+    <th style="text-align:left">Source</th>
+    <th>I (North)</th>
+    <th>I (Horiz. mag.)</th>
+    <th>I (Vertical)</th>
+    <th>Stations</th>
+  </tr>
+  <tr class="highlight-row">
+    <td>42-sta baseline</td>
+    <td>&mdash;</td>
+    <td>+0.396</td>
+    <td>&mdash;</td>
+    <td>42</td>
+  </tr>
+  <tr class="highlight-row">
+    <td>7-sta observed</td>
+    <td style="color: var(--obs-color); font-weight:bold">+0.355</td>
+    <td>+0.247</td>
+    <td>+0.044</td>
+    <td>7</td>
+  </tr>
+  <tr class="bad-row">
+    <td>SWMF total</td>
+    <td style="color: var(--swmf-color); font-weight:bold">&minus;0.029</td>
+    <td>&minus;0.036</td>
+    <td>&minus;0.022</td>
+    <td>12</td>
+  </tr>
+  <tr>
+    <td><span class="legend-dot" style="background:#7d3c98"></span>SWMF FAC</td>
+    <td style="color: var(--fac-color)">+0.192</td>
+    <td>+0.006</td>
+    <td style="color: var(--fac-color)">+0.273</td>
+    <td>12</td>
+  </tr>
+  <tr>
+    <td><span class="legend-dot" style="background:#e67e22"></span>SWMF MHD</td>
+    <td style="color: var(--mhd-color)">+0.096</td>
+    <td>+0.092</td>
+    <td>&mdash;</td>
+    <td>12</td>
+  </tr>
+  <tr>
+    <td><span class="legend-dot" style="background:#00bcd4"></span>SWMF Hall</td>
+    <td style="color: var(--swmf-color)">+0.022</td>
+    <td>+0.002</td>
+    <td>&mdash;</td>
+    <td>12</td>
+  </tr>
+  <tr>
+    <td><span class="legend-dot" style="background:#27ae60"></span>SWMF Pedersen</td>
+    <td style="color: var(--ped-color)">+0.114</td>
+    <td>+0.021</td>
+    <td>&mdash;</td>
+    <td>12</td>
+  </tr>
+</table>
+</div>
+
+<p>The figure below shows the full timeseries comparison over 48 hours of storm:</p>
+
+<div class="diagram-container">
+  <img class="result-figure"
+       src="../results/ccmc_vmag/morans_i_observed_vs_swmf_halloween2003.png"
+       alt="4-panel timeseries: observed vs SWMF Moran's I"/>
+  <div class="diagram-caption">
+    Top: N-component observed (blue) vs SWMF total (red).
+    Second: horizontal magnitude three-way (observed, baseline, SWMF).
+    Third: SWMF decomposition by current source, with observed mean (dashed blue).
+    Bottom: vertical component.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>6. What's Happening &mdash; The Cancellation</h2>
+
+<p>The decomposition reveals a <strong>destructive interference</strong>
+between current systems in the model:</p>
+
+<div class="diagram-container">
+<svg width="750" height="260" viewBox="0 0 750 260" xmlns="http://www.w3.org/2000/svg">
+  <!-- FAC signal -->
+  <g transform="translate(40, 20)">
+    <text x="75" y="0" text-anchor="middle" font-size="13" font-weight="bold" fill="#7d3c98">FAC signal</text>
+    <text x="75" y="15" text-anchor="middle" font-size="11" fill="#7d3c98">I = +0.19</text>
+    <rect x="0" y="25" width="150" height="60" rx="6" fill="#e8daef" stroke="#7d3c98" stroke-width="1.5"/>
+    <!-- Smooth wave -->
+    <path d="M10,55 Q40,35 75,55 Q110,75 140,55" stroke="#7d3c98" stroke-width="3" fill="none"/>
+    <text x="75" y="100" text-anchor="middle" font-size="10" fill="#7d3c98">Large-scale, smooth</text>
+  </g>
+
+  <!-- Plus sign -->
+  <text x="230" y="70" text-anchor="middle" font-size="28" font-weight="bold" fill="#333">+</text>
+
+  <!-- Hall noise -->
+  <g transform="translate(270, 20)">
+    <text x="75" y="0" text-anchor="middle" font-size="13" font-weight="bold" fill="#00838f">Hall signal</text>
+    <text x="75" y="15" text-anchor="middle" font-size="11" fill="#00838f">I = +0.02</text>
+    <rect x="0" y="25" width="150" height="60" rx="6" fill="#e0f7fa" stroke="#00bcd4" stroke-width="1.5"/>
+    <!-- Noisy signal -->
+    <path d="M10,55 L20,35 L30,65 L40,40 L50,70 L60,38 L70,62 L80,42 L90,68 L100,36 L110,60 L120,43 L130,67 L140,48" stroke="#00bcd4" stroke-width="2.5" fill="none"/>
+    <text x="75" y="100" text-anchor="middle" font-size="10" fill="#00838f">Small-scale, noisy</text>
+  </g>
+
+  <!-- Equals sign -->
+  <text x="460" y="70" text-anchor="middle" font-size="28" font-weight="bold" fill="#333">=</text>
+
+  <!-- Destroyed total -->
+  <g transform="translate(500, 20)">
+    <text x="100" y="0" text-anchor="middle" font-size="13" font-weight="bold" fill="#c0392b">Total (sum)</text>
+    <text x="100" y="15" text-anchor="middle" font-size="11" fill="#c0392b">I = &minus;0.03</text>
+    <rect x="0" y="25" width="200" height="60" rx="6" fill="#fde8e8" stroke="#c0392b" stroke-width="1.5"/>
+    <!-- Messy signal - smooth + noise = mess -->
+    <path d="M10,55 L22,42 L32,60 L45,38 L55,58 L68,44 L78,62 L88,40 L100,65 L112,38 L122,58 L135,45 L145,63 L155,40 L168,55 L178,48 L190,53" stroke="#c0392b" stroke-width="2.5" fill="none"/>
+    <text x="100" y="100" text-anchor="middle" font-size="10" fill="#c0392b">Spatial structure DESTROYED</text>
+  </g>
+
+  <!-- Lower comparison: what SHOULD happen -->
+  <line x1="30" y1="140" x2="720" y2="140" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="375" y="158" text-anchor="middle" font-size="12" font-weight="bold" fill="#555">But in reality...</text>
+
+  <!-- Real observation -->
+  <g transform="translate(200, 170)">
+    <text x="150" y="0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2471a3">Observed ground signal</text>
+    <text x="150" y="15" text-anchor="middle" font-size="11" fill="#2471a3">I = +0.35</text>
+    <rect x="0" y="25" width="300" height="60" rx="6" fill="#e8f4fd" stroke="#2471a3" stroke-width="1.5"/>
+    <!-- Smooth but structured -->
+    <path d="M10,55 Q50,30 90,50 Q130,70 170,45 Q210,25 250,55 Q270,65 290,50" stroke="#2471a3" stroke-width="3" fill="none"/>
+    <text x="150" y="100" text-anchor="middle" font-size="10" fill="#2471a3">Real ionospheric currents do NOT destroy spatial structure this badly</text>
+  </g>
+</svg>
+<div class="diagram-caption">
+  The model's structured FAC signal gets buried under noisy Hall currents.
+  In reality, the total ground signal preserves spatial coherence.
+</div>
+</div>
+
+<div class="card insight">
+<p><strong>The physical interpretation:</strong></p>
+<p>
+In the real ionosphere, Hall currents are <em>organized</em> by the large-scale
+convection pattern &mdash; the auroral electrojet flows in a coherent channel along
+the auroral oval. But in the SWMF's Ridley Ionosphere Model (RIM), the Hall
+current pattern appears to have too much small-scale spatial variability.
+This could be caused by:
+</p>
+<ul style="margin-left: 1.5em; margin-top: 0.5em;">
+<li><strong>Conductance model:</strong> sharp boundaries between sunlit/dark
+hemispheres or precipitation zones create artificial conductance gradients,
+producing patchy Hall currents</li>
+<li><strong>Grid resolution:</strong> the ionospheric grid (~1&ndash;2&deg;) may alias
+smooth physical structures into jagged numerical patterns</li>
+<li><strong>Coupling frequency:</strong> if the magnetosphere-ionosphere coupling
+updates too infrequently, temporal transients create spatial noise</li>
+</ul>
+</div>
+
+<!-- ============================================================ -->
+<h2>7. Why This Matters</h2>
+
+<p><strong>For model validation:</strong> Traditional validation compares observed
+vs modeled timeseries at individual stations (RMSE, correlation).
+That tests <em>amplitude</em> and <em>timing</em> at each point.
+Moran's I tests something these metrics cannot: <em>does the model get
+the spatial relationships right?</em> A model could score well on single-station
+metrics while completely failing the spatial coherence test. And that's exactly
+what we see.</p>
+
+<p><strong>For physics:</strong> The decomposition is a diagnostic tool. It tells
+modelers <em>which subsystem</em> to investigate. Not "your model is wrong" but
+"your ionospheric Hall current mapping introduces ~0.38 units of excess spatial
+incoherence." That's actionable.</p>
+
+<p><strong>For our research:</strong> The observed I &asymp; +0.35 (from SuperMAG)
+is <em>not</em> an artifact of averaging or geometry &mdash; the model's FAC component
+independently confirms that large-scale current systems <em>should</em> produce
+spatial correlation. The question becomes: why does the real ionosphere
+<em>preserve</em> spatial coherence while the model destroys it? The answer
+likely involves how real ionospheric conductance is more spatially smooth than
+the model assumes.</p>
+
+<div class="card insight">
+<p><strong>The one-sentence version:</strong></p>
+<p style="font-size: 1.1em;">
+FAC builds spatial structure. Hall currents in the model destroy it.
+In reality, they don't. The model's ionospheric solver is the culprit.
+</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>8. The Vertical Component Tells Its Own Story</h2>
+
+<p>
+Weimer (2010) showed that the vertical (Z/D) ground perturbation is a
+good proxy for FAC intensity &mdash; it responds primarily to overhead
+field-aligned currents. Our decomposition confirms this:
+</p>
+
+<p>
+SWMF FAC-only D component: <strong>I = +0.27</strong> (strong spatial structure,
+as expected for large-scale Birkeland current sheets). But the total D is
+<strong>I = &minus;0.02</strong> &mdash; other current systems cancel even the
+vertical FAC signal. The observed Z: <strong>I = +0.04</strong> (low, but at
+least not negative).
+</p>
+
+<p>This suggests the cancellation problem affects all three components
+(N, E, D), not just the horizontal field. The Hall current noise is
+three-dimensional.</p>
+
+<!-- ============================================================ -->
+
+<div class="footnote">
+<p>
+  <strong>Data:</strong> SWMF SWPCTEST Event 1 (Halloween 2003), SuperMAG Oct 2003.
+  <strong>Code:</strong> <code>scripts/swmf_morans_i.py</code>.
+  <strong>Output:</strong> <code>results/ccmc_vmag/</code>.
+  <strong>SCILOG:</strong> Entry 2026-05-08.
+</p>
+<p>
+  <strong>Open question:</strong> Would GAMERA/LFM with a higher-order ionospheric
+  solver (e.g., REMIX, or a full electrodynamics solve) show better spatial
+  correlation? Would increasing RIM grid resolution from 2&deg; to 0.5&deg;
+  improve Moran's I? These are testable predictions.
+</p>
+</div>
+
+</body>
+</html>
