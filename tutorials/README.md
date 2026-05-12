@@ -1,12 +1,14 @@
-# Argus Tutorials
+# Tutorials
 
 Animated technical pedagogy with embedded SVG visualizations.
-Generated May 2026.
+
+See also the [main site](../) for the architecture behind how these are produced.
 
 ## Space Physics & MHD
 
 | Tutorial | Format | SVGs | Topic |
 |----------|--------|------|-------|
+| [Magnetosphere Dynamics](../tutorial-magnetosphere.html) | HTML | Yes | Cinematic animated tour: solar wind → shield → substorm → reconnection |
 | [Solar Wind Coupling](solar-wind-coupling.html) | HTML | Yes | SW-magnetosphere coupling, Borovsky functions, reconnection |
 | [MHD Waves](mhd-waves.html) | HTML | Yes | Alfven/magnetosonic modes, dispersion, wave coupling |
 | [MHD Physics](mhd-physics.html) | HTML | Yes | MHD fundamentals, frozen-in theorem, force balance |
