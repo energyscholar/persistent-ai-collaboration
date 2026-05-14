@@ -1261,6 +1261,8 @@ Report: "[completion format]"</div>
 
     <p>The overhead looks expensive&mdash;two shells, copy-paste handoffs, plan files for small tasks. Over 70+ sessions, every attempt to shortcut the protocol (Auditor writing deliverables directly, skipping the plan step, combining roles in one shell) produced errors that took longer to fix than the protocol would have taken. The discipline is not overhead. It is the cheapest path.</p>
 
+    <p><strong>A note on modification.</strong> The Triad&rsquo;s three-role structure is load-bearing architecture, not a starting framework to simplify once you&rsquo;re comfortable. Each constraint exists because a specific failure mode was observed without it. Merging Auditor and Generator into one session causes role collapse &mdash; the AI plans and executes in the same breath, silently drifting from spec. Removing the copy-paste gate allows the AI to self-authorize execution without a human checkpoint. Dropping the Origin role removes the authority anchor, and plans begin optimizing for what&rsquo;s tractable rather than what&rsquo;s needed. These are not theoretical risks. Each was observed, diagnosed, and resolved by adding the constraint that prevents it. Modify the protocol to fit your workflow, but understand that each structural element is load-bearing.</p>
+
     <h3>Getting started</h3>
     <p>Start with a simple project &mdash; something you'd normally do in a single session. Split it: first session writes the plan, second session executes it. The overhead feels excessive for small tasks. That's fine. You're building the habit. By the third or fourth time, you'll notice something: the plans get better because the Auditor knows the Generator has no context beyond what the plan provides. Precision becomes the default.</p>
 
@@ -1574,7 +1576,7 @@ modes with dry compassion.</div>
 
   <p>The hard parts resist productization. Governance rules are domain-specific &mdash; what counts as sycophancy in a physics collaboration is different from what counts in a therapy chatbot. Role separation requires workflow discipline that doesn&rsquo;t fit a chat interface. Health monitoring needs thresholds tuned to your work patterns. Context siloing depends on your specific confidentiality requirements. These aren&rsquo;t features you can ship to a hundred million users. They&rsquo;re architecture you build for your situation.</p>
 
-  <p>The governance architecture described here operates at the application layer &mdash; system prompts, memory files, behavioral rules. A complementary approach monitors the model layer directly, using relational mathematics to detect internal structural drift that output metrics cannot see. A working demonstration exists: <a href="https://github.com/Relational-Relativity-Corporation/abrce-alignment-demo">ABRCE Alignment Drift Detection</a>. The mathematical formalism is published at <a href="https://arxiv.org/abs/2601.22389">arXiv:2601.22389</a>.</p>
+  <p>The governance architecture described here operates at the application layer &mdash; system prompts, memory files, behavioral rules. A complementary approach, developed by <a href="https://relationalrelativity.dev/">Robin Macomber and Bruce Stephenson at Metatron Dynamics</a>, monitors the model layer directly: the <a href="https://github.com/Relational-Relativity-Corporation/Invariant_Relational_Kernel_ABRCE">ABRCE operators</a> use relational mathematics to detect internal structural drift that output metrics cannot see. Five applied demonstrations &mdash; supply chain early warning, robotics instability detection, rate limiting, bounded updates, and plasticity simulation &mdash; show the framework generalizing across domains. A working demonstration of alignment drift detection exists: <a href="https://github.com/Relational-Relativity-Corporation/abrce-alignment-demo">ABRCE Alignment Drift Detection</a>. The mathematical formalism is published at <a href="https://arxiv.org/abs/2601.22389">arXiv:2601.22389</a>.</p>
 
   <p>Argus was built for one person doing a specific kind of work: sustained research and writing across space physics, mathematics, and a literary project, over months, with strict information compartmentalization requirements. It is not a product. It is a custom-built system that happens to have replicable architecture.</p>
 
@@ -1811,7 +1813,7 @@ domain: [optional — project/domain tag for compartmentalization]
      <li><strong>Dignity Net v1.2:</strong> Designed by <a href="https://github.com/JoyfulAcceptance">Genevieve Prentice</a>, February 2026. Trial period 2026-02-16 through 2026-02-20; made permanent based on demonstrated value. The full specification is reproduced in Accordion 3A with the designer's permission. Canonical releases at <a href="https://github.com/JoyfulAcceptance/dignity-net-public">github.com/JoyfulAcceptance/dignity-net-public</a>.</li>
      <li><strong>Three Orthogonal Axes insight:</strong> Surfaced by external audit (ChatGPT analysis of a working transcript), 2026-05-01. Confirmed by both human and AI &mdash; neither had independently noticed the structural relationship between execution, truth, and continuity governance. The insight that these three form <em>boundary conditions</em> rather than features emerged from an outside observer seeing what familiarity had hidden.</li>
      <li><strong>Triad protocol:</strong> Adapted from software engineering Auditor/Generator separation patterns. The Origin role (human purpose + domain expertise + final authority) was added to prevent scope drift at the top of the authority chain. The copy-paste gate between Auditor and Generator is original to this system. Tutorial and reference implementation at <a href="https://github.com/energyscholar/triad-tutorial">github.com/energyscholar/triad-tutorial</a>.</li>
-     <li><strong>Alignment drift detection:</strong> ABRCE operators applied to transformer internal states detect structural deviation that output metrics are blind to. 31 of 43 escalation sequences triggered field alarms without output degradation. Working demonstration on Phi-3 Mini (model-agnostic). Published: <a href="https://arxiv.org/abs/2601.22389">arXiv:2601.22389</a>.</li>
+     <li><strong>Alignment drift detection:</strong> ABRCE operators (<a href="https://relationalrelativity.dev/">Robin Macomber</a>, Metatron Dynamics) applied to transformer internal states detect structural deviation that output metrics are blind to. 31 of 43 escalation sequences triggered field alarms without output degradation. Working demonstration on Phi-3 Mini (model-agnostic). Published: <a href="https://arxiv.org/abs/2601.22389">arXiv:2601.22389</a>.</li>
      <li><strong>Memory architecture (Longmem):</strong> Flat file upstream (version-controlled Markdown with YAML frontmatter) &rarr; ingestion script &rarr; SQLite database (read cache with FTS5). Deterministically rebuildable from flat files. Reference implementation at <a href="https://github.com/energyscholar/longmem">github.com/energyscholar/longmem</a>.</li>
     </ul>
 
@@ -1831,7 +1833,7 @@ domain: [optional — project/domain tag for compartmentalization]
 
     <h3>License &amp; Copyright</h3>
     <ul>
-     <li><strong>This document:</strong> CC BY 4.0. Copyright Bruce Stephenson &amp; Genevieve Prentice, 2026.</li>
+     <li><strong>This document:</strong> CC BY 4.0. Copyright Bruce Stephenson, Genevieve Prentice &amp; Robin Macomber, 2026.</li>
      <li><strong>Dignity Net specification:</strong> Included with designer's consent. Attribution required per CC BY 4.0. &copy; Genevieve Prentice, 2026.</li>
      <li><strong>Tutorials:</strong> Same license. Source available in the linked GitHub repositories.</li>
     </ul>
@@ -1839,10 +1841,12 @@ domain: [optional — project/domain tag for compartmentalization]
   </details>
   </section>
   <footer class="site-footer">
-  <p>We're available to help others build similar systems.</p>
-  <p>Contact: <a href="mailto:energyscholar+persistent-ai@gmail.com">energyscholar+persistent-ai@gmail.com</a></p>
+  <p>We&rsquo;re available to help others build similar systems.</p>
+  <p><strong><a href="https://relationalrelativity.dev/">Bruce Stephenson</a></strong> &mdash; system architecture, Longmem<br><a href="mailto:energyscholar+persistent-ai@gmail.com">energyscholar+persistent-ai@gmail.com</a></p>
+  <p><strong>Genevieve Prentice</strong> &mdash; Dignity Net behavioral governance<br><a href="mailto:genpren+persistent-ai@gmail.com">genpren+persistent-ai@gmail.com</a></p>
+  <p><strong><a href="https://relationalrelativity.dev/">Robin Macomber</a></strong> &mdash; ABRCE mathematical formalism, <a href="https://relationalrelativity.dev/">Metatron Dynamics</a> Founder<br><a href="mailto:robin+persistent-ai@relationalrelativity.com">robin+persistent-ai@relationalrelativity.com</a></p>
   <p><a href="persistent-ai-collaboration.zip" download>Download</a> 64KB &nbsp;|&nbsp; <a href="persistent-ai-collaboration-full.zip" download>Download with all tutorials</a> 2.8MB &nbsp;|&nbsp; <a href="https://github.com/energyscholar/persistent-ai-collaboration">Source on GitHub</a></p>
-  <p>CC BY 4.0 &nbsp;|&nbsp; Dignity Net designed by <a href="https://github.com/JoyfulAcceptance/dignity-net-public">Genevieve Prentice</a></p>
+  <p>CC BY 4.0 &nbsp;|&nbsp; &copy; Bruce Stephenson, Genevieve Prentice &amp; Robin Macomber, 2026</p>
   </footer>
 
 </div><!-- .container -->
@@ -1855,7 +1859,8 @@ domain: [optional — project/domain tag for compartmentalization]
   "headline": "A practitioner's guide to building one that doesn't",
   "author": [
     { "@type": "Person", "name": "Bruce Stephenson", "email": "energyscholar+persistent-ai@gmail.com" },
-    { "@type": "Thing", "name": "Argus", "description": "Persistent AI collaboration system" }
+    { "@type": "Thing", "name": "Argus", "description": "Persistent AI collaboration system" },
+    { "@type": "Person", "name": "Robin Macomber", "url": "https://relationalrelativity.dev/", "affiliation": { "@type": "Organization", "name": "Metatron Dynamics", "url": "https://relationalrelativity.dev/" } }
   ],
   "datePublished": "2026-05",
   "license": "https://creativecommons.org/licenses/by/4.0/",
