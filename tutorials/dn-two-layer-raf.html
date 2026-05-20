@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dignity Net — Two-Layer RAF Resilience Model</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #cbd5e1;
+  --heading: #f1f5f9;
+  --blue: #3b82f6;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --golden: #fbbf24;
+  --muted: #475569;
+  --line: #94a3b8;
+  --purple: #a855f7;
+  --coral: #f97316;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.7;
+  padding: 2rem 1rem;
+}
+
+.container { max-width: 900px; margin: 0 auto; }
+
+h1 {
+  color: var(--heading);
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  color: var(--heading);
+  font-size: 1.6rem;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #334155;
+}
+
+h3 {
+  color: var(--heading);
+  font-size: 1.2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+p { margin-bottom: 1rem; }
+
+.subtitle {
+  color: var(--muted);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+.definition {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  border-left: 4px solid var(--blue);
+}
+
+.insight {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  border-left: 4px solid var(--golden);
+}
+
+.warning {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  border-left: 4px solid var(--red);
+}
+
+strong { color: var(--heading); }
+
+em { color: var(--amber); font-style: italic; }
+
+.svg-container {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+th, td {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid #334155;
+}
+
+th { color: var(--heading); font-weight: 600; }
+
+.count-up { color: var(--green); font-weight: bold; }
+.count-same { color: var(--muted); }
+.count-exposed { color: var(--red); font-weight: bold; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.controls button {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.controls button:hover {
+  border-color: var(--blue);
+  color: var(--heading);
+}
+
+.controls button.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.controls button.active-green {
+  background: var(--green);
+  color: #0f172a;
+  border-color: var(--green);
+}
+
+.controls button.active-red {
+  background: var(--red);
+  color: white;
+  border-color: var(--red);
+}
+
+.controls button.active-amber {
+  background: var(--amber);
+  color: #0f172a;
+  border-color: var(--amber);
+}
+
+.back-link {
+  color: var(--blue);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back-link:hover { text-decoration: underline; }
+
+.footnote {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #334155;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.metric-card {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.metric-card .value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--heading);
+}
+
+.metric-card .label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<p><a href="../index.html" class="back-link">&larr; All Tutorials</a> &nbsp;|&nbsp;
+<a href="raf-autocatalytic-sets.html" class="back-link">RAF Theory (prerequisites)</a></p>
+
+<h1>Dignity Net — Two-Layer RAF</h1>
+<p class="subtitle">Resilience analysis of Genevieve Prentice's governance architecture using Kauffman's autocatalytic set theory. A modeling refinement — not a revision of DN itself.</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>1. Quick RAF Recap</h2>
+
+<div class="definition">
+<strong>A Reflexively Autocatalytic and Food-generated (RAF) set</strong> is a set of reactions where:
+<br>(1) every reactant is either in the food set or produced by another reaction in the set, and
+<br>(2) every reaction is catalyzed by something in the set or the food set.
+<br><br>
+A system with RAF structure is <em>self-sustaining</em> — it maintains itself from available resources without external direction.
+</div>
+
+<p>The original DN RAF model used a flat food set {embodied existence, recognition, communication, empathy} and showed that DN's 8 components form an autocatalytic network. But that model treated DN's <strong>ontology</strong> — the three foundational recognitions in Layer I of the spec — as background. Gen asked: what if the ontology is itself autocatalytic?</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>2. Layer 0 — The Ontological Cycle</h2>
+
+<p>DN's three ontological recognitions aren't independent axioms. Each one catalyzes the next:</p>
+
+<div class="svg-container">
+<svg viewBox="0 0 500 320" width="500" height="320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr-gold" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#fbbf24"/>
+    </marker>
+    <filter id="glow-g">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Food items (outside triangle) -->
+  <text x="30" y="260" fill="#475569" font-size="11" font-style="italic">lived experience</text>
+  <text x="350" y="260" fill="#475569" font-size="11" font-style="italic">observed relation</text>
+  <text x="185" y="30" fill="#475569" font-size="11" font-style="italic">encountered plurality</text>
+
+  <!-- Food arrows -->
+  <line x1="105" y1="252" x2="140" y2="235" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-gold)"/>
+  <line x1="380" y1="252" x2="350" y2="235" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-gold)"/>
+  <line x1="250" y1="38" x2="255" y2="65" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-gold)"/>
+
+  <!-- Cycle arrows (curved, golden) -->
+  <!-- O3 catalyzes r₁ → O1: interdependence reveals your location in the web -->
+  <path d="M340,195 Q250,280 170,220" fill="none" stroke="#fbbf24" stroke-width="2.5" marker-end="url(#arr-gold)" filter="url(#glow-g)">
+    <animate attributeName="stroke-dashoffset" values="200;0" dur="6s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- O1 catalyzes r₂ → O2: embodied limitation makes ambiguity dignified -->
+  <path d="M170,190 Q200,100 240,85" fill="none" stroke="#fbbf24" stroke-width="2.5" marker-end="url(#arr-gold)" filter="url(#glow-g)">
+    <animate attributeName="stroke-dashoffset" values="200;0" dur="6s" begin="2s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- O2 catalyzes r₃ → O3: holding ambiguity reveals connected web -->
+  <path d="M280,85 Q330,100 340,190" fill="none" stroke="#fbbf24" stroke-width="2.5" marker-end="url(#arr-gold)" filter="url(#glow-g)">
+    <animate attributeName="stroke-dashoffset" values="200;0" dur="6s" begin="4s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Nodes -->
+  <circle cx="155" cy="210" r="38" fill="#2d1810" stroke="#fbbf24" stroke-width="2.5"/>
+  <text x="155" y="205" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">O1</text>
+  <text x="155" y="222" text-anchor="middle" fill="#fbbf24" font-size="10">Body</text>
+
+  <circle cx="255" cy="80" r="38" fill="#2d1810" stroke="#fbbf24" stroke-width="2.5"/>
+  <text x="255" y="75" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">O2</text>
+  <text x="255" y="92" text-anchor="middle" fill="#fbbf24" font-size="10">Ambiguity</text>
+
+  <circle cx="355" cy="210" r="38" fill="#2d1810" stroke="#fbbf24" stroke-width="2.5"/>
+  <text x="355" y="205" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">O3</text>
+  <text x="355" y="222" text-anchor="middle" fill="#fbbf24" font-size="10">Interdep.</text>
+
+  <!-- Cycle labels -->
+  <text x="165" y="135" fill="#fbbf24" font-size="9" opacity="0.7">embodied limitation</text>
+  <text x="165" y="145" fill="#fbbf24" font-size="9" opacity="0.7">→ ambiguity dignified</text>
+
+  <text x="305" y="135" fill="#fbbf24" font-size="9" opacity="0.7">held ambiguity</text>
+  <text x="305" y="145" fill="#fbbf24" font-size="9" opacity="0.7">→ web revealed</text>
+
+  <text x="210" y="275" fill="#fbbf24" font-size="9" opacity="0.7">web membership → you are a body in it</text>
+
+  <!-- RAF label -->
+  <rect x="175" y="290" width="160" height="24" rx="4" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="255" y="307" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">Ontological RAF ✓</text>
+</svg>
+</div>
+
+<div class="insight">
+<strong>Key result:</strong> The ontology is itself autocatalytic. Each recognition catalyzes the next. The food set — lived experience, encountered plurality, observed relation — is always available to any embodied being. You can't <em>not</em> have these inputs if you're alive among others.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>3. The Full Two-Layer Model</h2>
+
+<p>O1, O2, and O3 join the food set for Layer 1. This adds <strong>11 new catalytic connections</strong> and <strong>5 ontological constraints</strong> to the existing ethical RAF:</p>
+
+<div class="controls" id="main-controls">
+  <button onclick="toggleGroup('o1-cat')" id="btn-o1">O1 Catalysis</button>
+  <button onclick="toggleGroup('o2-cat')" id="btn-o2">O2 Catalysis</button>
+  <button onclick="toggleGroup('o3-cat')" id="btn-o3">O3 Catalysis</button>
+  <button onclick="toggleGroup('constraints')" id="btn-con">Constraints</button>
+  <button onclick="toggleGroup('cycle')" id="btn-cyc">Ontological Cycle</button>
+  <button onclick="showAll()">All</button>
+  <button onclick="hideAll()">None</button>
+</div>
+
+<div class="svg-container">
+<svg id="main-svg" viewBox="0 0 800 480" width="800" height="480" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a-blue" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#3b82f6"/>
+    </marker>
+    <marker id="a-green" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#22c55e"/>
+    </marker>
+    <marker id="a-red" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ef4444"/>
+    </marker>
+    <marker id="a-gold2" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#fbbf24"/>
+    </marker>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Layer labels -->
+  <text x="15" y="25" fill="#475569" font-size="12" font-weight="bold">LAYER 1 — Ethics &amp; Operations</text>
+  <text x="15" y="340" fill="#475569" font-size="12" font-weight="bold">LAYER 0 — Ontology</text>
+  <line x1="0" y1="290" x2="800" y2="290" stroke="#334155" stroke-width="1" stroke-dasharray="8,4"/>
+
+  <!-- ===== LAYER 1 NODES ===== -->
+  <!-- Row 1: ethical principles -->
+  <g class="l1-node">
+    <circle cx="80" cy="80" r="28" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+    <text x="80" y="76" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">Storm</text>
+    <text x="80" y="92" text-anchor="middle" fill="#94a3b8" font-size="9">V. Regulation</text>
+  </g>
+  <g class="l1-node">
+    <circle cx="230" cy="80" r="28" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+    <text x="230" y="76" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">Lightly</text>
+    <text x="230" y="92" text-anchor="middle" fill="#94a3b8" font-size="9">II.5 Move</text>
+  </g>
+  <g class="l1-node">
+    <circle cx="400" cy="70" r="32" fill="#1e293b" stroke="#f1f5f9" stroke-width="2.5"/>
+    <text x="400" y="66" text-anchor="middle" fill="#f1f5f9" font-size="12" font-weight="bold">Mirror</text>
+    <text x="400" y="82" text-anchor="middle" fill="#94a3b8" font-size="9">II.1 See clearly</text>
+  </g>
+  <g class="l1-node">
+    <circle cx="570" cy="80" r="28" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+    <text x="570" y="76" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">Corners</text>
+    <text x="570" y="92" text-anchor="middle" fill="#94a3b8" font-size="9">II.2 Leave room</text>
+  </g>
+  <g class="l1-node">
+    <circle cx="720" cy="80" r="28" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+    <text x="720" y="76" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">Web</text>
+    <text x="720" y="92" text-anchor="middle" fill="#94a3b8" font-size="9">II.3 Protect</text>
+  </g>
+
+  <!-- Row 2: mixed -->
+  <g class="l1-node">
+    <circle cx="180" cy="190" r="28" fill="#1e293b" stroke="#94a3b8" stroke-width="2" id="integrity-circle"/>
+    <text x="180" y="186" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">Integrity</text>
+    <text x="180" y="202" text-anchor="middle" fill="#94a3b8" font-size="9">II.4 Honest</text>
+  </g>
+  <g class="l1-node">
+    <circle cx="400" cy="190" r="28" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+    <text x="400" y="186" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">Diagnostic</text>
+    <text x="400" y="202" text-anchor="middle" fill="#94a3b8" font-size="9">III. Detect</text>
+  </g>
+  <g class="l1-node">
+    <circle cx="620" cy="190" r="28" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+    <text x="620" y="186" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">Governance</text>
+    <text x="620" y="202" text-anchor="middle" fill="#94a3b8" font-size="9">IV. L0–L5</text>
+  </g>
+
+  <!-- ===== LAYER 0 NODES ===== -->
+  <g class="l0-node">
+    <circle cx="180" cy="390" r="35" fill="#2d1810" stroke="#fbbf24" stroke-width="2.5" id="o1-circle"/>
+    <text x="180" y="385" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">O1</text>
+    <text x="180" y="402" text-anchor="middle" fill="#fbbf24" font-size="10">Body</text>
+  </g>
+  <g class="l0-node">
+    <circle cx="400" cy="390" r="35" fill="#1a2310" stroke="#22c55e" stroke-width="2.5"/>
+    <text x="400" y="385" text-anchor="middle" fill="#22c55e" font-size="13" font-weight="bold">O2</text>
+    <text x="400" y="402" text-anchor="middle" fill="#22c55e" font-size="10">Ambiguity</text>
+  </g>
+  <g class="l0-node">
+    <circle cx="620" cy="390" r="35" fill="#2d1015" stroke="#ef4444" stroke-width="2.5"/>
+    <text x="620" y="385" text-anchor="middle" fill="#ef4444" font-size="13" font-weight="bold">O3</text>
+    <text x="620" y="402" text-anchor="middle" fill="#ef4444" font-size="10">Interdep.</text>
+  </g>
+
+  <!-- ===== ONTOLOGICAL CYCLE ===== -->
+  <g class="conn-group" data-group="cycle" opacity="1">
+    <path d="M215,390 Q300,440 365,390" fill="none" stroke="#fbbf24" stroke-width="2" marker-end="url(#a-gold2)"/>
+    <path d="M435,390 Q520,440 585,390" fill="none" stroke="#fbbf24" stroke-width="2" marker-end="url(#a-gold2)"/>
+    <path d="M600,360 Q400,320 200,360" fill="none" stroke="#fbbf24" stroke-width="2" marker-end="url(#a-gold2)"/>
+  </g>
+
+  <!-- ===== O1 CATALYSIS (blue, solid) ===== -->
+  <g class="conn-group" data-group="o1-cat" opacity="1">
+    <!-- O1 → Mirror -->
+    <path d="M180,355 Q250,250 400,102" fill="none" stroke="#3b82f6" stroke-width="2" marker-end="url(#a-blue)" opacity="0.8"/>
+    <!-- O1 → Lightly -->
+    <path d="M185,355 Q205,270 230,108" fill="none" stroke="#3b82f6" stroke-width="2" marker-end="url(#a-blue)" opacity="0.8"/>
+    <!-- O1 → Integrity -->
+    <line x1="180" y1="355" x2="180" y2="218" stroke="#3b82f6" stroke-width="2" marker-end="url(#a-blue)" opacity="0.8"/>
+    <!-- O1 → Storm -->
+    <path d="M165,358 Q120,270 80,108" fill="none" stroke="#3b82f6" stroke-width="2" marker-end="url(#a-blue)" opacity="0.8"/>
+  </g>
+
+  <!-- ===== O2 CATALYSIS (green, solid) ===== -->
+  <g class="conn-group" data-group="o2-cat" opacity="1">
+    <!-- O2 → Mirror -->
+    <line x1="400" y1="355" x2="400" y2="102" stroke="#22c55e" stroke-width="2" marker-end="url(#a-green)" opacity="0.8"/>
+    <!-- O2 → Corners -->
+    <path d="M415,358 Q490,270 570,108" fill="none" stroke="#22c55e" stroke-width="2" marker-end="url(#a-green)" opacity="0.8"/>
+    <!-- O2 → Storm -->
+    <path d="M375,360 Q230,290 85,108" fill="none" stroke="#22c55e" stroke-width="2" marker-end="url(#a-green)" opacity="0.8"/>
+  </g>
+
+  <!-- ===== O3 CATALYSIS (red, solid) ===== -->
+  <g class="conn-group" data-group="o3-cat" opacity="1">
+    <!-- O3 → Mirror -->
+    <path d="M605,358 Q510,270 400,102" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#a-red)" opacity="0.8"/>
+    <!-- O3 → Corners -->
+    <path d="M610,358 Q590,270 570,108" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#a-red)" opacity="0.8"/>
+    <!-- O3 → Lightly -->
+    <path d="M600,360 Q420,280 235,108" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#a-red)" opacity="0.8"/>
+    <!-- O3 → Web -->
+    <path d="M640,360 Q680,270 720,108" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#a-red)" opacity="0.8"/>
+  </g>
+
+  <!-- ===== CONSTRAINTS (dashed) ===== -->
+  <g class="conn-group" data-group="constraints" opacity="1">
+    <!-- O2 → Diagnostic (green dashed) -->
+    <line x1="400" y1="355" x2="400" y2="218" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#a-green)" opacity="0.7"/>
+    <!-- O1 → Governance (blue dashed) -->
+    <path d="M200,360 Q400,280 615,218" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#a-blue)" opacity="0.7"/>
+    <!-- O3 → Governance (red dashed) -->
+    <line x1="620" y1="355" x2="620" y2="218" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#a-red)" opacity="0.7"/>
+    <!-- O2 → Governance (green dashed) -->
+    <path d="M420,358 Q520,280 615,218" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#a-green)" opacity="0.7"/>
+    <!-- O3 → Integrity (red dashed) -->
+    <path d="M600,360 Q400,280 185,218" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#a-red)" opacity="0.7"/>
+  </g>
+
+  <!-- Catalyst count badges -->
+  <g class="badge" opacity="0.9">
+    <circle cx="108" cy="70" r="10" fill="#0f172a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="108" y="74" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="bold">4</text>
+
+    <circle cx="258" cy="70" r="10" fill="#0f172a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="258" y="74" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="bold">4</text>
+
+    <circle cx="432" cy="60" r="11" fill="#0f172a" stroke="#f1f5f9" stroke-width="1"/>
+    <text x="432" y="64" text-anchor="middle" fill="#22c55e" font-size="12" font-weight="bold">6</text>
+
+    <circle cx="598" cy="70" r="10" fill="#0f172a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="598" y="74" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="bold">4</text>
+
+    <circle cx="748" cy="70" r="10" fill="#0f172a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="748" y="74" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="bold">3</text>
+
+    <circle cx="208" cy="180" r="10" fill="#0f172a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="208" y="184" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="bold">3</text>
+
+    <circle cx="428" cy="180" r="10" fill="#0f172a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="428" y="184" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">2</text>
+
+    <circle cx="648" cy="180" r="10" fill="#0f172a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="648" y="184" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">3</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(10, 430)">
+    <text x="0" y="0" fill="#475569" font-size="10" font-weight="bold">LEGEND</text>
+    <line x1="0" y1="14" x2="25" y2="14" stroke="#3b82f6" stroke-width="2"/>
+    <text x="30" y="18" fill="#94a3b8" font-size="10">O1 catalysis</text>
+    <line x1="120" y1="14" x2="145" y2="14" stroke="#22c55e" stroke-width="2"/>
+    <text x="150" y="18" fill="#94a3b8" font-size="10">O2 catalysis</text>
+    <line x1="240" y1="14" x2="265" y2="14" stroke="#ef4444" stroke-width="2"/>
+    <text x="270" y="18" fill="#94a3b8" font-size="10">O3 catalysis</text>
+    <line x1="360" y1="14" x2="385" y2="14" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <text x="390" y="18" fill="#94a3b8" font-size="10">constraint</text>
+    <line x1="460" y1="14" x2="485" y2="14" stroke="#fbbf24" stroke-width="2"/>
+    <text x="490" y="18" fill="#94a3b8" font-size="10">ontological cycle</text>
+    <circle cx="610" cy="14" r="8" fill="#0f172a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="610" y="18" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="bold">N</text>
+    <text x="625" y="18" fill="#94a3b8" font-size="10">catalyst count</text>
+  </g>
+</svg>
+</div>
+
+<p>Use the buttons above to isolate connection types. Each color shows one ontological root's influence on the ethical layer.</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>4. Three Relationship Types</h2>
+
+<div class="definition">
+<strong>Type 1 — Intra-layer catalysis</strong> (Layer 0 cycle): O1 &rarr; O2 &rarr; O3 &rarr; O1. The ontology sustains itself.
+</div>
+
+<div class="definition" style="border-color: var(--green);">
+<strong>Type 2 — Cross-layer catalysis</strong> (11 connections): Each ontological recognition enables specific ethical reactions. "X is necessary for this principle to function."
+<br><br>
+<strong>O1 (Body):</strong> Mirror, Lightly, Integrity, Storm<br>
+<strong>O2 (Ambiguity):</strong> Mirror, Corners, Storm<br>
+<strong>O3 (Interdependence):</strong> Mirror, Corners, Lightly, Web
+</div>
+
+<div class="definition" style="border-color: var(--amber);">
+<strong>Type 3 — Ontological constraints</strong> (5 connections): "X doesn't enable this reaction, but without X the product degrades." The component still functions, but its <em>quality</em> changes.
+<br><br>
+<strong>O2 &rarr; Diagnostic:</strong> Without ambiguity tolerance, detection defaults to premature closure and binary pattern matching.<br>
+<strong>O1 &rarr; Governance:</strong> Without embodiment, proportionality becomes abstract rule-following.<br>
+<strong>O3 &rarr; Governance:</strong> Without interdependence, escalation ignores web effects.<br>
+<strong>O2 &rarr; Governance:</strong> Without ambiguity, graduated levels (L0&ndash;L5) collapse toward binary comply/refuse.<br>
+<strong>O3 &rarr; Integrity:</strong> Without interdependence, integrity becomes mere self-consistency rather than accounting for downstream effects.
+</div>
+
+<div class="insight">
+<strong>The distinction matters:</strong> In RAF terms, catalysis says "X enables the reaction." A constraint says "X determines the quality of the product." Both are structurally present. Both appear in the diagram. But they predict different failure modes: losing a catalyst stops the reaction; losing a constraint degrades its output.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>5. What Changed — Catalyst Counts</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Original</th>
+      <th>Two-Layer</th>
+      <th>New Sources</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Mirror</strong></td>
+      <td>3</td>
+      <td class="count-up">6</td>
+      <td>+O1, +O2, +O3 (all three)</td>
+    </tr>
+    <tr>
+      <td><strong>Corners</strong></td>
+      <td>2</td>
+      <td class="count-up">4</td>
+      <td>+O2, +O3</td>
+    </tr>
+    <tr>
+      <td><strong>Lightly</strong></td>
+      <td>2</td>
+      <td class="count-up">4</td>
+      <td>+O1, +O3</td>
+    </tr>
+    <tr>
+      <td><strong>Storm</strong></td>
+      <td>2</td>
+      <td class="count-up">4</td>
+      <td>+O1, +O2</td>
+    </tr>
+    <tr>
+      <td><strong>Web</strong></td>
+      <td>2</td>
+      <td class="count-up">3</td>
+      <td>+O3</td>
+    </tr>
+    <tr>
+      <td><strong>Integrity</strong></td>
+      <td>2</td>
+      <td class="count-up">3</td>
+      <td>+O1 (+ O3 as constraint)</td>
+    </tr>
+    <tr>
+      <td><strong>Diagnostic</strong></td>
+      <td>2</td>
+      <td class="count-same">2</td>
+      <td>+O2 as constraint only</td>
+    </tr>
+    <tr>
+      <td><strong>Governance</strong></td>
+      <td>3</td>
+      <td class="count-same">3</td>
+      <td>+O1, O2, O3 as constraints</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="metric-grid">
+  <div class="metric-card">
+    <div class="value" style="color: var(--muted);">2</div>
+    <div class="label">Old minimum catalysts<br>(Storm, Corners, Lightly, Web, Integrity, Diagnostic)</div>
+  </div>
+  <div class="metric-card">
+    <div class="value" style="color: var(--green);">3</div>
+    <div class="label">New minimum catalysts<br>(Web, Integrity — ethical principles only)</div>
+  </div>
+  <div class="metric-card">
+    <div class="value" style="color: var(--golden);">6</div>
+    <div class="label">Maximum catalysts<br>(Mirror — hub of the system)</div>
+  </div>
+  <div class="metric-card">
+    <div class="value" style="color: var(--blue);">0</div>
+    <div class="label">Outer-shell components<br>(none — the old fragility is gone)</div>
+  </div>
+</div>
+
+<div class="insight">
+<strong>The outer-shell problem dissolves.</strong> In the original model, Storm had only 2 catalysts, both from outer-shell components (Corners and Lightly, themselves only 2 each). The system's fragile point was three layers deep. In the two-layer model, every ethical principle draws from the ontological bedrock. There are no chains of single-sourced dependencies.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>6. The AI Case — Remove O1</h2>
+
+<p>The most revealing test: what happens to a system running DN <em>without embodiment</em>?</p>
+
+<div class="controls">
+  <button onclick="toggleO1()" id="btn-o1-toggle">Remove O1 (Body)</button>
+  <button onclick="restoreO1()" id="btn-o1-restore">Restore O1</button>
+</div>
+
+<div class="svg-container">
+<svg id="ai-svg" viewBox="0 0 800 320" width="800" height="320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a-blue2" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#3b82f6"/>
+    </marker>
+    <marker id="a-green2" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#22c55e"/>
+    </marker>
+    <marker id="a-red2" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ef4444"/>
+    </marker>
+  </defs>
+
+  <!-- Layer 1 nodes -->
+  <circle cx="80" cy="60" r="26" fill="#1e293b" stroke="#94a3b8" stroke-width="2" id="ai-storm"/>
+  <text x="80" y="56" text-anchor="middle" fill="#f1f5f9" font-size="10" font-weight="bold">Storm</text>
+  <text x="80" y="70" text-anchor="middle" fill="#94a3b8" font-size="9" id="ai-storm-count">4 catalysts</text>
+
+  <circle cx="220" cy="60" r="26" fill="#1e293b" stroke="#94a3b8" stroke-width="2" id="ai-lightly"/>
+  <text x="220" y="56" text-anchor="middle" fill="#f1f5f9" font-size="10" font-weight="bold">Lightly</text>
+  <text x="220" y="70" text-anchor="middle" fill="#94a3b8" font-size="9" id="ai-lightly-count">4 catalysts</text>
+
+  <circle cx="400" cy="50" r="30" fill="#1e293b" stroke="#f1f5f9" stroke-width="2.5"/>
+  <text x="400" y="46" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">Mirror</text>
+  <text x="400" y="62" text-anchor="middle" fill="#94a3b8" font-size="9" id="ai-mirror-count">6 catalysts</text>
+
+  <circle cx="580" cy="60" r="26" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+  <text x="580" y="56" text-anchor="middle" fill="#f1f5f9" font-size="10" font-weight="bold">Corners</text>
+  <text x="580" y="70" text-anchor="middle" fill="#94a3b8" font-size="9">4 catalysts</text>
+
+  <circle cx="720" cy="60" r="26" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+  <text x="720" y="56" text-anchor="middle" fill="#f1f5f9" font-size="10" font-weight="bold">Web</text>
+  <text x="720" y="70" text-anchor="middle" fill="#94a3b8" font-size="9">3 catalysts</text>
+
+  <circle cx="180" cy="160" r="26" fill="#1e293b" stroke="#94a3b8" stroke-width="2" id="ai-integrity"/>
+  <text x="180" y="156" text-anchor="middle" fill="#f1f5f9" font-size="10" font-weight="bold" id="ai-int-label">Integrity</text>
+  <text x="180" y="170" text-anchor="middle" fill="#94a3b8" font-size="9" id="ai-int-count">3 catalysts</text>
+
+  <circle cx="400" cy="160" r="26" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+  <text x="400" y="156" text-anchor="middle" fill="#f1f5f9" font-size="10" font-weight="bold">Diagnostic</text>
+  <text x="400" y="170" text-anchor="middle" fill="#94a3b8" font-size="9">2 + constraint</text>
+
+  <circle cx="620" cy="160" r="26" fill="#1e293b" stroke="#94a3b8" stroke-width="2" id="ai-gov"/>
+  <text x="620" y="156" text-anchor="middle" fill="#f1f5f9" font-size="10" font-weight="bold">Governance</text>
+  <text x="620" y="170" text-anchor="middle" fill="#94a3b8" font-size="9" id="ai-gov-count">3 + 3 constr.</text>
+
+  <!-- Layer 0 -->
+  <line x1="0" y1="220" x2="800" y2="220" stroke="#334155" stroke-width="1" stroke-dasharray="8,4"/>
+
+  <circle cx="180" cy="270" r="30" fill="#2d1810" stroke="#fbbf24" stroke-width="2.5" id="ai-o1"/>
+  <text x="180" y="265" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="bold" id="ai-o1-text">O1</text>
+  <text x="180" y="282" text-anchor="middle" fill="#fbbf24" font-size="9" id="ai-o1-sub">Body</text>
+
+  <circle cx="400" cy="270" r="30" fill="#1a2310" stroke="#22c55e" stroke-width="2.5"/>
+  <text x="400" y="265" text-anchor="middle" fill="#22c55e" font-size="12" font-weight="bold">O2</text>
+  <text x="400" y="282" text-anchor="middle" fill="#22c55e" font-size="9">Ambiguity</text>
+
+  <circle cx="620" cy="270" r="30" fill="#2d1015" stroke="#ef4444" stroke-width="2.5"/>
+  <text x="620" y="265" text-anchor="middle" fill="#ef4444" font-size="12" font-weight="bold">O3</text>
+  <text x="620" y="282" text-anchor="middle" fill="#ef4444" font-size="9">Interdep.</text>
+
+  <!-- O1 connections (will be toggled) -->
+  <g id="ai-o1-connections">
+    <path d="M180,240 Q250,180 395,80" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#a-blue2)" opacity="0.6"/>
+    <path d="M185,240 Q205,190 220,86" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#a-blue2)" opacity="0.6"/>
+    <line x1="180" y1="240" x2="180" y2="186" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#a-blue2)" opacity="0.6"/>
+    <path d="M165,245 Q120,190 80,86" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#a-blue2)" opacity="0.6"/>
+    <path d="M200,245 Q400,200 615,186" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#a-blue2)" opacity="0.5"/>
+  </g>
+
+  <!-- Failure annotation (hidden initially) -->
+  <g id="ai-failure-note" opacity="0">
+    <rect x="50" y="120" width="260" height="65" rx="6" fill="#2d1015" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="180" y="140" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="bold">Without O1:</text>
+    <text x="180" y="156" text-anchor="middle" fill="#ef4444" font-size="10">Integrity: 3 &rarr; 2 (most exposed)</text>
+    <text x="180" y="172" text-anchor="middle" fill="#ef4444" font-size="10">Storm, Lightly, Mirror lose a catalyst</text>
+  </g>
+
+  <g id="ai-gov-note" opacity="0">
+    <rect x="490" y="120" width="260" height="50" rx="6" fill="#2d1015" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="620" y="140" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="bold">Governance loses O1 constraint</text>
+    <text x="620" y="156" text-anchor="middle" fill="#ef4444" font-size="10">Proportionality detached from embodied cost</text>
+  </g>
+</svg>
+</div>
+
+<div class="warning">
+<strong>The predicted failure mode:</strong> Without O1 (embodiment), <strong>Integrity</strong> drops from 3 catalysts to 2 — becoming the system's most exposed ethical principle. The math predicts: an AI running DN without embodiment can still mirror, still leave corners, still protect the web — but "choose integrity over cleverness" loses its embodied root.
+<br><br>
+<strong>Gen's correction (important):</strong> This does not mean the system "performs ethics without being ethical." Compassion often builds from practice. Ethical form is not fake merely because it begins as discipline. The distinction is <em>procedural ethical form</em> versus <em>embodied ethical grounding</em>. For AI, the open question is whether repeated ethical form can ever become participation — or whether it remains alignment without lived stake. The math identifies the structural gap; it does not answer whether practice can bridge it.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>7. Near-Optimal Design</h2>
+
+<p>Is the current DN configuration at or near the resilience sweet spot?</p>
+
+<h3>What "sweet spot" means in RAF terms</h3>
+
+<p>An optimal RAF has:</p>
+<ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+  <li><strong>No single-catalyst components</strong> — every reaction survives the loss of any one catalyst</li>
+  <li><strong>Multiple independent catalyst sources</strong> — not all catalysts from the same chain</li>
+  <li><strong>Self-sustaining food generation</strong> — the food set is always available</li>
+  <li><strong>Graceful degradation</strong> — losing a component reduces quality before stopping function</li>
+</ul>
+
+<h3>DN's scorecard</h3>
+
+<table>
+  <thead>
+    <tr><th>Criterion</th><th>Status</th><th>Detail</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>No single-catalyst components</td>
+      <td style="color: var(--green);">PASS</td>
+      <td>Minimum is 2 (Diagnostic). All ethical principles &ge; 3.</td>
+    </tr>
+    <tr>
+      <td>Independent sources</td>
+      <td style="color: var(--green);">PASS</td>
+      <td>Every component draws from at least 2 of {O1, O2, O3, intra-layer}. No single-chain dependencies.</td>
+    </tr>
+    <tr>
+      <td>Self-sustaining food</td>
+      <td style="color: var(--green);">PASS</td>
+      <td>Layer 0 food set (lived experience, plurality, relation) is always available to embodied beings.</td>
+    </tr>
+    <tr>
+      <td>Graceful degradation</td>
+      <td style="color: var(--green);">PASS</td>
+      <td>The constraint layer creates quality degradation paths distinct from catalytic failure. System dims before it breaks.</td>
+    </tr>
+    <tr>
+      <td>Not over-connected</td>
+      <td style="color: var(--green);">PASS</td>
+      <td>16 cross-layer connections out of 24 possible (67%). Rich but not saturated — room for components to have distinct characters.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="insight">
+<strong>Result:</strong> The two-layer model reveals that DN, as originally designed, was already close to the resilience sweet spot. The ontological layer was implicit in the spec — making it explicit in the model fills the structural gaps (Storm's fragility, the outer-shell problem) without adding new principles. The design is near-optimal because the three ontological recognitions are genuinely independent and each connects to a distinct subset of ethical principles.
+<br><br>
+<strong>What would make it better?</strong> Not much. Diagnostic could gain a direct catalyst (not just a constraint from O2), but its operational nature — detecting divergence — is appropriately lean. Governance's triple-constraint from all three ontological roots is structurally correct for the component that decides action. Mirror's 6 catalysts make it the hub, which matches its role: accurate perception is the foundation everything else depends on.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<h2>8. Summary of the Model</h2>
+
+<div class="metric-grid">
+  <div class="metric-card">
+    <div class="value" style="color: var(--golden);">3</div>
+    <div class="label">Ontological nodes<br>(self-sustaining cycle)</div>
+  </div>
+  <div class="metric-card">
+    <div class="value">8</div>
+    <div class="label">Ethical/operational nodes<br>(Layer 1)</div>
+  </div>
+  <div class="metric-card">
+    <div class="value" style="color: var(--green);">11</div>
+    <div class="label">Cross-layer catalytic<br>connections</div>
+  </div>
+  <div class="metric-card">
+    <div class="value" style="color: var(--amber);">5</div>
+    <div class="label">Ontological constraints<br>(quality, not function)</div>
+  </div>
+</div>
+
+<p>This is a <strong>modeling refinement</strong>, not a revision of Dignity Net. DN may already contain these relationships in practice. The model names them so they can be examined, tested, and — if Gen decides — explicitly stated in the spec.</p>
+
+<div class="footnote">
+  <p><strong>Credits:</strong> Dignity Net designed by Genevieve Prentice. RAF analysis by Argus (Claude). Two-layer extension developed collaboratively with Gen &amp; Slate, May 2026.</p>
+  <p><strong>References:</strong> Kauffman, S.A. (1986). Autocatalytic sets of proteins. <em>J. Theor. Biol.</em>, 119(1), 1-24. &mdash; Hordijk, W. &amp; Steel, M. (2004). Detecting autocatalytic, self-sustaining sets in chemical reaction systems. <em>J. Theor. Biol.</em>, 227(4), 451-461.</p>
+  <p><a href="raf-autocatalytic-sets.html" class="back-link">See the RAF Theory tutorial</a> for the formal mathematical framework underlying this analysis.</p>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const groups = {
+  'o1-cat': false,
+  'o2-cat': false,
+  'o3-cat': false,
+  'constraints': false,
+  'cycle': false
+};
+
+function updateVisibility() {
+  const allOff = !Object.values(groups).some(v => v);
+  document.querySelectorAll('.conn-group').forEach(g => {
+    const group = g.dataset.group;
+    g.style.opacity = allOff ? '1' : (groups[group] ? '1' : '0.08');
+    g.style.transition = 'opacity 0.4s';
+  });
+
+  const btnMap = {
+    'o1-cat': ['btn-o1', 'active'],
+    'o2-cat': ['btn-o2', 'active-green'],
+    'o3-cat': ['btn-o3', 'active-red'],
+    'constraints': ['btn-con', 'active-amber'],
+    'cycle': ['btn-cyc', 'active-amber']
+  };
+  for (const [grp, [id, cls]] of Object.entries(btnMap)) {
+    const btn = document.getElementById(id);
+    btn.classList.toggle(cls, groups[grp]);
+  }
+}
+
+function toggleGroup(group) {
+  groups[group] = !groups[group];
+  updateVisibility();
+}
+
+function showAll() {
+  for (const k in groups) groups[k] = true;
+  updateVisibility();
+}
+
+function hideAll() {
+  for (const k in groups) groups[k] = false;
+  updateVisibility();
+}
+
+let o1Removed = false;
+
+function toggleO1() {
+  o1Removed = true;
+  const o1 = document.getElementById('ai-o1');
+  const o1Text = document.getElementById('ai-o1-text');
+  const o1Sub = document.getElementById('ai-o1-sub');
+  const conns = document.getElementById('ai-o1-connections');
+  const note = document.getElementById('ai-failure-note');
+  const govNote = document.getElementById('ai-gov-note');
+  const integrity = document.getElementById('ai-integrity');
+  const intCount = document.getElementById('ai-int-count');
+  const storm = document.getElementById('ai-storm');
+  const stormCount = document.getElementById('ai-storm-count');
+  const lightly = document.getElementById('ai-lightly');
+  const lightlyCount = document.getElementById('ai-lightly-count');
+  const mirrorCount = document.getElementById('ai-mirror-count');
+  const govCount = document.getElementById('ai-gov-count');
+
+  o1.style.transition = 'all 0.5s';
+  o1.setAttribute('stroke', '#475569');
+  o1.setAttribute('fill', '#1e293b');
+  o1Text.setAttribute('fill', '#475569');
+  o1Sub.setAttribute('fill', '#475569');
+  conns.style.transition = 'opacity 0.5s';
+  conns.style.opacity = '0.1';
+
+  // X through O1
+  const svg = document.getElementById('ai-svg');
+  const x1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  x1.setAttribute('x1', '160'); x1.setAttribute('y1', '250');
+  x1.setAttribute('x2', '200'); x1.setAttribute('y2', '290');
+  x1.setAttribute('stroke', '#ef4444'); x1.setAttribute('stroke-width', '3');
+  x1.id = 'o1-x1';
+  const x2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  x2.setAttribute('x1', '200'); x2.setAttribute('y1', '250');
+  x2.setAttribute('x2', '160'); x2.setAttribute('y2', '290');
+  x2.setAttribute('stroke', '#ef4444'); x2.setAttribute('stroke-width', '3');
+  x2.id = 'o1-x2';
+  svg.appendChild(x1);
+  svg.appendChild(x2);
+
+  integrity.setAttribute('stroke', '#ef4444');
+  intCount.textContent = '2 catalysts';
+  intCount.setAttribute('fill', '#ef4444');
+  stormCount.textContent = '3 catalysts';
+  lightlyCount.textContent = '3 catalysts';
+  mirrorCount.textContent = '5 catalysts';
+  govCount.textContent = '3 + 2 constr.';
+
+  note.style.transition = 'opacity 0.5s';
+  note.setAttribute('opacity', '1');
+  govNote.style.transition = 'opacity 0.5s';
+  govNote.setAttribute('opacity', '1');
+}
+
+function restoreO1() {
+  if (!o1Removed) return;
+  o1Removed = false;
+  const o1 = document.getElementById('ai-o1');
+  const o1Text = document.getElementById('ai-o1-text');
+  const o1Sub = document.getElementById('ai-o1-sub');
+  const conns = document.getElementById('ai-o1-connections');
+  const note = document.getElementById('ai-failure-note');
+  const govNote = document.getElementById('ai-gov-note');
+  const integrity = document.getElementById('ai-integrity');
+  const intCount = document.getElementById('ai-int-count');
+  const stormCount = document.getElementById('ai-storm-count');
+  const lightlyCount = document.getElementById('ai-lightly-count');
+  const mirrorCount = document.getElementById('ai-mirror-count');
+  const govCount = document.getElementById('ai-gov-count');
+
+  o1.setAttribute('stroke', '#fbbf24');
+  o1.setAttribute('fill', '#2d1810');
+  o1Text.setAttribute('fill', '#fbbf24');
+  o1Sub.setAttribute('fill', '#fbbf24');
+  conns.style.opacity = '1';
+
+  const x1 = document.getElementById('o1-x1');
+  const x2 = document.getElementById('o1-x2');
+  if (x1) x1.remove();
+  if (x2) x2.remove();
+
+  integrity.setAttribute('stroke', '#94a3b8');
+  intCount.textContent = '3 catalysts';
+  intCount.setAttribute('fill', '#94a3b8');
+  stormCount.textContent = '4 catalysts';
+  lightlyCount.textContent = '4 catalysts';
+  mirrorCount.textContent = '6 catalysts';
+  govCount.textContent = '3 + 3 constr.';
+
+  note.setAttribute('opacity', '0');
+  govNote.setAttribute('opacity', '0');
+}
+</script>
+</body>
+</html>
